@@ -1,0 +1,4 @@
+node_modules/
+signups.json
+.DS_Store
+*.log

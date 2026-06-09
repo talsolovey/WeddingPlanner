@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vow — Your AI Wedding Planning Agent</title>
+    <meta
+      name="description"
+      content="Vow is an AI agent that plans your wedding — managing vendors, budgets, contracts, guest lists, and deadlines, and telling you exactly what needs attention next."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="logo" href="#top">
+        <span class="logo-mark">♡</span> Vow
+      </a>
+      <nav class="nav">
+        <a href="#features">Features</a>
+        <a href="#demo">Demo</a>
+        <a href="#signup" class="nav-cta">Get early access</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <!-- Hero -->
+      <section class="hero">
+        <div class="hero-content">
+          <p class="eyebrow">The AI agent for engaged couples</p>
+          <h1>Plan your wedding with a partner who never drops a detail.</h1>
+          <p class="subhead">
+            Vow keeps your vendors, budget, contracts, guest list, deadlines, and
+            decisions in one place — then tells you exactly what to handle next.
+          </p>
+          <div class="hero-actions">
+            <a href="#signup" class="btn btn-primary">Get early access</a>
+            <a href="#demo" class="btn btn-ghost">See it in action</a>
+          </div>
+          <p class="hero-note">No spreadsheets. No 14 open tabs. Just answers.</p>
+        </div>
+      </section>
+
+      <!-- Features -->
+      <section id="features" class="features">
+        <div class="section-head">
+          <p class="eyebrow">What Vow does</p>
+          <h2>One agent. Every moving piece of your wedding.</h2>
+        </div>
+        <div class="feature-grid">
+          <article class="feature-card">
+            <div class="feature-icon">📄</div>
+            <h3>Reads your contracts</h3>
+            <p>
+              Upload a vendor contract and Vow flags hidden fees, vague clauses,
+              and cancellation terms before you sign.
+            </p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon">💬</div>
+            <h3>Parses your chats &amp; emails</h3>
+            <p>
+              Export your WhatsApp threads and inbox — Vow pulls out the tasks,
+              promises, and decisions buried inside them.
+            </p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon">⚖️</div>
+            <h3>Compares vendors side by side</h3>
+            <p>
+              See photographers, venues, and caterers ranked by your budget and
+              your taste — not by who emailed back fastest.
+            </p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon">💰</div>
+            <h3>Tracks payments &amp; forecasts cost</h3>
+            <p>
+              Every deposit, balance, and due date in one ledger, with a live
+              forecast of where your final spend is heading.
+            </p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon">🎟️</div>
+            <h3>Manages RSVPs &amp; guests</h3>
+            <p>
+              Track invites, replies, meal choices, plus-ones, and seating
+              details without chasing anyone down.
+            </p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon">🧭</div>
+            <h3>Tells you what's next</h3>
+            <p>
+              Vow watches every deadline and decision and surfaces the one thing
+              that actually needs your attention today.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <!-- Interactive demo -->
+      <section id="demo" class="demo">
+        <div class="section-head">
+          <p class="eyebrow">Live demo</p>
+          <h2>What Vow might show you this week.</h2>
+          <p class="section-sub">
+            A peek at your dashboard for Mia &amp; Daniel — wedding in 86 days.
+          </p>
+        </div>
+
+        <div class="demo-stage">
+          <button id="demo-toggle" class="btn btn-primary btn-lg" aria-expanded="false" aria-controls="demo-panel">
+            Reveal this week's brief
+          </button>
+
+          <div id="demo-panel" class="demo-panel" hidden>
+            <div class="demo-window">
+              <div class="demo-bar">
+                <span class="dot dot-red"></span>
+                <span class="dot dot-amber"></span>
+                <span class="dot dot-green"></span>
+                <span class="demo-title">Vow · Weekly Brief</span>
+              </div>
+              <div class="demo-body">
+                <p class="demo-greeting">
+                  Good morning, Mia &amp; Daniel 👋 Here's what needs you this week.
+                </p>
+
+                <div class="demo-priority">
+                  <span class="priority-flag">Needs attention</span>
+                  <p>
+                    Your <strong>florist's contract</strong> has a $450
+                    "setup &amp; breakdown" fee that isn't in their quote, and a
+                    <strong>50% cancellation penalty</strong> after June 20. I'd
+                    push back before signing.
+                  </p>
+                </div>
+
+                <div class="demo-cards">
+                  <div class="demo-mini">
+                    <span class="mini-label">Budget</span>
+                    <span class="mini-value">$38,200 / $42,000</span>
+                    <div class="bar"><span style="width: 91%"></span></div>
+                    <span class="mini-note">Forecast: $41,300 final — on track</span>
+                  </div>
+                  <div class="demo-mini">
+                    <span class="mini-label">RSVPs</span>
+                    <span class="mini-value">112 / 150</span>
+                    <div class="bar"><span style="width: 75%"></span></div>
+                    <span class="mini-note">38 guests haven't replied — nudge?</span>
+                  </div>
+                </div>
+
+                <ul class="demo-tasks">
+                  <li>
+                    <span class="task-due overdue">Due tomorrow</span>
+                    Pay catering deposit — <strong>$2,500</strong> to Saffron &amp; Sage
+                  </li>
+                  <li>
+                    <span class="task-due">3 days</span>
+                    Confirm DJ playlist (extracted from your WhatsApp thread)
+                  </li>
+                  <li>
+                    <span class="task-due">This week</span>
+                    Decide between <strong>Lumen Studio</strong> and <strong>North Light</strong> — Lumen fits budget &amp; style better
+                  </li>
+                </ul>
+
+                <p class="demo-footer">
+                  I found these by reading your latest contract, your inbox, and
+                  3 vendor chats. Want me to draft the florist reply?
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Signup -->
+      <section id="signup" class="signup">
+        <div class="signup-card">
+          <p class="eyebrow">Early access</p>
+          <h2>Be the first couple to plan with Vow.</h2>
+          <p class="signup-sub">
+            Drop your email and we'll invite you as soon as your spot opens up.
+          </p>
+          <form id="signup-form" class="signup-form" novalidate>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder="you@example.com"
+              autocomplete="email"
+              required
+            />
+            <button type="submit" class="btn btn-primary">Join the list</button>
+          </form>
+          <p id="signup-message" class="signup-message" role="status" aria-live="polite"></p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span class="logo"><span class="logo-mark">♡</span> Vow</span>
+      <p>Built for couples who'd rather enjoy the engagement than manage it.</p>
+    </footer>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vow - AI Wedding Planner</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; background: linear-gradient(to right, #f3e6e8, #fff); margin: 0; padding: 0; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .hero-section { text-align: center; padding: 80px 0; }
+        .hero-title { font-size: 4em; color: #b0306a; }
+        .hero-tagline { font-size: 1.5em; color: #333; margin-top: 10px; }
+        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; padding-top: 50px; }
+        .feature-card { background: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); padding: 20px; }
+        .feature-title { font-size: 1.2em; color: #b0306a; }
+        .demo-button { margin: 30px 0; padding: 10px 20px; background: #b0306a; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+        .demo-button:hover { background: #922b55; }
+        .signup-form { margin-top: 50px; text-align: center; }
+        .input-email { padding: 10px; font-size: 1em; width: 250px; }
+        .submit-button { padding: 10px 20px; background: #b0306a; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+        .submit-button:hover { background: #922b55; }
+        .message { margin-top: 20px; font-size: 1em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <section class="hero-section">
+            <h1 class="hero-title">Vow</h1>
+            <p class="hero-tagline">Plan your whole wedding in one place.</p>
+        </section>
+
+        <section class="features">
+            <div class="feature-card">
+                <h2 class="feature-title">Flag Hidden Fees</h2>
+                <p>Reads vendor contracts to flag hidden fees and cancellation terms.</p>
+            </div>
+            <div class="feature-card">
+                <h2 class="feature-title">Parse WhatsApp & Email</h2>
+                <p>Parses WhatsApp and email exports to extract tasks and decisions.</p>
+            </div>
+            <div class="feature-card">
+                <h2 class="feature-title">Vendor Comparison</h2>
+                <p>Compares vendors side by side on budget and fit.</p>
+            </div>
+            <div class="feature-card">
+                <h2 class="feature-title">Payment Tracking</h2>
+                <p>Tracks payments and forecasts costs.</p>
+            </div>
+            <div class="feature-card">
+                <h2 class="feature-title">RSVP Management</h2>
+                <p>Manages RSVPs and guest details.</p>
+            </div>
+            <div class="feature-card">
+                <h2 class="feature-title">Next Steps</h2>
+                <p>Tells couples exactly what needs attention next.</p>
+            </div>
+        </section>
+
+        <button class="demo-button" onclick="showDemo()">See what Vow would show you this week</button>
+        <div id="demo-panel" style="display:none;">
+            <!-- Demo content will be injected here -->
+        </div>
+
+        <section class="signup-form">
+            <input type="email" id="email" class="input-email" placeholder="Enter your email">
+            <button onclick="submitSignup()" class="submit-button">Sign Up</button>
+            <div id="response-message" class="message"></div>
+        </section>
+    </div>
+
+    <script>
+        const demoData = [
+            { tasks: ['Overdue contract to sign', 'Upcoming vendor payment', 'RSVP deadline approaching'], budget: 'Budget on track', contractClause: 'Beware of cancellation policy in vendor contract' },
+            { tasks: ['Venue contract to review', 'Confirm flowers', 'Choose cake design'], budget: '6% overbudget but within margin', contractClause: 'Double-check decoration costs in vendor contract' }
+        ];
+
+        function showDemo() {
+            const panel = document.getElementById('demo-panel');
+            const randomIndex = Math.floor(Math.random() * demoData.length);
+            const data = demoData[randomIndex];
+            panel.innerHTML = `
+                <h3>What Needs Your Attention</h3>
+                <ul>${data.tasks.map(task => `<li>${task}</li>`).join('')}</ul>
+                <h3>Budget Snapshot</h3>
+                <p>${data.budget}</p>
+                <h3>Flagged Contract Clause</h3>
+                <p>${data.contractClause}</p>
+            `;
+            panel.style.display = 'block';
+        }
+
+        function submitSignup() {
+            const email = document.getElementById('email').value;
+            fetch('/signup', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const messageDiv = document.getElementById('response-message');
+                if (data.error) {
+                    messageDiv.textContent = `Error: ${data.error}`;
+                    messageDiv.style.color = 'red';
+                } else {
+                    messageDiv.textContent = 'Thank you for signing up!';
+                    messageDiv.style.color = 'green';
+                }
+            })
+            .catch(() => {
+                const messageDiv = document.getElementById('response-message');
+                messageDiv.textContent = 'An unexpected error occurred. Please try again later!';
+                messageDiv.style.color = 'red';
+            });
+        }
+    </script>
+</body>
+</html>
