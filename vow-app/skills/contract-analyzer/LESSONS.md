@@ -1,0 +1,1 @@
+- Photographer contracts may lack specific delivery timelines, allowing significant delays in receiving photos. It's critical to request a specified delivery timeline with potential penalties for delays.
