@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<script src="app.js" defer></script>
 <style>
   .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
   .stat { background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.2rem; }
@@ -30,7 +31,8 @@
   <header class="site-header">
     <a class="logo" href="/">Vow <span class="logo-mark">✦</span></a>
     <nav class="nav">
-      <a href="/">Contracts</a>
+      <a href="/">Home</a>
+      <a href="/contracts">Contracts</a>
       <a href="/budget" class="active">Budget</a>
       <a class="soon">Vendors</a>
       <a class="soon">Weekly Brief</a>
@@ -98,6 +100,13 @@ async function load() {
   $("stat-budget").textContent = b.total_budget ? fmt(b.total_budget) : "—";
   $("stat-committed").textContent = fmt(committed);
   $("stat-paid").textContent = fmt(paid);
+  if (!b.items.length) {
+    $("rows").innerHTML = `<tr><td colspan="7" style="text-align:center; padding:1.4rem; color:var(--ink-soft);">
+      No items yet — add your first line below, or
+      <button id="sample" class="btn-primary" style="padding:.4rem 1rem; margin-left:.4rem;">load an example budget</button>
+    </td></tr>`;
+    return;
+  }
   $("rows").innerHTML = b.items.map(i => `
     <tr>
       <td><b>${esc(i.category)}</b></td>
@@ -109,16 +118,39 @@ async function load() {
       <td><button class="del" data-id="${i.id}" title="Remove">✕</button></td>
     </tr>`).join("");
   document.querySelectorAll(".del").forEach(el => el.addEventListener("click", async () => {
+    const item = b.items.find(i => i.id === el.dataset.id);
     await fetch("/api/budget/items/" + el.dataset.id, { method: "DELETE" });
     load();
+    toast(`Removed ${item ? item.category : "item"}`, { undo: async () => {
+      await fetch("/api/budget/items", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(item),
+      });
+      load();
+    }});
   }));
 }
+
+/* sample budget + enter-to-add */
+document.addEventListener("click", async (e) => {
+  if (e.target.id !== "sample") return;
+  await fetch("/api/budget/load-sample", { method: "POST" });
+  toast("Example budget loaded");
+  load();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && e.target.id && e.target.id.startsWith("f-")) {
+    e.preventDefault();
+    $("add").click();
+  }
+});
 
 $("save-budget").addEventListener("click", async () => {
   await fetch("/api/budget/settings", {
     method: "PUT", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ total_budget: $("total-budget").value || 0 }),
   });
+  toast("Budget saved");
   load();
 });
 
@@ -139,14 +171,14 @@ $("add").addEventListener("click", async () => {
 
 $("analyze").addEventListener("click", async () => {
   $("analyze").disabled = true;
-  $("status").innerHTML = `<div class="status"><div class="spinner"></div>Vow is going through your budget… 20–60 seconds.</div>`;
   $("result").innerHTML = "";
   try {
     const res = await fetch("/api/budget/analyze", { method: "POST" });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error || "Analysis failed.");
+    const result = await pollJob(json.job_id, $("status"), "Vow is going through your budget… usually 20–60 seconds.");
     $("status").innerHTML = "";
-    render(json);
+    render(result);
   } catch (err) {
     $("status").innerHTML = `<p class="status">⚠ ${esc(err.message)}</p>`;
   } finally {
@@ -171,9 +203,12 @@ function render({ analysis: a, cost_usd }) {
       <p style="margin-top:.4rem">${esc(a.summary)}</p>
       <div class="meta">analysis cost $${cost_usd}</div>
     </div>
-    <h2 class="section-title">Warnings</h2>${warnings}
-    <h2 class="section-title">Missing categories</h2><ul class="nice-list">${missing}</ul>
-    <h2 class="section-title">Payment exposure</h2><p>${esc(a.payment_exposure)}</p>`;
+    <h2 class="section-title">Warnings</h2>
+    <div class="flags-grid">${warnings}</div>
+    <div class="two-col">
+      <div><h2 class="section-title">Missing categories</h2><ul class="nice-list">${missing}</ul></div>
+      <div><h2 class="section-title">Payment exposure</h2><p style="margin-top:.6rem">${esc(a.payment_exposure)}</p></div>
+    </div>`;
 }
 
 load();

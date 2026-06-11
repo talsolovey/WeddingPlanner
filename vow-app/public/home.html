@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vow — Your wedding, under control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="/">Vow <span class="logo-mark">✦</span></a>
+    <nav class="nav">
+      <a href="/" class="active">Home</a>
+      <a href="/contracts">Contracts</a>
+      <a href="/budget">Budget</a>
+      <a class="soon">Vendors</a>
+      <a class="soon">Weekly Brief</a>
+    </nav>
+  </header>
+
+  <main class="page">
+    <p class="eyebrow">Your wedding at a glance</p>
+    <h1>Welcome back.</h1>
+    <p class="lede">Here's where things stand — and where Vow can help next.</p>
+
+    <div class="dash-grid">
+      <div class="card dash-card">
+        <p class="eyebrow" style="margin-bottom:0">Budget</p>
+        <div class="big" id="d-budget">—</div>
+        <div id="d-budget-sub" style="color:var(--ink-soft); font-size:.92rem;">No budget set up yet.</div>
+        <div class="cta"><a class="go" href="/budget">Open budget →</a></div>
+      </div>
+
+      <div class="card dash-card">
+        <p class="eyebrow" style="margin-bottom:0">Latest contract</p>
+        <div id="d-contract">
+          <div style="color:var(--ink-soft); font-size:.92rem;">No contracts analyzed yet — upload one and Vow will flag the traps.</div>
+        </div>
+        <div class="cta"><a class="go" href="/contracts">Open contracts →</a></div>
+      </div>
+
+      <div class="card dash-card">
+        <p class="eyebrow" style="margin-bottom:0">What Vow has learned</p>
+        <div id="d-skills" style="margin-top:.3rem;"><div style="color:var(--ink-soft); font-size:.92rem;">Loading…</div></div>
+        <div class="cta" style="color:var(--ink-soft); font-size:.8rem;">Vow records lessons from every analysis and uses them next time.</div>
+      </div>
+    </div>
+  </main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+(async function load() {
+  const o = await (await fetch("/api/overview")).json();
+  const fmt = (n) => new Intl.NumberFormat(undefined, { style: "currency", currency: o.budget.currency || "USD", maximumFractionDigits: 0 }).format(n || 0);
+
+  if (o.budget.item_count) {
+    $("d-budget").textContent = o.budget.total_budget ? fmt(o.budget.total_budget) : fmt(o.budget.committed);
+    $("d-budget-sub").innerHTML = `${fmt(o.budget.committed)} committed · ${fmt(o.budget.paid)} paid · ${o.budget.item_count} items`;
+  }
+
+  if (o.latest_contract) {
+    const c = o.latest_contract, fc = c.flag_counts;
+    $("d-contract").innerHTML = `
+      <div style="font-weight:600">${esc(c.vendor)}</div>
+      <div style="margin:.3rem 0 .5rem;">
+        ${fc.red ? `<span class="chip red">${fc.red} red</span> ` : ""}
+        ${fc.yellow ? `<span class="chip yellow">${fc.yellow} yellow</span> ` : ""}
+        ${fc.green ? `<span class="chip green">${fc.green} green</span>` : ""}
+      </div>
+      <div style="color:var(--ink-soft); font-size:.92rem;">${esc(c.summary)}</div>
+      <div class="meta">${o.contract_count} contract${o.contract_count === 1 ? "" : "s"} analyzed in total</div>`;
+  }
+
+  $("d-skills").innerHTML = o.skills.map(s => `
+    <div class="lesson-row"><span>${esc(s.name)}</span>
+    <span class="n">${s.lessons} lesson${s.lessons === 1 ? "" : "s"}</span></div>`).join("")
+    || `<div style="color:var(--ink-soft)">No skills installed.</div>`;
+})();
+</script>
+</body>
+</html>
