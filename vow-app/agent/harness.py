@@ -30,6 +30,15 @@ decision.
 """
 
 
+FRIENDLY_TOOL_NAMES = {
+    "list_skills": "checking which skills fit this task",
+    "read_skill": "reading the skill's instructions and past lessons",
+    "read_data": "reading your wedding data",
+    "write_data": "updating your wedding data",
+    "append_lesson": "recording a lesson for next time",
+}
+
+
 class AgentHarness:
     # USD per 1M tokens (input, output). Update to match current OpenAI pricing.
     PRICING = {
@@ -43,7 +52,9 @@ class AgentHarness:
         max_context_tokens: int = 6000,
         run_log_path: str = str(BASE / "logs" / "run_log.jsonl"),
         verbose: bool = True,
+        on_event=None,
     ):
+        self.on_event = on_event
         self.model = model
         self.client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.max_iterations = max_iterations
@@ -63,6 +74,14 @@ class AgentHarness:
     def _print(self, *args):
         if self.verbose:
             print(*args)
+
+    def _emit(self, text: str):
+        """Report progress to the UI (live agent feed), if anyone is listening."""
+        if self.on_event:
+            try:
+                self.on_event(text)
+            except Exception:
+                pass  # progress reporting must never break the run
 
     def _cost(self, prompt_tokens: int, completion_tokens: int) -> float:
         rates = self.PRICING.get(self.model)
@@ -130,8 +149,12 @@ class AgentHarness:
 
                 # No tool calls means the model has produced its final answer.
                 if not message.tool_calls:
+                    self._emit("writing the answer")
                     self.chat_history.append({"role": "assistant", "content": message.content})
                     return message.content
+
+                for name in tool_names:
+                    self._emit(FRIENDLY_TOOL_NAMES.get(name, f"using {name}"))
 
                 # Record the assistant turn (with its tool call requests) before replying.
                 self.chat_history.append(message)
