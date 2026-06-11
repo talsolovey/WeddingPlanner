@@ -22,3 +22,17 @@ surprised you").
 - **Infra struggle (not the agent's fault):** sandbox runs hung twice during testing;
   turned out to be an environment blip + a missing dependency, but it looked exactly
   like an agent hang. Lesson: log per-iteration so you can tell "thinking" from "stuck".
+
+## 2026-06-11 — Step 3 (budget forecaster)
+
+- **Struggle:** the skill says "respond with ONLY a JSON object, no fences" — the agent
+  wrapped its JSON in prose + markdown fences anyway, breaking the strict parser. Fixed
+  by making the parser tolerant (extract the JSON from wherever it is) instead of
+  fighting the model. Lesson: instructions reduce, but don't eliminate, format drift —
+  parse defensively.
+- **Surprise (great):** the analyze prompt gave the agent NO data — it fetched the
+  budget itself via read_data("budget"), and then, unprompted in the task, also pulled
+  read_data("contracts") and folded the Golden Hour contract's 22% service charge into
+  the payment-exposure warning. Cross-feature reasoning, exactly what we hoped skills
+  would enable.
+- It found all 8 deliberately missing categories, including the absent contingency.

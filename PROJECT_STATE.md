@@ -1,7 +1,7 @@
 # PROJECT_STATE — WeddingOS / Vow
 
 > A plain-language summary of where the project stands, updated after every step.
-> Last updated: 2026-06-11 (Step 2: contract analyzer working end to end).
+> Last updated: 2026-06-11 (Step 3: budget tracker + forecast working end to end).
 
 ## What is this project
 
@@ -52,6 +52,7 @@ and every call is logged with its dollar cost.
 | Skill | Status |
 |---|---|
 | `contract-analyzer` | ✅ working — red-flag checklist for vendor contracts |
+| `budget-forecaster` | ✅ working — realistic final-cost forecast + risk warnings |
 
 ## Done so far
 
@@ -60,6 +61,8 @@ and every call is logged with its dollar cost.
 | Week 1 | Landing page, built 3 ways | ✅ done |
 | Step 1 | Agent brain (harness) with skills support | ✅ tested — a run costs ~$0.0025 |
 | Step 2 | Contract analyzer: upload a PDF → flags risks by severity | ✅ tested end to end (~$0.013/run); caught 4 of 8 planted traps — improving this in the evals step |
+| Step 2b | Shared UI theme matching the landing page (cream/rose/serif) | ✅ all app pages will reuse `public/styles.css` |
+| Step 3 | Budget tracker (add items, totals) + Vow's final-cost forecast | ✅ tested end to end (~$0.02/run); agent cross-referenced contract data unprompted |
 
 ## Decisions made (and why)
 
@@ -71,9 +74,8 @@ and every call is logged with its dollar cost.
 
 ## Next steps
 
-1. Budget tracker with final-cost forecast
-2. Vendor comparison with a reasoned recommendation
-3. Weekly brief — "here's what needs your attention this week"
+1. Vendor comparison with a reasoned recommendation
+2. Weekly brief — "here's what needs your attention this week"
 
 Then: tests that prove the agent catches known problems (evals), deployment, and a list
 of moments the agent struggled or surprised me (for class).
