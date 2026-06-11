@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Vow agent run logs
+vow-app/logs/
+
+.DS_Store
