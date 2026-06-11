@@ -36,3 +36,11 @@ surprised you").
   the payment-exposure warning. Cross-feature reasoning, exactly what we hoped skills
   would enable.
 - It found all 8 deliberately missing categories, including the absent contingency.
+
+## 2026-06-11 — UI round (live progress + dashboard)
+
+- **Surprise (good):** after a lesson landed in contract-analyzer/LESSONS.md (from a
+  real run), the same sample contract went from 4 flags to 6 on re-analysis. Can't
+  fully attribute it to the lesson (model variance exists), but the self-improvement
+  loop is visibly feeding back into results — worth measuring properly in the evals
+  step.
