@@ -4,73 +4,87 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vow — Contract Analyzer</title>
-<style>
-  :root { --red:#c0392b; --yellow:#b7791f; --green:#2f855a; --ink:#2d3142; --bg:#faf8f5; }
-  * { box-sizing: border-box; margin: 0; }
-  body { font-family: Georgia, serif; background: var(--bg); color: var(--ink); max-width: 760px; margin: 0 auto; padding: 2rem 1rem; }
-  h1 { font-size: 1.6rem; margin-bottom: .25rem; }
-  .sub { color: #777; margin-bottom: 1.5rem; }
-  form { display: flex; gap: .5rem; flex-wrap: wrap; background: #fff; padding: 1rem; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
-  input[type=text] { flex: 1; min-width: 180px; padding: .6rem; border: 1px solid #ddd; border-radius: 6px; font: inherit; }
-  button { padding: .6rem 1.2rem; border: 0; border-radius: 6px; background: var(--ink); color: #fff; font: inherit; cursor: pointer; }
-  button:disabled { opacity: .5; cursor: wait; }
-  #status { margin: 1rem 0; color: #777; }
-  .card { background: #fff; border-left: 5px solid #ccc; border-radius: 8px; padding: .9rem 1rem; margin: .6rem 0; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
-  .card.red { border-color: var(--red); } .card.yellow { border-color: var(--yellow); } .card.green { border-color: var(--green); }
-  .sev { font-size: .75rem; font-weight: bold; text-transform: uppercase; letter-spacing: .05em; }
-  .red .sev { color: var(--red); } .yellow .sev { color: var(--yellow); } .green .sev { color: var(--green); }
-  .clause { font-style: italic; color: #555; margin: .3rem 0; }
-  .rec { margin-top: .3rem; } .rec b { color: var(--green); }
-  h2 { font-size: 1.1rem; margin: 1.4rem 0 .4rem; }
-  ul { padding-left: 1.2rem; } li { margin: .25rem 0; }
-  .summary { background: #fff; padding: 1rem; border-radius: 8px; margin: 1rem 0; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
-  .meta { font-size: .8rem; color: #999; margin-top: .5rem; }
-  .past { border-top: 1px solid #e5e0d8; margin-top: 2rem; padding-top: 1rem; }
-  .past-item { cursor: pointer; padding: .5rem .75rem; border-radius: 6px; }
-  .past-item:hover { background: #f1ede6; }
-</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Vow — Contract Analyzer</h1>
-  <p class="sub">Upload a vendor contract. Vow reads it and flags what could hurt you.</p>
+  <header class="site-header">
+    <a class="logo" href="/">Vow <span class="logo-mark">✦</span></a>
+    <nav class="nav">
+      <a href="/" class="active">Contracts</a>
+      <a href="/budget">Budget</a>
+      <a class="soon">Vendors</a>
+      <a class="soon">Weekly Brief</a>
+    </nav>
+  </header>
 
-  <form id="form">
-    <input type="text" id="vendor" placeholder="Vendor name (e.g. Bloom Photography)" required>
-    <input type="file" id="file" accept="application/pdf" required>
-    <button id="btn" type="submit">Analyze</button>
-  </form>
-  <div id="status"></div>
-  <div id="result"></div>
+  <main class="page">
+    <p class="eyebrow">Contract analyzer</p>
+    <h1>Know what you're signing.</h1>
+    <p class="lede">Upload a vendor contract and Vow will read it for you — hidden fees, cancellation traps, and the questions worth asking before you sign.</p>
 
-  <div class="past">
-    <h2>Previously analyzed</h2>
-    <div id="past-list"><em>None yet.</em></div>
-  </div>
+    <form id="form" class="card">
+      <input type="text" id="vendor" class="field" placeholder="Vendor name — e.g. Bloom Photography" required style="margin-bottom: .9rem;">
+      <div class="dropzone" id="dropzone">
+        <input type="file" id="file" accept="application/pdf" hidden>
+        <span id="drop-label">Drop the contract PDF here, or <u>browse</u></span>
+      </div>
+      <div style="text-align: right; margin-top: .9rem;">
+        <button id="btn" type="submit" class="btn-primary">Analyze contract</button>
+      </div>
+    </form>
+
+    <div id="status"></div>
+    <div id="result"></div>
+
+    <h2 class="section-title">Previously analyzed</h2>
+    <div id="past-list"><p class="lede" style="margin:0">Nothing yet — your analyzed contracts will appear here.</p></div>
+  </main>
 
 <script>
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
+/* dropzone */
+const dz = $("dropzone"), fileInput = $("file");
+dz.addEventListener("click", () => fileInput.click());
+dz.addEventListener("dragover", (e) => { e.preventDefault(); dz.classList.add("dragover"); });
+dz.addEventListener("dragleave", () => dz.classList.remove("dragover"));
+dz.addEventListener("drop", (e) => {
+  e.preventDefault();
+  dz.classList.remove("dragover");
+  if (e.dataTransfer.files.length) { fileInput.files = e.dataTransfer.files; showFile(); }
+});
+fileInput.addEventListener("change", showFile);
+function showFile() {
+  const f = fileInput.files[0];
+  if (f) $("drop-label").innerHTML = `<span class="file-name">${esc(f.name)}</span> — ready to analyze`;
+}
+
+/* rendering */
 function render(record) {
   const a = record.analysis || {};
   const flags = (a.red_flags || []).map(f => `
-    <div class="card ${esc(f.severity)}">
-      <span class="sev">${esc(f.severity)}</span>
-      <div class="clause">"${esc(f.clause)}"</div>
+    <div class="flag ${esc(f.severity)}">
+      <span class="chip ${esc(f.severity)}">${esc(f.severity)}</span>
+      <div class="clause">“${esc(f.clause)}”</div>
       <div>${esc(f.issue)}</div>
       <div class="rec"><b>Ask:</b> ${esc(f.recommendation)}</div>
-    </div>`).join("") || "<p>No flags raised.</p>";
+    </div>`).join("") || "<p class='lede'>No flags raised.</p>";
   const list = (items) => (items || []).map(i => `<li>${esc(i)}</li>`).join("") || "<li>—</li>";
   $("result").innerHTML = `
-    <div class="summary">
-      <b>${esc(record.vendor)}</b> — ${esc(a.vendor_type || "")}
-      <p>${esc(a.summary)}</p>
-      <div class="meta">${esc(record.filename)} · ${esc(record.uploaded_at)} · agent cost $${record.cost_usd}</div>
+    <div class="card" style="margin-top: 1.5rem;">
+      <p class="eyebrow" style="margin-bottom:.3rem">${esc(a.vendor_type || "vendor")}</p>
+      <h2>${esc(record.vendor)}</h2>
+      <p style="margin-top:.4rem">${esc(a.summary)}</p>
+      <div class="meta">${esc(record.filename)} · ${esc(record.uploaded_at)} · analysis cost $${record.cost_usd}</div>
     </div>
-    <h2>Flags</h2>${flags}
-    <h2>Payment exposure</h2><p>${esc(a.payment_summary)}</p>
-    <h2>Missing protections</h2><ul>${list(a.missing_protections)}</ul>
-    <h2>Questions for the vendor</h2><ul>${list(a.questions_for_vendor)}</ul>`;
+    <h2 class="section-title">Flags</h2>${flags}
+    <h2 class="section-title">Payment exposure</h2><p>${esc(a.payment_summary)}</p>
+    <h2 class="section-title">Missing protections</h2><ul class="nice-list">${list(a.missing_protections)}</ul>
+    <h2 class="section-title">Questions for the vendor</h2><ul class="nice-list">${list(a.questions_for_vendor)}</ul>`;
 }
 
 async function loadPast() {
@@ -79,29 +93,32 @@ async function loadPast() {
   if (!all.length) return;
   $("past-list").innerHTML = all.slice().reverse().map((r, i) =>
     `<div class="past-item" data-i="${all.length - 1 - i}">
-       <b>${esc(r.vendor)}</b> — ${esc(r.uploaded_at)} (${(r.analysis?.red_flags || []).length} flags)
+       <span><b>${esc(r.vendor)}</b><br><span class="meta">${esc(r.uploaded_at)}</span></span>
+       <span class="count">${(r.analysis?.red_flags || []).length} flags</span>
      </div>`).join("");
   $("past-list").querySelectorAll(".past-item").forEach(el =>
-    el.addEventListener("click", () => render(all[el.dataset.i])));
+    el.addEventListener("click", () => { render(all[el.dataset.i]); window.scrollTo({top: 0, behavior: "smooth"}); }));
 }
 
+/* submit */
 $("form").addEventListener("submit", async (e) => {
   e.preventDefault();
+  if (!fileInput.files[0]) { $("status").innerHTML = `<p class="status">Please choose a PDF first.</p>`; return; }
   const data = new FormData();
   data.append("vendor", $("vendor").value);
-  data.append("file", $("file").files[0]);
+  data.append("file", fileInput.files[0]);
   $("btn").disabled = true;
-  $("status").textContent = "Vow is reading the contract… (20–60s)";
+  $("status").innerHTML = `<div class="status"><div class="spinner"></div>Vow is reading the contract… this takes 20–60 seconds.</div>`;
   $("result").innerHTML = "";
   try {
     const res = await fetch("/api/contracts/analyze", { method: "POST", body: data });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error || "Analysis failed.");
-    $("status").textContent = "";
+    $("status").innerHTML = "";
     render(json);
     loadPast();
   } catch (err) {
-    $("status").textContent = "Error: " + err.message;
+    $("status").innerHTML = `<p class="status">⚠ ${esc(err.message)}</p>`;
   } finally {
     $("btn").disabled = false;
   }
