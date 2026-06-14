@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vow — Guests</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script src="app.js" defer></script>
+<style>
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+  .stat { background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.2rem; }
+  .stat .label { font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-soft); }
+  .stat .value { font-family: "Fraunces", serif; font-size: 1.5rem; color: var(--ink); }
+  .stat.accent .value { color: var(--rose-deep); }
+  table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+  th { text-align: left; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); padding: .5rem .6rem; border-bottom: 1px solid var(--line); }
+  td { padding: .55rem .6rem; border-bottom: 1px solid var(--line); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .del { background: none; border: 0; color: var(--ink-soft); cursor: pointer; font-size: 1rem; }
+  .del:hover { color: var(--sev-red); }
+  .add-row .field { padding: .45rem .6rem; border-radius: 8px; font-size: .9rem; width: 100%; box-sizing: border-box; }
+  .settings-input { display: flex; gap: .8rem; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .settings-input .field { max-width: 150px; }
+  .settings-input label { color: var(--ink-soft); font-size: .9rem; }
+  .rsvp { font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; padding: .15rem .5rem; border-radius: 999px; font-weight: 600; }
+  .rsvp.confirmed { background: var(--sev-green-bg, #e7f3ea); color: var(--sev-green); }
+  .rsvp.pending { background: var(--sev-yellow-bg, #fbf3e0); color: #9a7b1a; }
+  .rsvp.no_response { background: var(--sev-red-bg, #fbe9e9); color: var(--sev-red); }
+  .rsvp.declined { background: var(--bg-soft); color: var(--ink-soft); }
+  .diet-tag { display: inline-block; font-size: .78rem; color: var(--ink-soft); }
+  .headroom-pos { color: var(--sev-green); } .headroom-neg { color: var(--sev-red); }
+</style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="/">Vow <span class="logo-mark">✦</span></a>
+    <nav class="nav">
+      <a href="/">Home</a>
+      <a href="/contracts">Contracts</a>
+      <a href="/budget">Budget</a>
+      <a href="/guests" class="active">Guests</a>
+      <a class="soon">Weekly Brief</a>
+    </nav>
+  </header>
+
+  <main class="page">
+    <p class="eyebrow">Guests</p>
+    <h1>Who's actually coming.</h1>
+    <p class="lede">Track RSVPs, then ask Vow to project the real headcount and tell you who to chase.</p>
+
+    <div class="settings-input">
+      <label for="venue-capacity">Venue capacity</label>
+      <input type="number" id="venue-capacity" class="field" min="0" step="1" placeholder="e.g. 40">
+      <label for="per-head">Catering / head</label>
+      <input type="number" id="per-head" class="field" min="0" step="5" placeholder="e.g. 145">
+      <button id="save-settings" class="btn-primary" style="padding:.55rem 1.2rem;">Save</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="label">Invited</div><div class="value" id="stat-invited">—</div></div>
+      <div class="stat"><div class="label">Confirmed</div><div class="value" id="stat-confirmed">—</div></div>
+      <div class="stat"><div class="label">Awaiting reply</div><div class="value" id="stat-pending">—</div></div>
+      <div class="stat accent"><div class="label">Vow's projection</div><div class="value" id="stat-projection">ask ↓</div></div>
+    </div>
+
+    <div class="card" style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr><th>Household</th><th>Side</th><th class="num">Party</th><th>RSVP</th><th class="num">Attending</th><th>+1</th><th>Dietary</th><th>Notes</th><th></th></tr>
+        </thead>
+        <tbody id="rows"></tbody>
+        <tbody>
+          <tr class="add-row">
+            <td><input class="field" id="f-household" placeholder="Household"></td>
+            <td>
+              <select class="field" id="f-side">
+                <option value="partner_a">Partner A</option>
+                <option value="partner_b">Partner B</option>
+              </select>
+            </td>
+            <td><input class="field" id="f-party" type="number" min="1" placeholder="1"></td>
+            <td>
+              <select class="field" id="f-rsvp">
+                <option value="pending">pending</option>
+                <option value="confirmed">confirmed</option>
+                <option value="declined">declined</option>
+                <option value="no_response">no_response</option>
+              </select>
+            </td>
+            <td><input class="field" id="f-attending" type="number" min="0" placeholder="0"></td>
+            <td style="text-align:center;"><input type="checkbox" id="f-plusone" title="Plus-one offered"></td>
+            <td><input class="field" id="f-dietary" placeholder="vegan, halal…"></td>
+            <td><input class="field" id="f-notes" placeholder="Notes"></td>
+            <td><button class="btn-primary" id="add" style="padding:.45rem 1rem;">Add</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="text-align:center; margin: 2rem 0 0;">
+      <button id="analyze" class="btn-primary">Ask Vow to reconcile the headcount</button>
+    </div>
+
+    <div id="status"></div>
+    <div id="result"></div>
+  </main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let CUR = "USD";
+const money = (n) => new Intl.NumberFormat(undefined, { style: "currency", currency: CUR, maximumFractionDigits: 0 }).format(n || 0);
+const SIDE = { partner_a: "Partner A", partner_b: "Partner B" };
+
+async function load() {
+  const g = await (await fetch("/api/guests")).json();
+  CUR = (g.settings && g.settings.currency) || "USD";
+  $("venue-capacity").value = g.settings.venue_capacity || "";
+  $("per-head").value = g.settings.catering_per_head || "";
+
+  const hh = g.households || [];
+  const invited = hh.reduce((s, h) => s + (h.party_size || 0), 0);
+  const confirmed = hh.filter(h => h.rsvp === "confirmed").reduce((s, h) => s + (h.attending_count || 0), 0);
+  const pending = hh.filter(h => h.rsvp === "pending" || h.rsvp === "no_response").length;
+  $("stat-invited").textContent = invited || "—";
+  $("stat-confirmed").textContent = confirmed || "—";
+  $("stat-pending").textContent = pending ? `${pending} household${pending === 1 ? "" : "s"}` : "—";
+
+  if (!hh.length) {
+    $("rows").innerHTML = `<tr><td colspan="9" style="text-align:center; padding:1.4rem; color:var(--ink-soft);">
+      No guests yet — add your first household below, or
+      <button id="sample" class="btn-primary" style="padding:.4rem 1rem; margin-left:.4rem;">load an example list</button>
+    </td></tr>`;
+    return;
+  }
+  $("rows").innerHTML = hh.map(h => {
+    const meals = Object.values(h.meals || {}).reduce((s, n) => s + (n || 0), 0);
+    const mealGap = h.rsvp === "confirmed" && meals < (h.attending_count || 0);
+    const plus = h.plus_one_allowed ? (h.plus_one_name ? esc(h.plus_one_name) : "⚠ unnamed") : "—";
+    const diet = (h.dietary || []).length
+      ? (h.dietary || []).map(d => `<span class="diet-tag">${esc(d)}</span>`).join(", ")
+      : "—";
+    return `
+    <tr>
+      <td><b>${esc(h.household)}</b></td>
+      <td style="color:var(--ink-soft); font-size:.85rem;">${esc(SIDE[h.side] || h.side)}</td>
+      <td class="num">${h.party_size || 0}</td>
+      <td><span class="rsvp ${esc(h.rsvp)}">${esc((h.rsvp || "").replace("_", " "))}</span></td>
+      <td class="num">${h.rsvp === "confirmed" ? (h.attending_count || 0) : "—"}${mealGap ? ` <span title="meals not all chosen" style="color:var(--sev-red)">⚠</span>` : ""}</td>
+      <td>${plus}</td>
+      <td>${diet}</td>
+      <td style="color:var(--ink-soft); font-size:.85rem;">${esc(h.notes)}</td>
+      <td><button class="del" data-id="${h.id}" title="Remove">✕</button></td>
+    </tr>`;
+  }).join("");
+
+  document.querySelectorAll(".del").forEach(el => el.addEventListener("click", async () => {
+    const item = hh.find(h => h.id === el.dataset.id);
+    await fetch("/api/guests/households/" + el.dataset.id, { method: "DELETE" });
+    load();
+    toast(`Removed ${item ? item.household : "household"}`, { undo: async () => {
+      await fetch("/api/guests/households", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(item),
+      });
+      load();
+    }});
+  }));
+}
+
+/* sample list + enter-to-add */
+document.addEventListener("click", async (e) => {
+  if (e.target.id !== "sample") return;
+  await fetch("/api/guests/load-sample", { method: "POST" });
+  toast("Example guest list loaded");
+  load();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && e.target.id && e.target.id.startsWith("f-")) {
+    e.preventDefault();
+    $("add").click();
+  }
+});
+
+$("save-settings").addEventListener("click", async () => {
+  await fetch("/api/guests/settings", {
+    method: "PUT", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      venue_capacity: $("venue-capacity").value || 0,
+      catering_per_head: $("per-head").value || 0,
+    }),
+  });
+  toast("Settings saved");
+  load();
+});
+
+$("add").addEventListener("click", async () => {
+  const body = {
+    household: $("f-household").value, side: $("f-side").value,
+    party_size: $("f-party").value, rsvp: $("f-rsvp").value,
+    attending_count: $("f-attending").value, plus_one_allowed: $("f-plusone").checked,
+    dietary: $("f-dietary").value, notes: $("f-notes").value,
+  };
+  if (!body.household.trim()) return;
+  await fetch("/api/guests/households", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  ["f-household","f-party","f-attending","f-dietary","f-notes"].forEach(id => $(id).value = "");
+  $("f-plusone").checked = false;
+  load();
+});
+
+$("analyze").addEventListener("click", async () => {
+  $("analyze").disabled = true;
+  $("result").innerHTML = "";
+  try {
+    const res = await fetch("/api/guests/analyze", { method: "POST" });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || "Analysis failed.");
+    const result = await pollJob(json.job_id, $("status"), "Vow is reconciling your guest list… usually 20–60 seconds.");
+    $("status").innerHTML = "";
+    render(result);
+  } catch (err) {
+    $("status").innerHTML = `<p class="status">⚠ ${esc(err.message)}</p>`;
+  } finally {
+    $("analyze").disabled = false;
+  }
+});
+
+function render({ analysis: a, cost_usd }) {
+  const hc = a.headcount || {}, cap = a.capacity || {}, cat = a.catering_cost || {};
+  $("stat-projection").textContent = (hc.likely_projection ?? "—");
+
+  const headroom = cap.headroom_at_likely;
+  const headroomStr = (headroom === undefined || headroom === null) ? "" :
+    `<span class="${headroom >= 0 ? "headroom-neg" : "headroom-neg"}" style="font-size:1rem;color:${headroom >= 0 ? "var(--sev-green)" : "var(--sev-red)"}">${headroom >= 0 ? headroom + " seats to spare" : Math.abs(headroom) + " over capacity"}</span>`;
+
+  const warnings = (a.warnings || []).map(w => `
+    <div class="flag ${esc(w.severity)}">
+      <span class="chip ${esc(w.severity)}">${esc(w.severity)}</span>
+      <div><b>${esc(w.issue)}</b>${w.detail ? " — " + esc(w.detail) : ""}</div>
+      <div class="rec"><b>Do:</b> ${esc(w.recommendation)}</div>
+    </div>`).join("") || "<p class='lede'>No warnings — guest list looks healthy.</p>";
+
+  const dietary = (a.dietary_summary || []).map(d => `<li>${esc(d)}</li>`).join("") || "<li>—</li>";
+  const followUps = (a.follow_ups || []).map(f => `<li>${esc(f)}</li>`).join("") || "<li>—</li>";
+
+  $("result").innerHTML = `
+    <div class="card" style="margin-top:1.5rem;">
+      <p class="eyebrow" style="margin-bottom:.3rem">Headcount projection</p>
+      <h2>${hc.likely_projection ?? "—"} likely ${headroomStr}</h2>
+      <p style="margin-top:.4rem;color:var(--ink-soft);">
+        Floor <b>${hc.confirmed_floor ?? "—"}</b> confirmed ·
+        ceiling <b>${hc.worst_case_ceiling ?? "—"}</b> if everyone says yes${cap.venue_capacity ? ` · venue holds <b>${cap.venue_capacity}</b>` : ""}
+      </p>
+      ${hc.assumptions ? `<p style="margin-top:.4rem;font-size:.88rem;color:var(--ink-soft);"><em>${esc(hc.assumptions)}</em></p>` : ""}
+      ${cat.at_likely ? `<p style="margin-top:.6rem">Catering at the likely headcount: <b>${money(cat.at_likely)}</b> <span style="color:var(--ink-soft)">(${money(cat.at_floor)}–${money(cat.at_ceiling)} across the range)</span></p>` : ""}
+      <p style="margin-top:.6rem">${esc(a.summary)}</p>
+      <div class="meta">analysis cost $${cost_usd}</div>
+    </div>
+    <h2 class="section-title">Warnings</h2>
+    <div class="flags-grid">${warnings}</div>
+    <div class="two-col">
+      <div><h2 class="section-title">Who to follow up with</h2><ul class="nice-list">${followUps}</ul></div>
+      <div><h2 class="section-title">For the caterer</h2><ul class="nice-list">${dietary}</ul></div>
+    </div>`;
+}
+
+load();
+</script>
+</body>
+</html>

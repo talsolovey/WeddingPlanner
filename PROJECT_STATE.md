@@ -1,7 +1,7 @@
 # PROJECT_STATE — WeddingOS / Vow
 
 > A plain-language summary of where the project stands, updated after every step.
-> Last updated: 2026-06-14 (Step 4: guest-list-manager skill — reasoning tested via CLI; UI pending).
+> Last updated: 2026-06-14 (Step 6: moved sample data out of code into data/samples/).
 
 ## What is this project
 
@@ -18,9 +18,17 @@ WeddingOS/
 ├── web-landing-page/      # Week 1, built without tools (for comparison)
 ├── harness-landing-page/  # Week 1, built with my custom harness (for comparison)
 └── vow-app/               # ← the actual product, everything new happens here
+    ├── server.py          # thin entry point — builds the app, starts the server
+    ├── app/               # the web layer, one module per feature (Flask blueprints)
+    │   ├── core.py        #   shared: file paths, background jobs, JSON parsing
+    │   ├── contracts.py   #   /api/contracts routes + helpers
+    │   ├── budget.py      #   /api/budget routes + helpers
+    │   ├── guests.py      #   /api/guests routes + helpers
+    │   └── overview.py    #   /api/overview (home dashboard)
     ├── agent/             # the "brain": talks to GPT-4o, picks tools, loops until done
     ├── skills/            # instruction files the agent reads to know HOW to do a job
-    ├── data/              # the couple's wedding data (budget, vendors...) as JSON files
+    ├── data/              # the couple's LIVE wedding data (budget, contracts, guests) as JSON
+    │   └── samples/       # dev-only seed data for the "load example" buttons (delete for prod)
     └── logs/              # every API call recorded: tokens used, cost in $, tools called
 ```
 
@@ -53,7 +61,7 @@ and every call is logged with its dollar cost.
 |---|---|
 | `contract-analyzer` | ✅ working — red-flag checklist for vendor contracts |
 | `budget-forecaster` | ✅ working — realistic final-cost forecast + risk warnings |
-| `guest-list-manager` | 🟡 skill tested via CLI — headcount projection, capacity + catering reconciliation, RSVP follow-ups; UI not built yet |
+| `guest-list-manager` | ✅ working — headcount projection, capacity + catering reconciliation, dietary roll-up, RSVP follow-ups; full UI |
 
 ## Done so far
 
@@ -65,7 +73,9 @@ and every call is logged with its dollar cost.
 | Step 2b | Shared UI theme matching the landing page (cream/rose/serif) | ✅ all app pages will reuse `public/styles.css` |
 | Step 3 | Budget tracker (add items, totals) + Vow's final-cost forecast | ✅ tested end to end (~$0.02/run); agent cross-referenced contract data unprompted |
 | Step 3b | UX round: home dashboard, sample-data buttons, toasts/undo; analyses run in the background with a quiet loading state | ✅ tested |
-| Step 4 | Guest-list manager skill + `guests.json` (capacity & per-head entered by couple): headcount range, capacity/catering reconciliation, dietary + RSVP follow-ups | 🟡 skill tested via CLI (~$0.021/run); UI next |
+| Step 4 | Guest-list manager skill + `guests.json` (capacity & per-head entered by couple): headcount range, capacity/catering reconciliation, dietary + RSVP follow-ups | ✅ tested end to end (~$0.022/run); `guests.html` page + home dashboard card + nav |
+| Step 5 | Refactor: split the 340-line `server.py` into `app/` blueprints (core + contracts/budget/guests/overview). Considered TS/Nest/Express — kept Python, agentic focus | ✅ behavior-identical; all 23 routes + guardrails verified via test client |
+| Step 6 | Data layer: moved inline sample data into `data/samples/*.json` + `app/samples.py` loader; seed buttons read from files; delete `samples/` for production | ✅ seeding, guards, and missing-samples (404) paths all tested |
 
 ## Decisions made (and why)
 
@@ -74,13 +84,14 @@ and every call is logged with its dollar cost.
   tracking and conversation compression built in.
 - **Deploy on Vercel** later. Open question: where data lives once deployed (Vercel's
   servers don't keep files between requests).
+- **Stayed on Python (Flask), did not move to TS/Nest/Express** — a rewrite is pure
+  plumbing with no agentic payoff, and the workshop explicitly de-prioritizes it. Solved
+  the real "feels messy" concern by splitting `server.py` into per-feature blueprints.
 
 ## Next steps
 
-1. Guest-list UI: `guests.html` page (add/edit households, capacity + per-head inputs,
-   sample-data button, background "Analyze guest list" with live progress); wire into home.
-2. Then deferred-by-choice this week: deployment (leaning Render/Railway w/ persistent
-   disk to keep the file-based design) and a scored eval harness.
+1. Deferred-by-choice this week: deployment (leaning Render/Railway w/ persistent disk to
+   keep the file-based design) and a scored eval harness.
 
 Backlog: vendor comparison with a reasoned recommendation; weekly "what needs your
 attention" brief.

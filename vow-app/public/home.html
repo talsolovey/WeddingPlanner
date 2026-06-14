@@ -16,7 +16,7 @@
       <a href="/" class="active">Home</a>
       <a href="/contracts">Contracts</a>
       <a href="/budget">Budget</a>
-      <a class="soon">Vendors</a>
+      <a href="/guests">Guests</a>
       <a class="soon">Weekly Brief</a>
     </nav>
   </header>
@@ -40,6 +40,13 @@
           <div style="color:var(--ink-soft); font-size:.92rem;">No contracts analyzed yet — upload one and Vow will flag the traps.</div>
         </div>
         <div class="cta"><a class="go" href="/contracts">Open contracts →</a></div>
+      </div>
+
+      <div class="card dash-card">
+        <p class="eyebrow" style="margin-bottom:0">Guests</p>
+        <div class="big" id="d-guests">—</div>
+        <div id="d-guests-sub" style="color:var(--ink-soft); font-size:.92rem;">No guest list yet.</div>
+        <div class="cta"><a class="go" href="/guests">Open guests →</a></div>
       </div>
 
       <div class="card dash-card">
@@ -74,6 +81,13 @@ const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&l
       </div>
       <div style="color:var(--ink-soft); font-size:.92rem;">${esc(c.summary)}</div>
       <div class="meta">${o.contract_count} contract${o.contract_count === 1 ? "" : "s"} analyzed in total</div>`;
+  }
+
+  if (o.guests && o.guests.household_count) {
+    const g = o.guests;
+    $("d-guests").textContent = `${g.confirmed_people} confirmed`;
+    const capNote = g.venue_capacity ? ` · venue holds ${g.venue_capacity}` : "";
+    $("d-guests-sub").innerHTML = `${g.invited_people} invited · ${g.outstanding_households} awaiting reply${capNote}`;
   }
 
   $("d-skills").innerHTML = o.skills.map(s => `

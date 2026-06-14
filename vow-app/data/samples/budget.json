@@ -1,0 +1,13 @@
+{
+  "total_budget": 40000,
+  "items": [
+    {"category": "venue", "vendor": "Rosewood Manor", "estimated": 0, "contracted": 14000, "paid": 7000, "notes": "includes catering"},
+    {"category": "photography", "vendor": "Golden Hour Studios", "estimated": 0, "contracted": 6800, "paid": 3400, "notes": ""},
+    {"category": "flowers", "vendor": "Petal & Stem", "estimated": 9000, "contracted": 0, "paid": 0, "notes": "initial quote"},
+    {"category": "music/DJ", "vendor": "", "estimated": 2500, "contracted": 0, "paid": 0, "notes": ""},
+    {"category": "attire", "vendor": "", "estimated": 3000, "contracted": 0, "paid": 1200, "notes": "dress deposit paid"},
+    {"category": "stationery", "vendor": "", "estimated": 800, "contracted": 0, "paid": 0, "notes": ""},
+    {"category": "cake", "vendor": "Sweet Layers", "estimated": 900, "contracted": 0, "paid": 0, "notes": "per-slice pricing"},
+    {"category": "rings", "vendor": "", "estimated": 2200, "contracted": 0, "paid": 0, "notes": ""}
+  ]
+}

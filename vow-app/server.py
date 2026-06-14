@@ -14,6 +14,7 @@ from agent.harness import AgentHarness
 BASE = Path(__file__).resolve().parent
 CONTRACTS_PATH = BASE / "data" / "contracts.json"
 BUDGET_PATH = BASE / "data" / "budget.json"
+GUESTS_PATH = BASE / "data" / "guests.json"
 
 MAX_PDF_MB = 10          # guardrail: upload size
 MAX_TEXT_CHARS = 40_000  # guardrail: token burn
@@ -298,6 +299,173 @@ def load_sample_budget():
     return jsonify(budget)
 
 
+# ---------- guests ----------
+
+DEFAULT_GUEST_SETTINGS = {
+    "currency": "USD", "venue_capacity": 0, "catering_per_head": 0,
+    "rsvp_deadline": "", "wedding_date": "",
+}
+RSVP_STATES = {"confirmed", "declined", "pending", "no_response"}
+
+
+def load_guests():
+    if GUESTS_PATH.exists():
+        data = json.loads(GUESTS_PATH.read_text())
+        data.setdefault("settings", dict(DEFAULT_GUEST_SETTINGS))
+        data.setdefault("households", [])
+        return data
+    return {"settings": dict(DEFAULT_GUEST_SETTINGS), "households": []}
+
+
+def save_guests(guests):
+    GUESTS_PATH.parent.mkdir(exist_ok=True)
+    GUESTS_PATH.write_text(json.dumps(guests, indent=2))
+
+
+@app.get("/guests")
+def guests_page():
+    return send_from_directory(app.static_folder, "guests.html")
+
+
+@app.get("/api/guests")
+def get_guests():
+    return jsonify(load_guests())
+
+
+@app.put("/api/guests/settings")
+def update_guest_settings():
+    data = request.get_json(force=True)
+    guests = load_guests()
+    s = guests["settings"]
+
+    def num(key):  # guardrail: non-negative numbers only
+        try:
+            return max(0, int(float(data.get(key, s.get(key, 0)) or 0)))
+        except (TypeError, ValueError):
+            return s.get(key, 0)
+
+    s["venue_capacity"] = num("venue_capacity")
+    s["catering_per_head"] = num("catering_per_head")
+    if "currency" in data:
+        s["currency"] = str(data.get("currency") or "USD")[:3].upper()
+    if "rsvp_deadline" in data:
+        s["rsvp_deadline"] = str(data.get("rsvp_deadline") or "")[:20]
+    if "wedding_date" in data:
+        s["wedding_date"] = str(data.get("wedding_date") or "")[:20]
+    save_guests(guests)
+    return jsonify(guests)
+
+
+@app.post("/api/guests/households")
+def add_household():
+    data = request.get_json(force=True)
+    name = str(data.get("household", "")).strip()[:100]
+    if not name:
+        return jsonify({"error": "Household name is required."}), 400
+
+    try:
+        party_size = max(1, int(float(data.get("party_size") or 1)))
+    except (TypeError, ValueError):
+        party_size = 1
+    rsvp = str(data.get("rsvp", "pending")).strip()
+    if rsvp not in RSVP_STATES:
+        rsvp = "pending"
+    try:
+        attending = max(0, int(float(data.get("attending_count") or 0)))
+    except (TypeError, ValueError):
+        attending = 0
+    # Only confirmed households have a real attending count.
+    if rsvp != "confirmed":
+        attending = 0
+    attending = min(attending, party_size)
+
+    side = str(data.get("side", "")).strip()
+    if side not in {"partner_a", "partner_b"}:
+        side = "partner_a"
+    dietary = data.get("dietary", [])
+    if isinstance(dietary, str):
+        dietary = [d.strip() for d in dietary.split(",") if d.strip()]
+
+    household = {
+        "id": uuid.uuid4().hex[:8],
+        "household": name,
+        "side": side,
+        "party_size": party_size,
+        "rsvp": rsvp,
+        "attending_count": attending,
+        "plus_one_allowed": bool(data.get("plus_one_allowed", False)),
+        "plus_one_name": str(data.get("plus_one_name", "")).strip()[:100],
+        "meals": data.get("meals") if isinstance(data.get("meals"), dict) else {},
+        "dietary": [str(d)[:60] for d in dietary][:10],
+        "notes": str(data.get("notes", "")).strip()[:300],
+    }
+    guests = load_guests()
+    guests["households"].append(household)
+    save_guests(guests)
+    return jsonify(household)
+
+
+@app.delete("/api/guests/households/<household_id>")
+def delete_household(household_id):
+    guests = load_guests()
+    before = len(guests["households"])
+    guests["households"] = [h for h in guests["households"] if h["id"] != household_id]
+    save_guests(guests)
+    return jsonify({"ok": True, "removed": before - len(guests["households"])})
+
+
+@app.post("/api/guests/analyze")
+def analyze_guests():
+    guests = load_guests()
+    if not guests["households"]:
+        return jsonify({"error": "Add some guests first."}), 400
+
+    def task(on_event):
+        # No data in the prompt: the agent fetches it itself via read_data("guests").
+        harness = AgentHarness(verbose=False, on_event=on_event)
+        answer = harness.run(
+            "The couple wants their guest list reviewed: project the final headcount, "
+            "check it against the venue capacity and catering per-head budget, and tell "
+            "them who to follow up with. Read the guest data."
+        )
+        return {"analysis": parse_agent_json(answer),
+                "cost_usd": round(harness.last_run_cost, 4)}
+
+    return jsonify({"job_id": run_job(task)})
+
+
+SAMPLE_GUEST_SETTINGS = {
+    "currency": "USD", "venue_capacity": 40, "catering_per_head": 145,
+    "rsvp_deadline": "2026-08-15", "wedding_date": "2026-09-26",
+}
+SAMPLE_HOUSEHOLDS = [
+    {"household": "Okonkwo Family", "side": "partner_a", "party_size": 4, "rsvp": "confirmed", "attending_count": 4, "meals": {"chicken": 2, "fish": 1, "veg": 1}, "dietary": ["severe nut allergy"]},
+    {"household": "Rossi Family", "side": "partner_a", "party_size": 3, "rsvp": "confirmed", "attending_count": 3, "meals": {"chicken": 1, "fish": 2}, "dietary": []},
+    {"household": "Chen", "side": "partner_b", "party_size": 2, "rsvp": "confirmed", "attending_count": 2, "meals": {"veg": 2}, "dietary": ["vegan"]},
+    {"household": "Nguyen", "side": "partner_b", "party_size": 2, "rsvp": "confirmed", "attending_count": 2, "meals": {}, "dietary": [], "notes": "confirmed verbally, meal choices not submitted"},
+    {"household": "Patel Family", "side": "partner_a", "party_size": 5, "rsvp": "confirmed", "attending_count": 5, "meals": {"chicken": 3, "fish": 1}, "dietary": ["halal"]},
+    {"household": "Smith", "side": "partner_a", "party_size": 1, "rsvp": "confirmed", "attending_count": 1, "plus_one_allowed": True, "meals": {"chicken": 1}, "notes": "plus-one offered; guest hasn't said if bringing anyone"},
+    {"household": "Garcia Family", "side": "partner_b", "party_size": 6, "rsvp": "pending", "attending_count": 0, "notes": "large family, likely most will attend"},
+    {"household": "Andersson", "side": "partner_b", "party_size": 4, "rsvp": "pending", "attending_count": 0},
+    {"household": "Becker", "side": "partner_b", "party_size": 3, "rsvp": "no_response", "attending_count": 0, "notes": "past RSVP deadline, no contact"},
+    {"household": "Thompson", "side": "partner_a", "party_size": 2, "rsvp": "declined", "attending_count": 0},
+]
+
+
+@app.post("/api/guests/load-sample")
+def load_sample_guests():
+    guests = load_guests()
+    if guests["households"]:
+        return jsonify({"error": "Guest list already has households."}), 400
+    guests["settings"] = dict(SAMPLE_GUEST_SETTINGS)
+    for h in SAMPLE_HOUSEHOLDS:
+        guests["households"].append({
+            "id": uuid.uuid4().hex[:8], "plus_one_allowed": False, "plus_one_name": "",
+            "meals": {}, "dietary": [], "notes": "", **h})
+    save_guests(guests)
+    return jsonify(guests)
+
+
 # ---------- overview (home dashboard) ----------
 
 @app.get("/api/overview")
@@ -330,11 +498,25 @@ def overview():
                                if line.strip().startswith("-"))
         skills.append({"name": path.parent.name, "lessons": lesson_count})
 
+    guests = load_guests()
+    households = guests["households"]
+    confirmed_people = sum(h.get("attending_count", 0) for h in households
+                           if h.get("rsvp") == "confirmed")
+    outstanding = sum(1 for h in households if h.get("rsvp") in ("pending", "no_response"))
+    guests_card = {
+        "household_count": len(households),
+        "invited_people": sum(h.get("party_size", 0) for h in households),
+        "confirmed_people": confirmed_people,
+        "outstanding_households": outstanding,
+        "venue_capacity": guests["settings"].get("venue_capacity", 0),
+    }
+
     return jsonify({
         "budget": {"total_budget": budget["total_budget"], "currency": budget.get("currency", "USD"),
                    "committed": committed, "paid": paid, "item_count": len(budget["items"])},
         "latest_contract": latest_card,
         "contract_count": len(contracts),
+        "guests": guests_card,
         "skills": skills,
     })
 

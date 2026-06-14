@@ -16,8 +16,14 @@
       "attending_count": 4,
       "plus_one_allowed": false,
       "plus_one_name": "",
-      "meals": { "chicken": 2, "fish": 1, "veg": 1 },
-      "dietary": ["severe nut allergy"],
+      "meals": {
+        "chicken": 2,
+        "fish": 1,
+        "veg": 1
+      },
+      "dietary": [
+        "severe nut allergy"
+      ],
       "notes": ""
     },
     {
@@ -29,7 +35,10 @@
       "attending_count": 3,
       "plus_one_allowed": false,
       "plus_one_name": "",
-      "meals": { "chicken": 1, "fish": 2 },
+      "meals": {
+        "chicken": 1,
+        "fish": 2
+      },
       "dietary": [],
       "notes": ""
     },
@@ -42,8 +51,12 @@
       "attending_count": 2,
       "plus_one_allowed": false,
       "plus_one_name": "",
-      "meals": { "veg": 2 },
-      "dietary": ["vegan"],
+      "meals": {
+        "veg": 2
+      },
+      "dietary": [
+        "vegan"
+      ],
       "notes": ""
     },
     {
@@ -68,8 +81,13 @@
       "attending_count": 5,
       "plus_one_allowed": false,
       "plus_one_name": "",
-      "meals": { "chicken": 3, "fish": 1 },
-      "dietary": ["halal"],
+      "meals": {
+        "chicken": 3,
+        "fish": 1
+      },
+      "dietary": [
+        "halal"
+      ],
       "notes": ""
     },
     {
@@ -81,8 +99,13 @@
       "attending_count": 2,
       "plus_one_allowed": false,
       "plus_one_name": "",
-      "meals": { "chicken": 1, "fish": 1 },
-      "dietary": ["kosher"],
+      "meals": {
+        "chicken": 1,
+        "fish": 1
+      },
+      "dietary": [
+        "kosher"
+      ],
       "notes": ""
     },
     {
@@ -94,7 +117,9 @@
       "attending_count": 1,
       "plus_one_allowed": true,
       "plus_one_name": "",
-      "meals": { "chicken": 1 },
+      "meals": {
+        "chicken": 1
+      },
       "dietary": [],
       "notes": "plus-one offered; guest hasn't said if bringing anyone"
     },
@@ -107,8 +132,12 @@
       "attending_count": 2,
       "plus_one_allowed": false,
       "plus_one_name": "",
-      "meals": { "fish": 2 },
-      "dietary": ["gluten-free"],
+      "meals": {
+        "fish": 2
+      },
+      "dietary": [
+        "gluten-free"
+      ],
       "notes": ""
     },
     {
@@ -120,7 +149,10 @@
       "attending_count": 3,
       "plus_one_allowed": false,
       "plus_one_name": "",
-      "meals": { "chicken": 2, "veg": 1 },
+      "meals": {
+        "chicken": 2,
+        "veg": 1
+      },
       "dietary": [],
       "notes": ""
     },

@@ -1,0 +1,21 @@
+{
+  "settings": {
+    "currency": "USD",
+    "venue_capacity": 40,
+    "catering_per_head": 145,
+    "rsvp_deadline": "2026-08-15",
+    "wedding_date": "2026-09-26"
+  },
+  "households": [
+    {"household": "Okonkwo Family", "side": "partner_a", "party_size": 4, "rsvp": "confirmed", "attending_count": 4, "meals": {"chicken": 2, "fish": 1, "veg": 1}, "dietary": ["severe nut allergy"]},
+    {"household": "Rossi Family", "side": "partner_a", "party_size": 3, "rsvp": "confirmed", "attending_count": 3, "meals": {"chicken": 1, "fish": 2}, "dietary": []},
+    {"household": "Chen", "side": "partner_b", "party_size": 2, "rsvp": "confirmed", "attending_count": 2, "meals": {"veg": 2}, "dietary": ["vegan"]},
+    {"household": "Nguyen", "side": "partner_b", "party_size": 2, "rsvp": "confirmed", "attending_count": 2, "meals": {}, "dietary": [], "notes": "confirmed verbally, meal choices not submitted"},
+    {"household": "Patel Family", "side": "partner_a", "party_size": 5, "rsvp": "confirmed", "attending_count": 5, "meals": {"chicken": 3, "fish": 1}, "dietary": ["halal"]},
+    {"household": "Smith", "side": "partner_a", "party_size": 1, "rsvp": "confirmed", "attending_count": 1, "plus_one_allowed": true, "meals": {"chicken": 1}, "notes": "plus-one offered; guest hasn't said if bringing anyone"},
+    {"household": "Garcia Family", "side": "partner_b", "party_size": 6, "rsvp": "pending", "attending_count": 0, "notes": "large family, likely most will attend"},
+    {"household": "Andersson", "side": "partner_b", "party_size": 4, "rsvp": "pending", "attending_count": 0},
+    {"household": "Becker", "side": "partner_b", "party_size": 3, "rsvp": "no_response", "attending_count": 0, "notes": "past RSVP deadline, no contact"},
+    {"household": "Thompson", "side": "partner_a", "party_size": 2, "rsvp": "declined", "attending_count": 0}
+  ]
+}
