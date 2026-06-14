@@ -51,9 +51,6 @@
             <span class="mark">✦</span>
             Your contract review will appear here — flags, payment exposure,
             and the questions worth asking before you sign.
-            <div style="margin-top: 1.2rem;">
-              <button id="sample" class="btn-primary" type="button">Try a sample contract</button>
-            </div>
           </div>
         </div>
       </div>
@@ -96,7 +93,7 @@ function render(record) {
       <p class="eyebrow" style="margin-bottom:.3rem">${esc(a.vendor_type || "vendor")}</p>
       <h2>${esc(record.vendor)}</h2>
       <p style="margin-top:.4rem">${esc(a.summary)}</p>
-      <div class="meta">${esc(record.filename)} · ${esc(record.uploaded_at)} · analysis cost $${record.cost_usd}</div>
+      <div class="meta">${esc(record.filename)} · ${esc(record.uploaded_at)}</div>
     </div>
     <h2 class="section-title">Flags</h2>
     <div class="flags-grid">${flags}</div>
@@ -164,17 +161,6 @@ $("form").addEventListener("submit", async (e) => {
     $("status").innerHTML = `<p class="status">⚠ ${esc(err.message)}</p>`;
   } finally {
     $("btn").disabled = false;
-  }
-});
-
-document.addEventListener("click", async (e) => {
-  if (e.target.id !== "sample") return;
-  e.target.disabled = true;
-  $("result").innerHTML = "";
-  try {
-    await runJobAndRender(await fetch("/api/contracts/analyze-sample", { method: "POST" }));
-  } catch (err) {
-    $("status").innerHTML = `<p class="status">⚠ ${esc(err.message)}</p>`;
   }
 });
 

@@ -1,7 +1,7 @@
 # PROJECT_STATE — WeddingOS / Vow
 
 > A plain-language summary of where the project stands, updated after every step.
-> Last updated: 2026-06-14 (Step 6: moved sample data out of code into data/samples/).
+> Last updated: 2026-06-14 (Step 8: prepped for Render deploy — gunicorn, PORT/VOW_DATA_DIR env, render.yaml).
 
 ## What is this project
 
@@ -27,8 +27,7 @@ WeddingOS/
     │   └── overview.py    #   /api/overview (home dashboard)
     ├── agent/             # the "brain": talks to GPT-4o, picks tools, loops until done
     ├── skills/            # instruction files the agent reads to know HOW to do a job
-    ├── data/              # the couple's LIVE wedding data (budget, contracts, guests) as JSON
-    │   └── samples/       # dev-only seed data for the "load example" buttons (delete for prod)
+    ├── data/              # the couple's wedding data — sample ILS wedding (~200 guests) loaded
     └── logs/              # every API call recorded: tokens used, cost in $, tools called
 ```
 
@@ -75,23 +74,28 @@ and every call is logged with its dollar cost.
 | Step 3b | UX round: home dashboard, sample-data buttons, toasts/undo; analyses run in the background with a quiet loading state | ✅ tested |
 | Step 4 | Guest-list manager skill + `guests.json` (capacity & per-head entered by couple): headcount range, capacity/catering reconciliation, dietary + RSVP follow-ups | ✅ tested end to end (~$0.022/run); `guests.html` page + home dashboard card + nav |
 | Step 5 | Refactor: split the 340-line `server.py` into `app/` blueprints (core + contracts/budget/guests/overview). Considered TS/Nest/Express — kept Python, agentic focus | ✅ behavior-identical; all 23 routes + guardrails verified via test client |
-| Step 6 | Data layer: moved inline sample data into `data/samples/*.json` + `app/samples.py` loader; seed buttons read from files; delete `samples/` for production | ✅ seeding, guards, and missing-samples (404) paths all tested |
+| Step 6 | Removed all sample data: emptied live `data/*.json`, deleted `data/samples/`, the sample contract PDF, `app/samples.py`, all load-sample / analyze-sample endpoints + buttons | ✅ app starts empty; routes + add/delete verified via test client |
+| Step 7 | Loaded one coherent sample wedding (venue + contract + ~200-guest list) across all 3 data files; switched currency to USD | ✅ loads coherently; cross-feature vendor names match |
+| Step 8 | Deploy prep for Render: gunicorn, PORT + `VOW_DATA_DIR` env, `render.yaml`, `DEPLOY.md` | ✅ gunicorn serves all routes; data-dir override verified for server + agent |
 
 ## Decisions made (and why)
 
 - **Python + GPT-4o** — my choice; matches the workshop harness I already built.
 - **Reused my workshop harness** instead of writing a new one — it already had cost
   tracking and conversation compression built in.
-- **Deploy on Vercel** later. Open question: where data lives once deployed (Vercel's
-  servers don't keep files between requests).
+- **Deploy on Render** (not Vercel). Vercel is serverless — it can't keep the JSON
+  files or the in-memory background jobs between requests. Render runs one long-lived
+  process with an optional persistent disk, which fits the file-based design as-is.
+  Data dir is overridable via `VOW_DATA_DIR` so a disk can be attached without code
+  changes. See `DEPLOY.md` + `render.yaml`.
 - **Stayed on Python (Flask), did not move to TS/Nest/Express** — a rewrite is pure
   plumbing with no agentic payoff, and the workshop explicitly de-prioritizes it. Solved
   the real "feels messy" concern by splitting `server.py` into per-feature blueprints.
 
 ## Next steps
 
-1. Deferred-by-choice this week: deployment (leaning Render/Railway w/ persistent disk to
-   keep the file-based design) and a scored eval harness.
+1. Deploy to Render — code is prepped; push to GitHub, then New ▸ Blueprint (see DEPLOY.md).
+2. A scored eval harness (still deferred).
 
 Backlog: vendor comparison with a reasoned recommendation; weekly "what needs your
 attention" brief.

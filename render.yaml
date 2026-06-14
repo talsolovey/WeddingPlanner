@@ -1,0 +1,25 @@
+# Render blueprint for the Vow app (vow-app/).
+# Deploy: push to GitHub, then in Render: New > Blueprint > pick this repo.
+# Render reads this file and creates the service. Set OPENAI_API_KEY when prompted.
+services:
+  - type: web
+    name: vow
+    runtime: python
+    rootDir: vow-app
+    buildCommand: pip install -r requirements.txt
+    # -w 1 keeps the in-memory job tracker (live "analyzing…" progress) in one process.
+    startCommand: gunicorn -w 1 --threads 8 -b 0.0.0.0:$PORT server:app
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false   # set this secret in the Render dashboard, never in the repo
+
+    # --- Optional: persist the couple's data across restarts/redeploys ---
+    # By default the app ships with sample data baked in and writes are lost on
+    # restart (fine for a demo). To keep data, uncomment the disk below and set
+    # VOW_DATA_DIR so the app reads/writes the mounted disk instead of ./data.
+    #
+    # disk:
+    #   name: vow-data
+    #   mountPath: /var/vow-data
+    #   sizeGB: 1
+    # (then add an env var:  VOW_DATA_DIR = /var/vow-data  — and seed it once)

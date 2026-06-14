@@ -131,8 +131,7 @@ async function load() {
 
   if (!hh.length) {
     $("rows").innerHTML = `<tr><td colspan="9" style="text-align:center; padding:1.4rem; color:var(--ink-soft);">
-      No guests yet — add your first household below, or
-      <button id="sample" class="btn-primary" style="padding:.4rem 1rem; margin-left:.4rem;">load an example list</button>
+      No guests yet — add your first household below.
     </td></tr>`;
     return;
   }
@@ -171,13 +170,7 @@ async function load() {
   }));
 }
 
-/* sample list + enter-to-add */
-document.addEventListener("click", async (e) => {
-  if (e.target.id !== "sample") return;
-  await fetch("/api/guests/load-sample", { method: "POST" });
-  toast("Example guest list loaded");
-  load();
-});
+/* enter-to-add */
 document.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && e.target.id && e.target.id.startsWith("f-")) {
     e.preventDefault();
@@ -231,7 +224,7 @@ $("analyze").addEventListener("click", async () => {
   }
 });
 
-function render({ analysis: a, cost_usd }) {
+function render({ analysis: a }) {
   const hc = a.headcount || {}, cap = a.capacity || {}, cat = a.catering_cost || {};
   $("stat-projection").textContent = (hc.likely_projection ?? "—");
 
@@ -260,7 +253,6 @@ function render({ analysis: a, cost_usd }) {
       ${hc.assumptions ? `<p style="margin-top:.4rem;font-size:.88rem;color:var(--ink-soft);"><em>${esc(hc.assumptions)}</em></p>` : ""}
       ${cat.at_likely ? `<p style="margin-top:.6rem">Catering at the likely headcount: <b>${money(cat.at_likely)}</b> <span style="color:var(--ink-soft)">(${money(cat.at_floor)}–${money(cat.at_ceiling)} across the range)</span></p>` : ""}
       <p style="margin-top:.6rem">${esc(a.summary)}</p>
-      <div class="meta">analysis cost $${cost_usd}</div>
     </div>
     <h2 class="section-title">Warnings</h2>
     <div class="flags-grid">${warnings}</div>

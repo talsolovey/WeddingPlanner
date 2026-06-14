@@ -1,10 +1,13 @@
 import json
+import os
 from pathlib import Path
 from typing import Any, Callable
 
 BASE = Path(__file__).resolve().parent.parent
 SKILLS_DIR = BASE / "skills"
-DATA_DIR = BASE / "data"
+# Must match the server's data dir (see app/core.py) so the agent reads/writes
+# the same files the web app does. Overridable via VOW_DATA_DIR.
+DATA_DIR = Path(os.environ.get("VOW_DATA_DIR", BASE / "data"))
 
 # Guardrail: the agent may only read/write these datasets.
 ALLOWED_DATA = {"budget", "vendors", "guests", "contracts", "decisions"}

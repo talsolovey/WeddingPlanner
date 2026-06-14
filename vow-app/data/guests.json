@@ -1,225 +1,35 @@
 {
   "settings": {
     "currency": "USD",
-    "venue_capacity": 40,
-    "catering_per_head": 145,
-    "rsvp_deadline": "2026-08-15",
-    "wedding_date": "2026-09-26"
+    "venue_capacity": 200,
+    "catering_per_head": 350,
+    "rsvp_deadline": "2026-10-01",
+    "wedding_date": "2026-11-12"
   },
   "households": [
-    {
-      "id": "g1",
-      "household": "Okonkwo Family",
-      "side": "partner_a",
-      "party_size": 4,
-      "rsvp": "confirmed",
-      "attending_count": 4,
-      "plus_one_allowed": false,
-      "plus_one_name": "",
-      "meals": {
-        "chicken": 2,
-        "fish": 1,
-        "veg": 1
-      },
-      "dietary": [
-        "severe nut allergy"
-      ],
-      "notes": ""
-    },
-    {
-      "id": "g2",
-      "household": "Rossi Family",
-      "side": "partner_a",
-      "party_size": 3,
-      "rsvp": "confirmed",
-      "attending_count": 3,
-      "plus_one_allowed": false,
-      "plus_one_name": "",
-      "meals": {
-        "chicken": 1,
-        "fish": 2
-      },
-      "dietary": [],
-      "notes": ""
-    },
-    {
-      "id": "g3",
-      "household": "Chen",
-      "side": "partner_b",
-      "party_size": 2,
-      "rsvp": "confirmed",
-      "attending_count": 2,
-      "plus_one_allowed": false,
-      "plus_one_name": "",
-      "meals": {
-        "veg": 2
-      },
-      "dietary": [
-        "vegan"
-      ],
-      "notes": ""
-    },
-    {
-      "id": "g4",
-      "household": "Nguyen",
-      "side": "partner_b",
-      "party_size": 2,
-      "rsvp": "confirmed",
-      "attending_count": 2,
-      "plus_one_allowed": false,
-      "plus_one_name": "",
-      "meals": {},
-      "dietary": [],
-      "notes": "confirmed verbally, meal choices not submitted"
-    },
-    {
-      "id": "g5",
-      "household": "Patel Family",
-      "side": "partner_a",
-      "party_size": 5,
-      "rsvp": "confirmed",
-      "attending_count": 5,
-      "plus_one_allowed": false,
-      "plus_one_name": "",
-      "meals": {
-        "chicken": 3,
-        "fish": 1
-      },
-      "dietary": [
-        "halal"
-      ],
-      "notes": ""
-    },
-    {
-      "id": "g6",
-      "household": "Goldberg",
-      "side": "partner_b",
-      "party_size": 2,
-      "rsvp": "confirmed",
-      "attending_count": 2,
-      "plus_one_allowed": false,
-      "plus_one_name": "",
-      "meals": {
-        "chicken": 1,
-        "fish": 1
-      },
-      "dietary": [
-        "kosher"
-      ],
-      "notes": ""
-    },
-    {
-      "id": "g7",
-      "household": "Smith",
-      "side": "partner_a",
-      "party_size": 1,
-      "rsvp": "confirmed",
-      "attending_count": 1,
-      "plus_one_allowed": true,
-      "plus_one_name": "",
-      "meals": {
-        "chicken": 1
-      },
-      "dietary": [],
-      "notes": "plus-one offered; guest hasn't said if bringing anyone"
-    },
-    {
-      "id": "g8",
-      "household": "Kim",
-      "side": "partner_b",
-      "party_size": 2,
-      "rsvp": "confirmed",
-      "attending_count": 2,
-      "plus_one_allowed": false,
-      "plus_one_name": "",
-      "meals": {
-        "fish": 2
-      },
-      "dietary": [
-        "gluten-free"
-      ],
-      "notes": ""
-    },
-    {
-      "id": "g9",
-      "household": "Dubois",
-      "side": "partner_a",
-      "party_size": 3,
-      "rsvp": "confirmed",
-      "attending_count": 3,
-      "plus_one_allowed": false,
-      "plus_one_name": "",
-      "meals": {
-        "chicken": 2,
-        "veg": 1
-      },
-      "dietary": [],
-      "notes": ""
-    },
-    {
-      "id": "g10",
-      "household": "Andersson",
-      "side": "partner_b",
-      "party_size": 4,
-      "rsvp": "pending",
-      "attending_count": 0,
-      "plus_one_allowed": false,
-      "plus_one_name": "",
-      "meals": {},
-      "dietary": [],
-      "notes": "invited, no reply yet"
-    },
-    {
-      "id": "g11",
-      "household": "Muller",
-      "side": "partner_a",
-      "party_size": 2,
-      "rsvp": "pending",
-      "attending_count": 0,
-      "plus_one_allowed": false,
-      "plus_one_name": "",
-      "meals": {},
-      "dietary": [],
-      "notes": ""
-    },
-    {
-      "id": "g12",
-      "household": "Garcia Family",
-      "side": "partner_b",
-      "party_size": 6,
-      "rsvp": "pending",
-      "attending_count": 0,
-      "plus_one_allowed": false,
-      "plus_one_name": "",
-      "meals": {},
-      "dietary": [],
-      "notes": "large family, likely most will attend"
-    },
-    {
-      "id": "g13",
-      "household": "Becker",
-      "side": "partner_b",
-      "party_size": 3,
-      "rsvp": "no_response",
-      "attending_count": 0,
-      "plus_one_allowed": false,
-      "plus_one_name": "",
-      "meals": {},
-      "dietary": [],
-      "notes": "past RSVP deadline, no contact"
-    },
-    {
-      "id": "g14",
-      "household": "Thompson",
-      "side": "partner_a",
-      "party_size": 2,
-      "rsvp": "declined",
-      "attending_count": 0,
-      "plus_one_allowed": false,
-      "plus_one_name": "",
-      "meals": {},
-      "dietary": [],
-      "notes": ""
-    }
+    {"id": "g01", "household": "Cohen Family", "side": "partner_a", "party_size": 10, "rsvp": "confirmed", "attending_count": 10, "plus_one_allowed": false, "plus_one_name": "", "meals": {"beef": 6, "chicken": 3, "veg": 1}, "dietary": [], "notes": ""},
+    {"id": "g02", "household": "Levi Family", "side": "partner_a", "party_size": 8, "rsvp": "confirmed", "attending_count": 8, "plus_one_allowed": false, "plus_one_name": "", "meals": {"beef": 4, "chicken": 3, "fish": 1}, "dietary": [], "notes": ""},
+    {"id": "g03", "household": "Mizrahi Family", "side": "partner_b", "party_size": 12, "rsvp": "confirmed", "attending_count": 12, "plus_one_allowed": false, "plus_one_name": "", "meals": {"beef": 7, "chicken": 5}, "dietary": ["kosher"], "notes": ""},
+    {"id": "g04", "household": "Friedman", "side": "partner_b", "party_size": 6, "rsvp": "confirmed", "attending_count": 6, "plus_one_allowed": false, "plus_one_name": "", "meals": {"chicken": 3, "fish": 3}, "dietary": [], "notes": ""},
+    {"id": "g05", "household": "Goldstein", "side": "partner_a", "party_size": 4, "rsvp": "confirmed", "attending_count": 4, "plus_one_allowed": false, "plus_one_name": "", "meals": {"veg": 4}, "dietary": ["vegan"], "notes": ""},
+    {"id": "g06", "household": "Peretz Family", "side": "partner_b", "party_size": 11, "rsvp": "confirmed", "attending_count": 11, "plus_one_allowed": false, "plus_one_name": "", "meals": {"beef": 6, "chicken": 5}, "dietary": [], "notes": ""},
+    {"id": "g07", "household": "Avraham", "side": "partner_a", "party_size": 5, "rsvp": "confirmed", "attending_count": 5, "plus_one_allowed": false, "plus_one_name": "", "meals": {"chicken": 5}, "dietary": ["severe nut allergy"], "notes": ""},
+    {"id": "g08", "household": "Katz Family", "side": "partner_a", "party_size": 9, "rsvp": "confirmed", "attending_count": 9, "plus_one_allowed": false, "plus_one_name": "", "meals": {"beef": 4, "chicken": 4, "veg": 1}, "dietary": [], "notes": ""},
+    {"id": "g09", "household": "Ben-David", "side": "partner_b", "party_size": 6, "rsvp": "confirmed", "attending_count": 6, "plus_one_allowed": false, "plus_one_name": "", "meals": {}, "dietary": [], "notes": "confirmed; meal choices not submitted"},
+    {"id": "g10", "household": "Halevi Family", "side": "partner_b", "party_size": 10, "rsvp": "confirmed", "attending_count": 10, "plus_one_allowed": false, "plus_one_name": "", "meals": {"beef": 6, "chicken": 4}, "dietary": ["kosher"], "notes": ""},
+    {"id": "g11", "household": "Dahan Family", "side": "partner_b", "party_size": 9, "rsvp": "confirmed", "attending_count": 9, "plus_one_allowed": false, "plus_one_name": "", "meals": {"beef": 5, "chicken": 4}, "dietary": [], "notes": ""},
+    {"id": "g12", "household": "Sasson Family", "side": "partner_a", "party_size": 7, "rsvp": "confirmed", "attending_count": 7, "plus_one_allowed": false, "plus_one_name": "", "meals": {"beef": 4, "chicken": 3}, "dietary": [], "notes": ""},
+    {"id": "g13", "household": "Klein", "side": "partner_a", "party_size": 1, "rsvp": "confirmed", "attending_count": 1, "plus_one_allowed": true, "plus_one_name": "", "meals": {"chicken": 1}, "dietary": [], "notes": "plus-one offered; guest hasn't said if bringing anyone"},
+    {"id": "g14", "household": "Weiss", "side": "partner_b", "party_size": 3, "rsvp": "confirmed", "attending_count": 3, "plus_one_allowed": false, "plus_one_name": "", "meals": {"veg": 3}, "dietary": ["vegetarian"], "notes": ""},
+    {"id": "g15", "household": "Nahmias Family", "side": "partner_a", "party_size": 8, "rsvp": "confirmed", "attending_count": 8, "plus_one_allowed": false, "plus_one_name": "", "meals": {"beef": 4, "chicken": 4}, "dietary": [], "notes": ""},
+    {"id": "g16", "household": "Gabai Family", "side": "partner_a", "party_size": 10, "rsvp": "confirmed", "attending_count": 10, "plus_one_allowed": false, "plus_one_name": "", "meals": {"beef": 5, "chicken": 4, "veg": 1}, "dietary": [], "notes": ""},
+    {"id": "g17", "household": "Tal Family", "side": "partner_b", "party_size": 7, "rsvp": "confirmed", "attending_count": 7, "plus_one_allowed": false, "plus_one_name": "", "meals": {"beef": 4, "chicken": 3}, "dietary": ["kosher"], "notes": ""},
+    {"id": "g18", "household": "Shapiro", "side": "partner_b", "party_size": 2, "rsvp": "confirmed", "attending_count": 2, "plus_one_allowed": false, "plus_one_name": "", "meals": {"fish": 2}, "dietary": ["gluten-free"], "notes": ""},
+    {"id": "g19", "household": "Ovadia Family", "side": "partner_b", "party_size": 12, "rsvp": "pending", "attending_count": 0, "plus_one_allowed": false, "plus_one_name": "", "meals": {}, "dietary": [], "notes": "large family, likely most will attend"},
+    {"id": "g20", "household": "Hadad Family", "side": "partner_a", "party_size": 8, "rsvp": "pending", "attending_count": 0, "plus_one_allowed": false, "plus_one_name": "", "meals": {}, "dietary": [], "notes": ""},
+    {"id": "g21", "household": "Malka Family", "side": "partner_b", "party_size": 9, "rsvp": "pending", "attending_count": 0, "plus_one_allowed": false, "plus_one_name": "", "meals": {}, "dietary": [], "notes": ""},
+    {"id": "g22", "household": "Yosef Family", "side": "partner_a", "party_size": 6, "rsvp": "no_response", "attending_count": 0, "plus_one_allowed": false, "plus_one_name": "", "meals": {}, "dietary": [], "notes": "past RSVP deadline, no contact"},
+    {"id": "g23", "household": "Saban Family", "side": "partner_b", "party_size": 10, "rsvp": "declined", "attending_count": 0, "plus_one_allowed": false, "plus_one_name": "", "meals": {}, "dietary": [], "notes": ""},
+    {"id": "g24", "household": "Amar", "side": "partner_a", "party_size": 4, "rsvp": "declined", "attending_count": 0, "plus_one_allowed": false, "plus_one_name": "", "meals": {}, "dietary": [], "notes": ""}
   ]
 }

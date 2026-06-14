@@ -4,6 +4,7 @@ runner, the live-progress job endpoint, and the tolerant agent-JSON parser.
 Nothing in here imports the feature blueprints, so there are no import cycles."""
 
 import json
+import os
 import re
 import threading
 import uuid
@@ -13,7 +14,9 @@ from flask import Blueprint, jsonify
 
 # vow-app/  (this file lives in vow-app/app/, so go up two levels)
 BASE = Path(__file__).resolve().parent.parent
-DATA_DIR = BASE / "data"
+# Data dir is overridable via VOW_DATA_DIR so a host (e.g. a Render persistent
+# disk) can keep the couple's data outside the deployed code. Defaults to data/.
+DATA_DIR = Path(os.environ.get("VOW_DATA_DIR", BASE / "data"))
 SKILLS_DIR = BASE / "skills"
 PUBLIC_DIR = BASE / "public"
 

@@ -102,8 +102,7 @@ async function load() {
   $("stat-paid").textContent = fmt(paid);
   if (!b.items.length) {
     $("rows").innerHTML = `<tr><td colspan="7" style="text-align:center; padding:1.4rem; color:var(--ink-soft);">
-      No items yet — add your first line below, or
-      <button id="sample" class="btn-primary" style="padding:.4rem 1rem; margin-left:.4rem;">load an example budget</button>
+      No items yet — add your first line below.
     </td></tr>`;
     return;
   }
@@ -131,13 +130,7 @@ async function load() {
   }));
 }
 
-/* sample budget + enter-to-add */
-document.addEventListener("click", async (e) => {
-  if (e.target.id !== "sample") return;
-  await fetch("/api/budget/load-sample", { method: "POST" });
-  toast("Example budget loaded");
-  load();
-});
+/* enter-to-add */
 document.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && e.target.id && e.target.id.startsWith("f-")) {
     e.preventDefault();
@@ -186,7 +179,7 @@ $("analyze").addEventListener("click", async () => {
   }
 });
 
-function render({ analysis: a, cost_usd }) {
+function render({ analysis: a }) {
   const delta = a.delta || (a.forecast_total - a.budget_total) || 0;
   $("stat-forecast").textContent = fmt(a.forecast_total);
   const warnings = (a.warnings || []).map(w => `
@@ -201,7 +194,6 @@ function render({ analysis: a, cost_usd }) {
       <p class="eyebrow" style="margin-bottom:.3rem">Forecast · confidence: ${esc(a.confidence)}</p>
       <h2>${fmt(a.forecast_total)} <span style="font-size:1rem;" class="${delta > 0 ? "delta-pos" : "delta-neg"}">${delta > 0 ? "+" : ""}${fmt(delta)} vs budget</span></h2>
       <p style="margin-top:.4rem">${esc(a.summary)}</p>
-      <div class="meta">analysis cost $${cost_usd}</div>
     </div>
     <h2 class="section-title">Warnings</h2>
     <div class="flags-grid">${warnings}</div>

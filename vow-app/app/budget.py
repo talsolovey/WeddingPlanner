@@ -7,7 +7,6 @@ from flask import Blueprint, jsonify, request, send_from_directory
 
 from agent.harness import AgentHarness
 from .core import BUDGET_PATH, PUBLIC_DIR, parse_agent_json, run_job
-from .samples import load_sample
 
 budget_bp = Blueprint("budget", __name__)
 
@@ -101,18 +100,3 @@ def analyze_budget():
                 "cost_usd": round(harness.last_run_cost, 4)}
 
     return jsonify({"job_id": run_job(task)})
-
-
-@budget_bp.post("/api/budget/load-sample")
-def load_sample_budget():
-    budget = load_budget()
-    if budget["items"]:
-        return jsonify({"error": "Budget already has items."}), 400
-    sample = load_sample("budget")
-    if sample is None:
-        return jsonify({"error": "No sample data available."}), 404
-    budget["total_budget"] = budget["total_budget"] or sample.get("total_budget", 0)
-    for item in sample.get("items", []):
-        budget["items"].append({"id": uuid.uuid4().hex[:8], "due_before_wedding": True, **item})
-    save_budget(budget)
-    return jsonify(budget)

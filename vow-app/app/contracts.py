@@ -9,7 +9,7 @@ from flask import Blueprint, jsonify, request, send_from_directory
 from pypdf import PdfReader
 
 from agent.harness import AgentHarness
-from .core import (BASE, CONTRACTS_PATH, MAX_PDF_MB, MAX_TEXT_CHARS, PUBLIC_DIR,
+from .core import (CONTRACTS_PATH, MAX_PDF_MB, MAX_TEXT_CHARS, PUBLIC_DIR,
                    parse_agent_json, run_job)
 
 contracts_bp = Blueprint("contracts", __name__)
@@ -93,18 +93,6 @@ def analyze_contract():
     text = text[:MAX_TEXT_CHARS]
 
     job_id = run_job(_analyze_contract_task(vendor, file.filename, text, truncated))
-    return jsonify({"job_id": job_id})
-
-
-@contracts_bp.post("/api/contracts/analyze-sample")
-def analyze_sample_contract():
-    fixture = BASE / "evals" / "fixtures" / "golden_hour_photography.pdf"
-    if not fixture.exists():
-        return jsonify({"error": "Sample contract not found."}), 404
-    text = _extract_pdf_text(fixture.read_bytes())
-    job_id = run_job(_analyze_contract_task(
-        "Golden Hour Studios (sample)", fixture.name, text, False,
-        replace_vendor="Golden Hour Studios (sample)"))
     return jsonify({"job_id": job_id})
 
 

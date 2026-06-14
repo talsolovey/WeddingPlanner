@@ -1,60 +1,43 @@
 [
   {
-    "id": "0ea2b8c0",
-    "vendor": "Golden Hour Studios (sample)",
-    "filename": "golden_hour_photography.pdf",
-    "uploaded_at": "2026-06-11T19:14:48",
+    "id": "c01",
+    "vendor": "The Vineyard Pavilion - Venue",
+    "filename": "vineyard_pavilion_venue_contract.pdf",
+    "uploaded_at": "2026-05-20T10:00:00",
     "analysis": {
-      "vendor_type": "photographer",
-      "summary": "The contract has concerning cancellation and liability clauses that favor the vendor. It requires careful consideration and possible renegotiation.",
+      "vendor_type": "venue",
+      "summary": "The contract is clear on pricing but favors the venue on flexibility and protections. The main risks are a steep cancellation schedule, full prepayment before the event, and exclusivity clauses that limit the couple's vendor choices.",
       "red_flags": [
         {
-          "clause": "All payments are subject to a 22% service charge.",
-          "issue": "High and non-standard service charge that may increase the total cost unexpectedly.",
-          "severity": "yellow",
-          "recommendation": "Ask for clarification on what this service charge covers and consider negotiating a lower rate."
-        },
-        {
-          "clause": "Cancellations within ninety (90) days of the event obligate Clients to pay the full remaining contract balance.",
-          "issue": "Significant financial loss if the couple cancels close to the event, even if the vendor rebooks.",
+          "clause": "Full payment of the minimum charge is due before the event date. Cancellation fee of 25% within 6 months, 50% within 3 months, and non-refundable within 1 month.",
+          "issue": "Cancelling close to the date means losing most or all of the money, even if the venue can rebook.",
           "severity": "red",
-          "recommendation": "Negotiate to reduce the financial penalty or allow for partial refunds if the date is rebooked."
+          "recommendation": "Negotiate a softer cancellation tier and a partial refund if the date is rebooked."
         },
         {
-          "clause": "Photographer may cancel this agreement at any time.",
-          "issue": "Allows unilateral cancellation by the photographer with no penalty beyond refunding payments, leaving the couple potentially without a photographer last minute.",
-          "severity": "red",
-          "recommendation": "Require the vendor to source a replacement or provide compensation beyond a refund."
-        },
-        {
-          "clause": "No delivery timeline is guaranteed.",
-          "issue": "No guarantee on when photos will be delivered, potentially leading to long delays.",
+          "clause": "Venue holds exclusivity for catering, bar, lighting, and sound.",
+          "issue": "The couple cannot shop these services for better fit or price.",
           "severity": "yellow",
-          "recommendation": "Request a specific delivery timeline with penalties for late delivery."
+          "recommendation": "Request permission to bring approved third-party vendors for non-core items."
         },
         {
-          "clause": "In the event of any failure to perform, Photographer's total liability is limited to the amount of the retainer paid.",
-          "issue": "Limits financial remedy for non-performance to a minimal amount, inadequate for covering potential damages.",
-          "severity": "red",
-          "recommendation": "Negotiate for a higher liability cap reflecting the significance of the potential impact."
-        },
-        {
-          "clause": "Photographer reserves the right to substitute another qualified photographer of its choosing.",
-          "issue": "Possible change in the photographer without client's consent, leading to different quality of service.",
+          "clause": "No external food or drinks permitted on the premises.",
+          "issue": "Removes any chance to cut costs or bring specialty items.",
           "severity": "yellow",
-          "recommendation": "Specify client's approval is required for any substitutions."
+          "recommendation": "Ask for an exception for the wedding cake and specialty desserts."
         }
       ],
       "missing_protections": [
-        "Force majeure clause detailing what happens with payments if the event is canceled due to unforeseen circumstances."
+        "No clause covering what happens if the venue cancels or cannot host — ask for their liability terms.",
+        "No postponement option for emergencies; request one with minimal penalty."
       ],
-      "payment_summary": "A 50% non-refundable retainer of $3,400 due upon signing. Remaining $3,400 due 60 days before the event, plus a 22% service charge.",
+      "payment_summary": "Minimum charge for 200 guests ($110,000). $30,000 deposit due 15 days after signing; the balance is due in full by the event date — so 100% is prepaid before the wedding.",
       "questions_for_vendor": [
-        "What exactly does the 22% service charge cover?",
-        "Can the cancellation policy be amended to offer partial refunds if rebooked?",
-        "What is the expected delivery timeline for photos?"
+        "What are the terms if the venue needs to cancel?",
+        "Can the date be postponed for unforeseen events, and at what cost?",
+        "Can we bring our own wedding cake despite the no-external-food clause?"
       ]
     },
-    "cost_usd": 0.0149
+    "cost_usd": 0.05
   }
 ]

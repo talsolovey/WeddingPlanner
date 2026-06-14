@@ -8,7 +8,6 @@ from flask import Blueprint, jsonify, request, send_from_directory
 
 from agent.harness import AgentHarness
 from .core import GUESTS_PATH, PUBLIC_DIR, parse_agent_json, run_job
-from .samples import load_sample
 
 guests_bp = Blueprint("guests", __name__)
 
@@ -143,20 +142,3 @@ def analyze_guests():
                 "cost_usd": round(harness.last_run_cost, 4)}
 
     return jsonify({"job_id": run_job(task)})
-
-
-@guests_bp.post("/api/guests/load-sample")
-def load_sample_guests():
-    guests = load_guests()
-    if guests["households"]:
-        return jsonify({"error": "Guest list already has households."}), 400
-    sample = load_sample("guests")
-    if sample is None:
-        return jsonify({"error": "No sample data available."}), 404
-    guests["settings"] = {**DEFAULT_GUEST_SETTINGS, **sample.get("settings", {})}
-    for h in sample.get("households", []):
-        guests["households"].append({
-            "id": uuid.uuid4().hex[:8], "plus_one_allowed": False, "plus_one_name": "",
-            "meals": {}, "dietary": [], "notes": "", **h})
-    save_guests(guests)
-    return jsonify(guests)

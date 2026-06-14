@@ -1,86 +1,17 @@
 {
   "currency": "USD",
-  "total_budget": 40000.0,
+  "total_budget": 200000,
   "items": [
-    {
-      "id": "a1",
-      "category": "venue",
-      "vendor": "Rosewood Manor",
-      "estimated": 0,
-      "contracted": 14000,
-      "paid": 7000,
-      "due_before_wedding": true,
-      "notes": "includes catering"
-    },
-    {
-      "id": "a2",
-      "category": "photography",
-      "vendor": "Golden Hour Studios",
-      "estimated": 0,
-      "contracted": 6800,
-      "paid": 3400,
-      "due_before_wedding": true,
-      "notes": ""
-    },
-    {
-      "id": "a3",
-      "category": "flowers",
-      "vendor": "Petal & Stem",
-      "estimated": 9000,
-      "contracted": 0,
-      "paid": 0,
-      "due_before_wedding": true,
-      "notes": "initial quote"
-    },
-    {
-      "id": "a4",
-      "category": "music/DJ",
-      "vendor": "",
-      "estimated": 2500,
-      "contracted": 0,
-      "paid": 0,
-      "due_before_wedding": true,
-      "notes": ""
-    },
-    {
-      "id": "a5",
-      "category": "attire",
-      "vendor": "",
-      "estimated": 3000,
-      "contracted": 0,
-      "paid": 1200,
-      "due_before_wedding": true,
-      "notes": "dress deposit paid"
-    },
-    {
-      "id": "a6",
-      "category": "stationery",
-      "vendor": "",
-      "estimated": 800,
-      "contracted": 0,
-      "paid": 0,
-      "due_before_wedding": true,
-      "notes": ""
-    },
-    {
-      "id": "a7",
-      "category": "cake",
-      "vendor": "Sweet Layers",
-      "estimated": 900,
-      "contracted": 0,
-      "paid": 0,
-      "due_before_wedding": true,
-      "notes": "per-slice pricing"
-    },
-    {
-      "id": "a8",
-      "category": "rings",
-      "vendor": "",
-      "estimated": 2200,
-      "contracted": 0,
-      "paid": 0,
-      "due_before_wedding": true,
-      "notes": ""
-    }
+    {"id": "b01", "category": "venue", "vendor": "The Vineyard Pavilion", "estimated": 0, "contracted": 110000, "paid": 30000, "due_before_wedding": true, "notes": "includes catering for 200; $30,000 deposit paid"},
+    {"id": "b02", "category": "photography", "vendor": "Lior Bloom Studio", "estimated": 0, "contracted": 14000, "paid": 7000, "due_before_wedding": true, "notes": "photo + video package"},
+    {"id": "b03", "category": "music/DJ", "vendor": "DJ Nova", "estimated": 9000, "contracted": 0, "paid": 0, "due_before_wedding": true, "notes": "quote, not yet signed"},
+    {"id": "b04", "category": "flowers/decor", "vendor": "Petals & Co", "estimated": 18000, "contracted": 0, "paid": 0, "due_before_wedding": true, "notes": "centerpieces + chuppah"},
+    {"id": "b05", "category": "attire", "vendor": "", "estimated": 14000, "contracted": 0, "paid": 4000, "due_before_wedding": true, "notes": "dress + suit; alterations pending"},
+    {"id": "b06", "category": "hair/makeup", "vendor": "", "estimated": 5000, "contracted": 0, "paid": 0, "due_before_wedding": true, "notes": "bride + trial"},
+    {"id": "b07", "category": "rings", "vendor": "Gold & Co", "estimated": 10000, "contracted": 0, "paid": 0, "due_before_wedding": true, "notes": ""},
+    {"id": "b08", "category": "stationery", "vendor": "", "estimated": 3500, "contracted": 0, "paid": 1500, "due_before_wedding": true, "notes": "invitations printed"},
+    {"id": "b09", "category": "transport", "vendor": "", "estimated": 6000, "contracted": 0, "paid": 0, "due_before_wedding": true, "notes": "guest shuttle"},
+    {"id": "b10", "category": "cake", "vendor": "Sweet Layers", "estimated": 4500, "contracted": 0, "paid": 0, "due_before_wedding": true, "notes": "dessert bar"},
+    {"id": "b11", "category": "music/ceremony", "vendor": "", "estimated": 7000, "contracted": 0, "paid": 0, "due_before_wedding": true, "notes": "live ceremony musicians"}
   ]
 }
