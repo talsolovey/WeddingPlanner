@@ -1,7 +1,7 @@
 # PROJECT_STATE — WeddingOS / Vow
 
 > A plain-language summary of where the project stands, updated after every step.
-> Last updated: 2026-06-11 (Step 3: budget tracker + forecast working end to end).
+> Last updated: 2026-06-14 (Step 4: guest-list-manager skill — reasoning tested via CLI; UI pending).
 
 ## What is this project
 
@@ -53,6 +53,7 @@ and every call is logged with its dollar cost.
 |---|---|
 | `contract-analyzer` | ✅ working — red-flag checklist for vendor contracts |
 | `budget-forecaster` | ✅ working — realistic final-cost forecast + risk warnings |
+| `guest-list-manager` | 🟡 skill tested via CLI — headcount projection, capacity + catering reconciliation, RSVP follow-ups; UI not built yet |
 
 ## Done so far
 
@@ -64,6 +65,7 @@ and every call is logged with its dollar cost.
 | Step 2b | Shared UI theme matching the landing page (cream/rose/serif) | ✅ all app pages will reuse `public/styles.css` |
 | Step 3 | Budget tracker (add items, totals) + Vow's final-cost forecast | ✅ tested end to end (~$0.02/run); agent cross-referenced contract data unprompted |
 | Step 3b | UX round: home dashboard, sample-data buttons, toasts/undo; analyses run in the background with a quiet loading state | ✅ tested |
+| Step 4 | Guest-list manager skill + `guests.json` (capacity & per-head entered by couple): headcount range, capacity/catering reconciliation, dietary + RSVP follow-ups | 🟡 skill tested via CLI (~$0.021/run); UI next |
 
 ## Decisions made (and why)
 
@@ -75,11 +77,13 @@ and every call is logged with its dollar cost.
 
 ## Next steps
 
-1. Vendor comparison with a reasoned recommendation
-2. Weekly brief — "here's what needs your attention this week"
+1. Guest-list UI: `guests.html` page (add/edit households, capacity + per-head inputs,
+   sample-data button, background "Analyze guest list" with live progress); wire into home.
+2. Then deferred-by-choice this week: deployment (leaning Render/Railway w/ persistent
+   disk to keep the file-based design) and a scored eval harness.
 
-Then: tests that prove the agent catches known problems (evals), deployment, and a list
-of moments the agent struggled or surprised me (for class).
+Backlog: vendor comparison with a reasoned recommendation; weekly "what needs your
+attention" brief.
 
 ## How to run it
 

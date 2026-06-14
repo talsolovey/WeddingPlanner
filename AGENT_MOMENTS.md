@@ -37,6 +37,26 @@ surprised you").
   would enable.
 - It found all 8 deliberately missing categories, including the absent contingency.
 
+## 2026-06-14 — Step 4 (guest-list-manager skill, CLI test)
+
+- **Surprise (good):** strong quantitative reasoning. Unprompted, it built a headcount
+  *range* — confirmed floor 24, likely 36 (it assumed 80% attendance on pending and even
+  cited the Garcia "likely most will attend" note), worst-case ceiling exactly 40 — then
+  noticed the ceiling maxes the 40-seat venue and rated capacity yellow rather than green.
+  All catering math (24/36/40 × $145) was correct.
+- **Struggle (partial recall, same as contract-analyzer):** the data-quality check is
+  "for each confirmed household, meals should sum to attending_count." It caught Nguyen
+  (0 of 2 meals) but missed Patel (4 of 5 meals submitted — 1 unaccounted). It read the
+  rule but didn't apply it to every row.
+- **Struggle (instruction not followed):** the skill says "treat a severe allergy as
+  red." It listed the severe nut allergy in dietary_summary but never raised it as a red
+  warning — under-weighted an explicit instruction.
+- **Struggle (format drift, same as budget-forecaster):** "respond with ONLY a JSON
+  object, no fences" — it wrapped output in ```json fences plus a trailing prose sentence.
+  Confirms the standing lesson: parse defensively, don't expect the model to obey strict
+  format rules. UI will reuse the tolerant JSON extractor from the budget feature.
+- Run cost: $0.021 (4 iterations: list_skills → read_skill → read_data → answer).
+
 ## 2026-06-11 — UI round (live progress + dashboard)
 
 - **Surprise (good):** after a lesson landed in contract-analyzer/LESSONS.md (from a
