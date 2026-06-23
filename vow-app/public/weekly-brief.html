@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vow — Weekly Brief</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script src="app.js" defer></script>
+<style>
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+  .stat { background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.2rem; }
+  .stat .label { font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-soft); }
+  .stat .value { font-family: "Fraunces", serif; font-size: 1.5rem; color: var(--ink); }
+  .stat.accent .value { color: var(--rose-deep); }
+  .area-tag { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); }
+</style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="/">Vow <span class="logo-mark">✦</span></a>
+    <nav class="nav">
+      <a href="/">Home</a>
+      <a href="/contracts">Contracts</a>
+      <a href="/budget">Budget</a>
+      <a href="/guests">Guests</a>
+      <a href="/weekly-brief" class="active">Weekly Brief</a>
+    </nav>
+  </header>
+
+  <main class="page">
+    <p class="eyebrow">Weekly brief</p>
+    <h1>What needs your attention.</h1>
+    <p class="lede">Vow reads your budget, contracts, and guest list together and tells you what to focus on this week — ranked by what's most urgent.</p>
+
+    <div style="text-align:center; margin: 1.5rem 0;">
+      <button id="generate" class="btn-primary">Generate this week's brief</button>
+    </div>
+
+    <div id="status"></div>
+    <div id="result">
+      <div class="placeholder">
+        <span class="mark">✦</span>
+        Your prioritized action list will appear here — what's urgent, why it matters,
+        and the next step for each.
+      </div>
+    </div>
+  </main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const SEV = { high: "red", medium: "yellow", low: "green" };
+
+$("generate").addEventListener("click", async () => {
+  $("generate").disabled = true;
+  $("result").innerHTML = "";
+  try {
+    const res = await fetch("/api/weekly-brief/analyze", { method: "POST" });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || "Could not generate the brief.");
+    const result = await pollJob(json.job_id, $("status"), "Vow is reviewing everything… usually 20–60 seconds.");
+    $("status").innerHTML = "";
+    render(result);
+  } catch (err) {
+    $("status").innerHTML = `<p class="status">⚠ ${esc(err.message)}</p>`;
+  } finally {
+    $("generate").disabled = false;
+  }
+});
+
+function render({ analysis: a }) {
+  const items = a.action_items || [];
+
+  // Graceful fallback: if the model returned prose instead of the JSON schema,
+  // show the raw text rather than an empty page.
+  if (!items.length && !a.headline) {
+    $("result").innerHTML = `
+      <div class="card" style="margin-top:1rem;">
+        <p class="eyebrow" style="margin-bottom:.3rem">This week</p>
+        <div style="white-space:pre-wrap; line-height:1.55;">${esc(a.summary || "No brief produced — try again.")}</div>
+      </div>`;
+    return;
+  }
+
+  const highCount = items.filter(i => (i.priority || "").toLowerCase() === "high").length;
+
+  const cards = items.map(i => {
+    const sev = SEV[(i.priority || "").toLowerCase()] || "yellow";
+    return `
+      <div class="flag ${sev}">
+        <span class="chip ${sev}">${esc(i.priority)}</span>
+        <div><b>${esc(i.title)}</b> &nbsp;<span class="area-tag">${esc(i.area)}</span></div>
+        <div>${esc(i.why)}</div>
+        <div class="rec"><b>Do:</b> ${esc(i.do)}</div>
+      </div>`;
+  }).join("") || "<p class='lede'>Nothing pressing — enjoy the calm.</p>";
+
+  const onTrack = (a.on_track || []).map(t => `<li>${esc(t)}</li>`).join("") || "<li>—</li>";
+
+  $("result").innerHTML = `
+    <div class="card" style="margin-top:1rem;">
+      <p class="eyebrow" style="margin-bottom:.3rem">This week${a.as_of ? " · as of " + esc(a.as_of) : ""}</p>
+      <p style="margin-top:.2rem; font-size:1.05rem;">${esc(a.headline)}</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="label">Weeks to go</div><div class="value">${a.weeks_to_wedding ?? "—"}</div></div>
+      <div class="stat accent"><div class="label">High priority</div><div class="value">${highCount}</div></div>
+      <div class="stat"><div class="label">Action items</div><div class="value">${items.length}</div></div>
+    </div>
+    <h2 class="section-title">Action items</h2>
+    <div class="flags-grid">${cards}</div>
+    <h2 class="section-title">On track</h2>
+    <ul class="nice-list">${onTrack}</ul>`;
+}
+</script>
+</body>
+</html>
