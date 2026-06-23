@@ -86,6 +86,23 @@ surprised you").
   off vs earlier behavior and was mid-investigation when work paused; worth re-checking
   whether it's a real regression or a scoring/keyword artifact.
 
+## 2026-06-23 — Step 12 (security hardening)
+
+- **Design call:** treated the agent as the thing to defend *and* a thing that can be
+  weaponized. The contract-upload path was the obvious injection surface (untrusted PDF
+  text → straight into the prompt), so the fix has two layers: wrap/flag untrusted input
+  *and* make `write_data` reversible + refuse to blank a dataset — so even a successful
+  injection can't destroy data.
+- **Reassuring find:** the frontend already escaped all agent/vendor text via `esc()`,
+  so the stored-analysis XSS surface was closed; added a regression test so it stays that
+  way rather than rewriting anything.
+- **Testing the cost ceiling without spending:** used a fake OpenAI client returning an
+  expensive tool-calling response so the run *would* loop forever — proves the ceiling,
+  not the model. Whole 17-test suite runs with no network.
+- **Note for next week's autonomous run:** the deterministic guards (write backup +
+  no-blanking, cost ceiling, rate limit) are what I'd actually trust unattended; the
+  injection scanner is probabilistic and is there to reduce attempts, not guarantee.
+
 ## 2026-06-11 — UI round (live progress + dashboard)
 
 - **Surprise (good):** after a lesson landed in contract-analyzer/LESSONS.md (from a

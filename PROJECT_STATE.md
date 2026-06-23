@@ -1,7 +1,7 @@
 # PROJECT_STATE — WeddingOS / Vow
 
 > A plain-language summary of where the project stands, updated after every step.
-> Last updated: 2026-06-14 (Step 11: weekly brief is now the home page; 4 features live).
+> Last updated: 2026-06-23 (Step 12: security hardening — defenses implemented, tested, documented).
 
 ## What is this project
 
@@ -39,8 +39,11 @@ through the task, and answers with its reasoning. When it learns something usefu
 the way, it writes a note into the skill's `LESSONS.md` file — so next time it's smarter.
 That's the self-improvement loop.
 
-Safety rails: it can only touch 5 approved data files, it stops after 10 thinking rounds,
-and every call is logged with its dollar cost.
+Safety rails: it can only touch 5 approved data files, it stops after 10 thinking rounds
+*or* a per-run dollar ceiling, and every call is logged with its dollar cost. Uploaded
+documents are treated as untrusted data (prompt-injection guard), every data write is
+backed up and can't blank a dataset, and the public endpoints are rate-limited. Full
+threat model + defenses in `vow-app/SECURITY.md`.
 
 ## What the agent can do right now
 
@@ -80,7 +83,8 @@ and every call is logged with its dollar cost.
 | Step 8 | Deploy prep for Render: gunicorn, PORT + `VOW_DATA_DIR` env, `render.yaml`, `DEPLOY.md` | ✅ gunicorn serves all routes; data-dir override verified for server + agent |
 | Step 9 | Eval harness: scored recall vs planted traps (`evals/`) for all three skills | ✅ runs; contract 7/8, budget 6/6, guests flagged for recheck |
 | Step 10 | 4th feature — `weekly-brief` skill + page + home card + nav; made JSON parsing degrade generically | ✅ tested end to end (~$0.024/run); 4 features now live |
-| Step 11 | Made the weekly brief the home page — auto-runs on load (guarded by data presence) with a Refresh button; dashboard kept below | ✅ serves; uses verified endpoints. NOTE: auto-run bills a call per visit — cache option noted |
+| Step 11 | Settled the layout: home = instant summary dashboard (no agent call on load); weekly brief lives on its own page, generated on demand | ✅ all 5 pages serve; nav consistent; analyze endpoint intact |
+| Step 12 | Security hardening for autonomous running: prompt-injection guard (`agent/guard.py` + hardened system prompt), `write_data` backups + destructive-write guard, per-run cost ceiling, per-IP rate limiting on agent endpoints, output-escaping regression. Threat model in `SECURITY.md`; 17-test suite in `tests/` | ✅ all 17 tests pass (no network); all 5 pages still serve |
 
 ## Decisions made (and why)
 
@@ -98,8 +102,10 @@ and every call is logged with its dollar cost.
 
 ## Next steps
 
-1. Deploy to Render — code is prepped; push to GitHub, then New ▸ Blueprint (see DEPLOY.md).
-2. A scored eval harness (still deferred).
+1. ~~Deploy to Render~~ — done; live instance running. Push redeploys it.
+2. MCP vs no-MCP A/B test (homework Part 3): trajectory logging + Peekaboo screenshot
+   (no MCP) vs GitHub MCP line-count, then compare.
+3. A scored eval harness (still deferred).
 
 Backlog: vendor comparison with a reasoned recommendation; weekly "what needs your
 attention" brief.

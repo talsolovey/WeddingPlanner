@@ -220,4 +220,7 @@ __marimo__/
 # Vow agent run logs
 vow-app/logs/
 
+# Vow runtime data backups (created before every agent write_data)
+vow-app/data/.backups/
+
 .DS_Store
