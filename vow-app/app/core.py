@@ -7,10 +7,13 @@ import json
 import os
 import re
 import threading
+import time
 import uuid
+from collections import defaultdict
+from functools import wraps
 from pathlib import Path
 
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 
 # vow-app/  (this file lives in vow-app/app/, so go up two levels)
 BASE = Path(__file__).resolve().parent.parent
@@ -68,6 +71,53 @@ def run_job(task_fn) -> str:
 
     threading.Thread(target=work, daemon=True).start()
     return job_id
+
+
+# ---------- rate limiting (abuse / cost control on public endpoints) ----------
+# The agent endpoints each spend real OpenAI money, and the app is publicly
+# deployed, so an open analyze endpoint is a way to burn the API key. This is a
+# small in-memory sliding-window limiter per client IP — matching the app's
+# existing single-worker, in-memory design (see JOBS above). For multi-worker or
+# multi-instance hosting, swap in a shared store (e.g. Redis).
+#
+# Defaults are overridable via env so the live instance can be tuned without a
+# code change.
+RATE_LIMIT_CALLS = int(os.environ.get("VOW_RATE_LIMIT_CALLS", 5))
+RATE_LIMIT_WINDOW = int(os.environ.get("VOW_RATE_LIMIT_WINDOW", 60))  # seconds
+
+_CALL_TIMES = defaultdict(list)  # ip -> [timestamps]
+_RATE_LOCK = threading.Lock()
+
+
+def _client_ip() -> str:
+    # Honor the first hop in X-Forwarded-For (Render/most PaaS sit behind a proxy).
+    fwd = request.headers.get("X-Forwarded-For", "")
+    return (fwd.split(",")[0].strip() if fwd else request.remote_addr) or "unknown"
+
+
+def rate_limit(max_calls: int = RATE_LIMIT_CALLS, window: int = RATE_LIMIT_WINDOW):
+    """Decorator: allow `max_calls` per `window` seconds per client IP, else 429."""
+    def decorator(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            ip = _client_ip()
+            now = time.time()
+            with _RATE_LOCK:
+                recent = [t for t in _CALL_TIMES[ip] if now - t < window]
+                if len(recent) >= max_calls:
+                    retry = int(window - (now - recent[0])) + 1
+                    _CALL_TIMES[ip] = recent
+                    resp = jsonify({
+                        "error": f"Too many requests. Try again in ~{retry}s.",
+                        "retry_after": retry,
+                    })
+                    resp.headers["Retry-After"] = str(retry)
+                    return resp, 429
+                recent.append(now)
+                _CALL_TIMES[ip] = recent
+            return fn(*args, **kwargs)
+        return wrapper
+    return decorator
 
 
 core_bp = Blueprint("core", __name__)

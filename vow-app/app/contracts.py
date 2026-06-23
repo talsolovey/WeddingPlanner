@@ -9,8 +9,9 @@ from flask import Blueprint, jsonify, request, send_from_directory
 from pypdf import PdfReader
 
 from agent.harness import AgentHarness
+from agent.guard import wrap_untrusted
 from .core import (CONTRACTS_PATH, MAX_PDF_MB, MAX_TEXT_CHARS, PUBLIC_DIR,
-                   parse_agent_json, run_job)
+                   parse_agent_json, rate_limit, run_job)
 
 contracts_bp = Blueprint("contracts", __name__)
 
@@ -37,10 +38,13 @@ def _analyze_contract_task(vendor: str, filename: str, text: str, truncated: boo
     (used by the sample button so repeat clicks don't pile up duplicates)."""
     def task(on_event):
         harness = AgentHarness(verbose=False, on_event=on_event)
+        # The contract text is untrusted: a poisoned PDF could try to give the
+        # agent instructions. wrap_untrusted fences it as data and flags any
+        # injection-looking content for the model.
         prompt = (
             f"A couple uploaded a contract from their vendor '{vendor}' and wants it "
             f"reviewed before signing.{' (Text truncated due to length.)' if truncated else ''}\n"
-            f"Contract text:\n---\n{text}\n---"
+            f"{wrap_untrusted(text, source=f'{vendor} contract PDF')}"
         )
         answer = harness.run(prompt)
         record = {
@@ -71,6 +75,7 @@ def list_contracts():
 
 
 @contracts_bp.post("/api/contracts/analyze")
+@rate_limit()
 def analyze_contract():
     file = request.files.get("file")
     vendor = (request.form.get("vendor") or "Unknown vendor").strip()[:100]

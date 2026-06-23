@@ -6,7 +6,7 @@ import uuid
 from flask import Blueprint, jsonify, request, send_from_directory
 
 from agent.harness import AgentHarness
-from .core import BUDGET_PATH, PUBLIC_DIR, parse_agent_json, run_job
+from .core import BUDGET_PATH, PUBLIC_DIR, parse_agent_json, rate_limit, run_job
 
 budget_bp = Blueprint("budget", __name__)
 
@@ -84,6 +84,7 @@ def delete_budget_item(item_id):
 
 
 @budget_bp.post("/api/budget/analyze")
+@rate_limit()
 def analyze_budget():
     budget = load_budget()
     if not budget["items"]:

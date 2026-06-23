@@ -5,7 +5,7 @@ from datetime import date
 from flask import Blueprint, jsonify, send_from_directory
 
 from agent.harness import AgentHarness
-from .core import PUBLIC_DIR, parse_agent_json, run_job
+from .core import PUBLIC_DIR, parse_agent_json, rate_limit, run_job
 
 weekly_brief_bp = Blueprint("weekly_brief", __name__)
 
@@ -16,6 +16,7 @@ def weekly_brief_page():
 
 
 @weekly_brief_bp.post("/api/weekly-brief/analyze")
+@rate_limit()
 def analyze_weekly_brief():
     today = date.today().isoformat()
 
