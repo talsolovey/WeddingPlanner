@@ -43,8 +43,9 @@ def parse_agent_json(answer: str):
             return json.loads(candidate)
         except json.JSONDecodeError:
             continue
-    return {"summary": text, "red_flags": [], "missing_protections": [],
-            "payment_summary": "", "questions_for_vendor": [],
+    # Generic fallback (not tied to any one skill's shape): every render guards
+    # missing fields, and shows `summary`, so the raw answer still surfaces.
+    return {"summary": text,
             "note": "agent returned non-JSON; raw answer shown in summary"}
 
 
