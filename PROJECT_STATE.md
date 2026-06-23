@@ -1,7 +1,7 @@
 # PROJECT_STATE — WeddingOS / Vow
 
 > A plain-language summary of where the project stands, updated after every step.
-> Last updated: 2026-06-14 (Step 8: prepped for Render deploy — gunicorn, PORT/VOW_DATA_DIR env, render.yaml).
+> Last updated: 2026-06-14 (Step 11: weekly brief is now the home page; 4 features live).
 
 ## What is this project
 
@@ -61,6 +61,7 @@ and every call is logged with its dollar cost.
 | `contract-analyzer` | ✅ working — red-flag checklist for vendor contracts |
 | `budget-forecaster` | ✅ working — realistic final-cost forecast + risk warnings |
 | `guest-list-manager` | ✅ working — headcount projection, capacity + catering reconciliation, dietary roll-up, RSVP follow-ups; full UI |
+| `weekly-brief` | ✅ working — cross-feature triage (budget + contracts + guests) → ranked action list; full UI + home card |
 
 ## Done so far
 
@@ -77,6 +78,9 @@ and every call is logged with its dollar cost.
 | Step 6 | Removed all sample data: emptied live `data/*.json`, deleted `data/samples/`, the sample contract PDF, `app/samples.py`, all load-sample / analyze-sample endpoints + buttons | ✅ app starts empty; routes + add/delete verified via test client |
 | Step 7 | Loaded one coherent sample wedding (venue + contract + ~200-guest list) across all 3 data files; switched currency to USD | ✅ loads coherently; cross-feature vendor names match |
 | Step 8 | Deploy prep for Render: gunicorn, PORT + `VOW_DATA_DIR` env, `render.yaml`, `DEPLOY.md` | ✅ gunicorn serves all routes; data-dir override verified for server + agent |
+| Step 9 | Eval harness: scored recall vs planted traps (`evals/`) for all three skills | ✅ runs; contract 7/8, budget 6/6, guests flagged for recheck |
+| Step 10 | 4th feature — `weekly-brief` skill + page + home card + nav; made JSON parsing degrade generically | ✅ tested end to end (~$0.024/run); 4 features now live |
+| Step 11 | Made the weekly brief the home page — auto-runs on load (guarded by data presence) with a Refresh button; dashboard kept below | ✅ serves; uses verified endpoints. NOTE: auto-run bills a call per visit — cache option noted |
 
 ## Decisions made (and why)
 

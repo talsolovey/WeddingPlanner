@@ -57,6 +57,35 @@ surprised you").
   format rules. UI will reuse the tolerant JSON extractor from the budget feature.
 - Run cost: $0.021 (4 iterations: list_skills → read_skill → read_data → answer).
 
+## 2026-06-14 — Step 9 (weekly-brief skill, CLI test)
+
+- **Surprise (great):** the clearest cross-feature reasoning yet. From a single data-free
+  prompt it ran list_skills → read_skill → read_data(budget, contracts, guests) → answer,
+  computed weeks-to-wedding (21) from the injected date, and produced one ranked brief that
+  *combined* sources: the venue contract's cancellation/100%-prepaid risk (high), unbooked
+  budget vendors DJ/flowers then attire/transport/cake (high/medium), the big pending RSVP
+  families by name (medium), and the planted Klein plus-one + Ben-David meal gap (low).
+- **Small miss:** the budget has no contingency line, which budget-forecaster flags, but
+  the weekly brief didn't surface it — cross-skill knowledge doesn't always carry over.
+  Candidate lesson for weekly-brief: always check for a missing contingency.
+- Cost $0.024, 4 iterations.
+- **Struggle (format drift, recurred):** wiring up the UI, the *same* prompt that gave
+  clean JSON in the CLI test instead returned a prose/markdown briefing one run — so
+  `parse_agent_json` fell back. Two things bit us: (1) the fallback was contract-shaped,
+  which is wrong for non-contract skills, and (2) the brief is narrative-sounding, so the
+  model is extra prone to prose. Fixes: made the fallback generic, reinforced "respond
+  with ONLY the JSON object — no prose/markdown" in the endpoint prompt, and made the page
+  show the raw text if drift recurs. After the prompt reinforcement it returned schema
+  JSON reliably. Lesson reaffirmed: never trust strict output format; reinforce + parse
+  defensively + degrade gracefully.
+
+## 2026-06-14 — Step 8 (eval harness)
+
+- Built scored evals (recall vs planted traps). First run: contract 7/8 (missed the
+  distant-jurisdiction/Alaska clause), budget 6/6, guests 1/5 — the guest score looked
+  off vs earlier behavior and was mid-investigation when work paused; worth re-checking
+  whether it's a real regression or a scoring/keyword artifact.
+
 ## 2026-06-11 — UI round (live progress + dashboard)
 
 - **Surprise (good):** after a lesson landed in contract-analyzer/LESSONS.md (from a
