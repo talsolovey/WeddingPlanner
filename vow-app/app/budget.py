@@ -95,7 +95,9 @@ def analyze_budget():
         harness = AgentHarness(verbose=False, on_event=on_event)
         answer = harness.run(
             "The couple wants their wedding budget reviewed: forecast the realistic final "
-            "cost and flag risks. Read the budget data and any analyzed contracts."
+            "cost and flag risks. Read the budget data and any analyzed contracts. "
+            "Respond with ONLY the JSON object defined in the budget-forecaster skill "
+            "— no prose, no markdown, no headings."
         )
         return {"analysis": parse_agent_json(answer),
                 "cost_usd": round(harness.last_run_cost, 4)}

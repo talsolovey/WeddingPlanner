@@ -43,7 +43,9 @@ def _analyze_contract_task(vendor: str, filename: str, text: str, truncated: boo
         # injection-looking content for the model.
         prompt = (
             f"A couple uploaded a contract from their vendor '{vendor}' and wants it "
-            f"reviewed before signing.{' (Text truncated due to length.)' if truncated else ''}\n"
+            f"reviewed before signing.{' (Text truncated due to length.)' if truncated else ''} "
+            f"Respond with ONLY the JSON object defined in the contract-analyzer skill "
+            f"— no prose, no markdown, no headings.\n"
             f"{wrap_untrusted(text, source=f'{vendor} contract PDF')}"
         )
         answer = harness.run(prompt)
