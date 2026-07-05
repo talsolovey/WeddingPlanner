@@ -21,6 +21,9 @@
   td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   .del { background: none; border: 0; color: var(--ink-soft); cursor: pointer; font-size: 1rem; }
   .del:hover { color: var(--sev-red); }
+  .edit { background: none; border: 0; color: var(--ink-soft); cursor: pointer; font-size: .95rem; }
+  .edit:hover { color: var(--rose-deep); }
+  .erow .field { padding: .35rem .5rem; border-radius: 8px; font-size: .85rem; width: 100%; box-sizing: border-box; }
   .add-row .field { padding: .45rem .6rem; border-radius: 8px; font-size: .9rem; width: 100%; box-sizing: border-box; }
   .settings-input { display: flex; gap: .8rem; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; }
   .settings-input .field { max-width: 150px; }
@@ -32,6 +35,41 @@
   .rsvp.declined { background: var(--bg-soft); color: var(--ink-soft); }
   .diet-tag { display: inline-block; font-size: .78rem; color: var(--ink-soft); }
   .headroom-pos { color: var(--sev-green); } .headroom-neg { color: var(--sev-red); }
+  .filters { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin: 0 0 .8rem; }
+  .fchip { border: 1px solid var(--line); background: var(--bg-soft); border-radius: 999px;
+           padding: .3rem .85rem; font-size: .82rem; cursor: pointer; }
+  .fchip.on { border-color: var(--rose-deep); color: var(--rose-deep); font-weight: 600; background: #fff; }
+  .fchip .n { opacity: .6; margin-left: .25rem; }
+  .filters input { margin-left: auto; max-width: 220px; }
+  .table-wrap { max-height: 55vh; overflow: auto; }
+  .table-wrap thead th { position: sticky; top: 0; background: #fff; z-index: 1; }
+  .copy-link { background: none; border: 1px solid var(--line); border-radius: 6px;
+               padding: .2rem .5rem; cursor: pointer; font-size: .78rem; color: var(--ink-soft); }
+  .copy-link:hover { border-color: var(--rose-deep); color: var(--rose-deep); }
+  .wa-btn { background: #25d366; color: #fff; border: none; border-radius: 6px;
+            padding: .2rem .55rem; cursor: pointer; font-size: .78rem; font-weight: 600;
+            display: inline-flex; align-items: center; gap: .3rem; }
+  .wa-btn:hover { background: #1eb658; }
+  .invite-cell { white-space: nowrap; display: flex; gap: .3rem; align-items: center; }
+  .sent-tag { font-size: .72rem; color: var(--sev-green); white-space: nowrap; }
+  .qpanel { position: fixed; right: 1.2rem; bottom: 1.2rem; z-index: 60; width: 300px;
+            background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
+            box-shadow: var(--shadow); padding: 1rem 1.2rem; }
+  .qpanel .who { font-family: "Fraunces", serif; font-size: 1.1rem; margin: .15rem 0 .5rem; }
+  .qpanel .prog { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); }
+  .qpanel .row { display: flex; gap: .4rem; margin-top: .6rem; }
+  .group-tag { display: inline-block; border-radius: 999px; padding: .15rem .6rem; font-size: .76rem;
+               background: var(--bg-soft); border: 1px solid var(--line); cursor: pointer; }
+  .group-tag.empty { color: var(--ink-soft); border-style: dashed; }
+  .group-tag:hover { border-color: var(--rose-deep); }
+  .group-cell { position: relative; display: inline-block; }
+  .group-cell input { max-width: 110px; font-size: .8rem; }
+  .gmenu { position: absolute; top: 100%; left: 0; z-index: 30; min-width: 140px; max-height: 10rem;
+           overflow: auto; background: #fff; border: 1px solid var(--line); border-radius: 8px;
+           box-shadow: 0 6px 18px rgba(0,0,0,.1); margin-top: 2px; }
+  .gmenu button { display: block; width: 100%; text-align: left; background: none; border: none;
+                  padding: .4rem .65rem; font-size: .82rem; cursor: pointer; }
+  .gmenu button:hover { background: var(--bg-soft); }
 </style>
 </head>
 <body>
@@ -42,7 +80,7 @@
       <a href="/contracts">Contracts</a>
       <a href="/budget">Budget</a>
       <a href="/guests" class="active">Guests</a>
-      <a href="/weekly-brief">Weekly Brief</a>
+      <a href="/seating">Seating</a>
     </nav>
   </header>
 
@@ -51,13 +89,16 @@
     <h1>Who's actually coming.</h1>
     <p class="lede">Track RSVPs, then ask Vow to project the real headcount and tell you who to chase.</p>
 
-    <div class="settings-input">
-      <label for="venue-capacity">Venue capacity</label>
-      <input type="number" id="venue-capacity" class="field" min="0" step="1" placeholder="e.g. 40">
-      <label for="per-head">Catering / head</label>
-      <input type="number" id="per-head" class="field" min="0" step="5" placeholder="e.g. 145">
-      <button id="save-settings" class="btn-primary" style="padding:.55rem 1.2rem;">Save</button>
-    </div>
+    <details class="settings">
+      <summary>⚙ Venue &amp; catering settings</summary>
+      <div class="settings-input">
+        <label for="venue-capacity">Venue capacity</label>
+        <input type="number" id="venue-capacity" class="field" min="0" step="1" placeholder="e.g. 40">
+        <label for="per-head">Catering / head</label>
+        <input type="number" id="per-head" class="field" min="0" step="5" placeholder="e.g. 145">
+        <button id="save-settings" class="btn-ghost">Save</button>
+      </div>
+    </details>
 
     <div class="stats">
       <div class="stat"><div class="label">Invited</div><div class="value" id="stat-invited">—</div></div>
@@ -66,15 +107,20 @@
       <div class="stat accent"><div class="label">Vow's projection</div><div class="value" id="stat-projection">ask ↓</div></div>
     </div>
 
-    <div class="card" style="overflow-x:auto;">
+    <div class="filters" id="filters">
+      <input class="field" id="search" placeholder="Search households…">
+    </div>
+
+    <div class="card table-wrap">
       <table>
         <thead>
-          <tr><th>Household</th><th>Side</th><th class="num">Party</th><th>RSVP</th><th class="num">Attending</th><th>+1</th><th>Dietary</th><th>Notes</th><th></th></tr>
+          <tr><th>Household</th><th>Group</th><th>Side</th><th class="num">Party</th><th>RSVP</th><th class="num">Attending</th><th>+1</th><th>Notes</th><th>Invite</th><th></th></tr>
         </thead>
         <tbody id="rows"></tbody>
         <tbody>
           <tr class="add-row">
             <td><input class="field" id="f-household" placeholder="Household"></td>
+            <td style="position:relative;"><input class="field" id="f-group" placeholder="Group" autocomplete="off"></td>
             <td>
               <select class="field" id="f-side">
                 <option value="partner_a">Partner A</option>
@@ -92,17 +138,19 @@
             </td>
             <td><input class="field" id="f-attending" type="number" min="0" placeholder="0"></td>
             <td style="text-align:center;"><input type="checkbox" id="f-plusone" title="Plus-one offered"></td>
-            <td><input class="field" id="f-dietary" placeholder="vegan, halal…"></td>
             <td><input class="field" id="f-notes" placeholder="Notes"></td>
-            <td><button class="btn-primary" id="add" style="padding:.45rem 1rem;">Add</button></td>
+            <td></td>
+            <td><button class="btn-ghost" id="add" style="padding:.45rem 1rem;">Add</button></td>
           </tr>
         </tbody>
       </table>
     </div>
 
     <div style="text-align:center; margin: 2rem 0 0;">
-      <button id="analyze" class="btn-primary">Ask Vow to reconcile the headcount</button>
+      <button id="analyze" class="btn-primary">✦ Ask Vow to check the headcount</button>
+      <button id="send-invites" class="btn-ghost">📲 Send invites</button>
     </div>
+    <div id="qpanel"></div>
 
     <div id="status"></div>
     <div id="result"></div>
@@ -115,49 +163,328 @@ let CUR = "USD";
 const money = (n) => new Intl.NumberFormat(undefined, { style: "currency", currency: CUR, maximumFractionDigits: 0 }).format(n || 0);
 const SIDE = { partner_a: "Partner A", partner_b: "Partner B" };
 
+let HH = [];                 // all households (unfiltered)
+let EDITING = null;          // household id currently being edited inline
+let SETTINGS = {};           // wedding date / rsvp deadline, for the invite message
+let FILTER = "all";          // all | confirmed | pending | no_response | declined
+let LINKS = null;            // household id -> rsvp url (fetched on first use)
+
+async function ensureLinks() {
+  if (LINKS) return LINKS;
+  const res = await fetch("/api/guests/rsvp-links", { method: "POST" });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || "Could not get RSVP links.");
+  LINKS = Object.fromEntries(json.links.map(l => [l.id, l.url]));
+  return LINKS;
+}
+
+/* Single line on purpose: the WhatsApp desktop app truncates the pre-filled
+   text at the first newline, leaving only the link. One line survives both
+   WhatsApp Web and the desktop app. */
+function inviteMessage(h) {
+  const bits = [`Hi ${h.household}! 💍 You're invited to our wedding`];
+  if (SETTINGS.wedding_date) bits.push(` on ${SETTINGS.wedding_date}`);
+  bits.push(`. Please RSVP here (it takes a minute): ${location.origin}${LINKS[h.id]}`);
+  if (SETTINGS.rsvp_deadline) bits.push(` — kindly reply by ${SETTINGS.rsvp_deadline} 🤍`);
+  return bits.join("");
+}
+
+/* Open WhatsApp with the full invite pre-filled (same reused tab), and mark
+   the household as invited. One tap here + one send tap in WhatsApp. */
+async function openWhatsApp(h) {
+  await ensureLinks();
+  const msg = inviteMessage(h);
+  // Belt and braces: the desktop app sometimes mangles the pre-fill entirely,
+  // so the full message is also on the clipboard, ready to paste.
+  try { await navigator.clipboard.writeText(msg); } catch (e) { /* clipboard optional */ }
+
+  // Without a phone number WhatsApp opens its contact picker, and the desktop
+  // app's picker shares ONLY the link, dropping the text. A phone-targeted
+  // link opens the chat directly with the full message pre-filled — so ask
+  // once and remember it.
+  let phone = (h.phone || "").replace(/[^\d]/g, "");
+  if (!phone) {
+    const entered = window.prompt(
+      `WhatsApp number for ${h.household} (with country code, e.g. +972501234567).\n\n` +
+      `With a number, the full invite lands in their chat, ready to send. ` +
+      `Leave empty to pick the chat manually — the message is on your clipboard (⌘V).`);
+    if (entered && entered.trim()) {
+      h.phone = entered.trim().slice(0, 25);
+      phone = h.phone.replace(/[^\d]/g, "");
+      fetch("/api/guests/households/" + h.id, {
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: h.phone }),
+      });
+    }
+  }
+  const url = "https://api.whatsapp.com/send?" +
+    (phone ? `phone=${phone}&` : "") +
+    "text=" + encodeURIComponent(msg);
+  window.open(url, "vow-whatsapp");
+  toast(phone ? "Chat opening with the invite pre-filled — just hit send."
+              : "Pick the chat, then paste the invite (⌘V).");
+  fetch("/api/guests/households/" + h.id, {
+    method: "PUT", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ invite_sent: true }),
+  }).then(() => { h.invite_sent = true; renderRows(); });
+}
+
+/* ---- one-tap invite queue: walk every household that hasn't been invited ---- */
+let QUEUE = [], QIDX = 0;
+
+$("send-invites").addEventListener("click", () => {
+  QUEUE = HH.filter(h => !h.invite_sent && h.rsvp !== "declined");
+  QIDX = 0;
+  if (!QUEUE.length) { toast("Everyone has been invited already."); return; }
+  renderQueue();
+});
+
+function renderQueue() {
+  if (QIDX >= QUEUE.length) {
+    $("qpanel").innerHTML = "";
+    toast(`Done — ${QUEUE.length} invite${QUEUE.length === 1 ? "" : "s"} sent.`);
+    load();
+    return;
+  }
+  const h = QUEUE[QIDX];
+  $("qpanel").innerHTML = `
+    <div class="qpanel">
+      <div class="prog">Invite ${QIDX + 1} of ${QUEUE.length}</div>
+      <div class="who">${esc(h.household)}</div>
+      <div class="row">
+        <button class="wa-btn" id="q-open" style="padding:.45rem .9rem;">Open chat & mark sent</button>
+      </div>
+      <div class="row">
+        <button class="btn-ghost" id="q-skip" style="padding:.35rem .9rem;">Skip</button>
+        <button class="btn-ghost" id="q-stop" style="padding:.35rem .9rem;">Stop</button>
+      </div>
+    </div>`;
+  $("q-open").addEventListener("click", async () => {
+    try { await openWhatsApp(h); } catch (e) { toast(e.message); return; }
+    QIDX += 1;
+    renderQueue();
+  });
+  $("q-skip").addEventListener("click", () => { QIDX += 1; renderQueue(); });
+  $("q-stop").addEventListener("click", () => { $("qpanel").innerHTML = ""; load(); });
+}
+
+const FILTERS = [
+  ["all", "All"], ["confirmed", "Confirmed"], ["pending", "Pending"],
+  ["no_response", "No reply"], ["declined", "Declined"],
+];
+
 async function load() {
   const g = await (await fetch("/api/guests")).json();
+  SETTINGS = g.settings || {};
   CUR = (g.settings && g.settings.currency) || "USD";
   $("venue-capacity").value = g.settings.venue_capacity || "";
   $("per-head").value = g.settings.catering_per_head || "";
 
-  const hh = g.households || [];
-  const invited = hh.reduce((s, h) => s + (h.party_size || 0), 0);
-  const confirmed = hh.filter(h => h.rsvp === "confirmed").reduce((s, h) => s + (h.attending_count || 0), 0);
-  const pending = hh.filter(h => h.rsvp === "pending" || h.rsvp === "no_response").length;
+  HH = g.households || [];
+  const invited = HH.reduce((s, h) => s + (h.party_size || 0), 0);
+  const confirmed = HH.filter(h => h.rsvp === "confirmed").reduce((s, h) => s + (h.attending_count || 0), 0);
+  const pending = HH.filter(h => h.rsvp === "pending" || h.rsvp === "no_response").length;
   $("stat-invited").textContent = invited || "—";
   $("stat-confirmed").textContent = confirmed || "—";
   $("stat-pending").textContent = pending ? `${pending} household${pending === 1 ? "" : "s"}` : "—";
 
-  if (!hh.length) {
-    $("rows").innerHTML = `<tr><td colspan="9" style="text-align:center; padding:1.4rem; color:var(--ink-soft);">
+  renderFilters();
+  renderRows();
+}
+
+/* Custom autocomplete for group inputs — the native datalist popup anchors
+   wrong inside the scrolling table, so we draw our own under the input. */
+function groupMenu(input) {
+  let menu = null;
+  const close = () => { if (menu) { menu.remove(); menu = null; } };
+  const open = () => {
+    close();
+    const q = (input.value || "").toLowerCase();
+    const groups = [...new Set(HH.map(h => h.group).filter(Boolean))].sort()
+      .filter(g => g.toLowerCase().includes(q) && g !== input.value);
+    if (!groups.length) return;
+    menu = document.createElement("div");
+    menu.className = "gmenu";
+    groups.forEach(g => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = g;
+      // mousedown (not click) so it fires before the input's blur.
+      b.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        input.value = g;
+        close();
+        input.blur();   // inline editor saves on blur; harmless on the add row
+      });
+      menu.appendChild(b);
+    });
+    input.parentElement.appendChild(menu);
+  };
+  input.addEventListener("focus", open);
+  input.addEventListener("input", open);
+  input.addEventListener("blur", () => setTimeout(close, 120));
+}
+
+function renderFilters() {
+  const counts = { all: HH.length };
+  HH.forEach(h => counts[h.rsvp] = (counts[h.rsvp] || 0) + 1);
+  const chips = FILTERS.map(([key, label]) => `
+    <button class="fchip ${FILTER === key ? "on" : ""}" data-f="${key}">
+      ${label}<span class="n">${counts[key] || 0}</span>
+    </button>`).join("");
+  const search = $("search");
+  search.insertAdjacentHTML("beforebegin", "");
+  $("filters").querySelectorAll(".fchip").forEach(el => el.remove());
+  search.insertAdjacentHTML("beforebegin", chips);
+  $("filters").querySelectorAll(".fchip").forEach(el => el.addEventListener("click", () => {
+    FILTER = el.dataset.f;
+    renderFilters();
+    renderRows();
+  }));
+}
+
+function viewRow(h) {
+  const plus = h.plus_one_allowed ? (h.plus_one_name ? esc(h.plus_one_name) : "⚠ unnamed") : "—";
+  return `
+  <tr>
+    <td><b>${esc(h.household)}</b></td>
+    <td><span class="group-cell" data-gid="${h.id}" title="Click to edit group">${h.group ? `<span class="group-tag">${esc(h.group)}</span>` : `<span class="group-tag empty">+ group</span>`}</span></td>
+    <td style="color:var(--ink-soft); font-size:.85rem;">${esc(SIDE[h.side] || h.side)}</td>
+    <td class="num">${h.party_size || 0}</td>
+    <td><span class="rsvp ${esc(h.rsvp)}">${esc((h.rsvp || "").replace("_", " "))}</span></td>
+    <td class="num">${h.rsvp === "confirmed" ? (h.attending_count || 0) : "—"}</td>
+    <td>${plus}</td>
+    <td style="color:var(--ink-soft); font-size:.85rem;">${esc(h.notes)}</td>
+    <td><span class="invite-cell">
+      ${h.invite_sent ? `<span class="sent-tag" title="Invite opened in WhatsApp">✓ sent</span>` : ""}
+      <button class="wa-btn" data-wa="${h.id}" title="Send the invite + RSVP link on WhatsApp">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.2 14.1c-.2.6-1.2 1.2-1.7 1.2-.4.1-1 .1-1.6-.1-.4-.1-.9-.3-1.5-.5-2.6-1.1-4.3-3.8-4.4-4-.1-.2-1-1.4-1-2.6 0-1.2.6-1.8.9-2 .2-.3.5-.3.7-.3h.5c.2 0 .4-.1.6.4l.8 2c.1.1.1.3 0 .4l-.3.5-.4.5c-.1.1-.3.3-.1.5.1.3.6 1 1.3 1.6.9.8 1.6 1 1.9 1.2.2.1.4.1.5-.1l.7-.9c.2-.2.3-.2.6-.1l1.9.9c.3.1.4.2.5.3 0 .2 0 .7-.2 1.1z"/></svg>
+        Send
+      </button>
+      <button class="copy-link" data-link="${h.id}" title="Copy this household's private RSVP link">🔗</button>
+    </span></td>
+    <td style="white-space:nowrap;">
+      <button class="edit" data-id="${h.id}" title="Edit household">✎</button>
+      <button class="del" data-id="${h.id}" title="Remove">✕</button>
+    </td>
+  </tr>`;
+}
+
+function editRow(h) {
+  const opt = (v, label, cur) => `<option value="${v}" ${cur === v ? "selected" : ""}>${label}</option>`;
+  return `
+  <tr class="erow">
+    <td><input class="field" id="e-household" value="${esc(h.household)}"></td>
+    <td style="position:relative;"><input class="field" id="e-group" value="${esc(h.group || "")}" autocomplete="off"></td>
+    <td><select class="field" id="e-side">
+      ${opt("partner_a", "Partner A", h.side)}${opt("partner_b", "Partner B", h.side)}
+    </select></td>
+    <td><input class="field" id="e-party" type="number" min="1" value="${h.party_size || 1}"></td>
+    <td><select class="field" id="e-rsvp">
+      ${["pending", "confirmed", "declined", "no_response"].map(s => opt(s, s.replace("_", " "), h.rsvp)).join("")}
+    </select></td>
+    <td><input class="field" id="e-attending" type="number" min="0" value="${h.attending_count || 0}"></td>
+    <td style="white-space:nowrap;">
+      <input type="checkbox" id="e-plusone" ${h.plus_one_allowed ? "checked" : ""} title="Plus-one offered">
+      <input class="field" id="e-plusname" value="${esc(h.plus_one_name || "")}" placeholder="+1 name" style="max-width:90px;">
+    </td>
+    <td><input class="field" id="e-notes" value="${esc(h.notes || "")}"></td>
+    <td><input class="field" id="e-phone" value="${esc(h.phone || "")}" placeholder="+972 50…" title="WhatsApp number"></td>
+    <td style="white-space:nowrap;">
+      <button class="btn-ghost e-save" data-id="${h.id}" style="padding:.3rem .7rem;">Save</button>
+      <button class="del e-cancel" title="Cancel">✕</button>
+    </td>
+  </tr>`;
+}
+
+function renderRows() {
+  const q = ($("search").value || "").toLowerCase();
+  const rows = HH.filter(h =>
+    (FILTER === "all" || h.rsvp === FILTER) &&
+    (!q || (h.household || "").toLowerCase().includes(q)
+        || (h.group || "").toLowerCase().includes(q)));
+
+  if (!HH.length) {
+    $("rows").innerHTML = `<tr><td colspan="10" style="text-align:center; padding:1.4rem; color:var(--ink-soft);">
       No guests yet — add your first household below.
     </td></tr>`;
     return;
   }
-  $("rows").innerHTML = hh.map(h => {
-    const meals = Object.values(h.meals || {}).reduce((s, n) => s + (n || 0), 0);
-    const mealGap = h.rsvp === "confirmed" && meals < (h.attending_count || 0);
-    const plus = h.plus_one_allowed ? (h.plus_one_name ? esc(h.plus_one_name) : "⚠ unnamed") : "—";
-    const diet = (h.dietary || []).length
-      ? (h.dietary || []).map(d => `<span class="diet-tag">${esc(d)}</span>`).join(", ")
-      : "—";
-    return `
-    <tr>
-      <td><b>${esc(h.household)}</b></td>
-      <td style="color:var(--ink-soft); font-size:.85rem;">${esc(SIDE[h.side] || h.side)}</td>
-      <td class="num">${h.party_size || 0}</td>
-      <td><span class="rsvp ${esc(h.rsvp)}">${esc((h.rsvp || "").replace("_", " "))}</span></td>
-      <td class="num">${h.rsvp === "confirmed" ? (h.attending_count || 0) : "—"}${mealGap ? ` <span title="meals not all chosen" style="color:var(--sev-red)">⚠</span>` : ""}</td>
-      <td>${plus}</td>
-      <td>${diet}</td>
-      <td style="color:var(--ink-soft); font-size:.85rem;">${esc(h.notes)}</td>
-      <td><button class="del" data-id="${h.id}" title="Remove">✕</button></td>
-    </tr>`;
-  }).join("");
+  if (!rows.length) {
+    $("rows").innerHTML = `<tr><td colspan="10" style="text-align:center; padding:1.4rem; color:var(--ink-soft);">
+      No households match.
+    </td></tr>`;
+    return;
+  }
+  $("rows").innerHTML = rows.map(h => EDITING === h.id ? editRow(h) : viewRow(h)).join("");
+
+  const eg = document.getElementById("e-group");
+  if (eg) groupMenu(eg);   // group autocomplete inside the edit row too
+
+  document.querySelectorAll(".edit").forEach(el => el.addEventListener("click", () => {
+    EDITING = el.dataset.id;
+    renderRows();
+    const first = document.querySelector(".erow input");
+    if (first) first.focus();
+  }));
+  document.querySelectorAll(".e-cancel").forEach(el => el.addEventListener("click", () => {
+    EDITING = null;
+    renderRows();
+  }));
+  document.querySelectorAll(".e-save").forEach(el => el.addEventListener("click", async () => {
+    const e = (id) => document.getElementById(id);
+    const body = {
+      household: e("e-household").value, group: e("e-group").value,
+      side: e("e-side").value, party_size: e("e-party").value,
+      rsvp: e("e-rsvp").value, attending_count: e("e-attending").value,
+      plus_one_allowed: e("e-plusone").checked, plus_one_name: e("e-plusname").value,
+      notes: e("e-notes").value, phone: e("e-phone").value,
+    };
+    const res = await fetch("/api/guests/households/" + el.dataset.id, {
+      method: "PUT", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) { toast((await res.json()).error || "Could not save."); return; }
+    EDITING = null;
+    toast("Household updated.");
+    load();
+  }));
+
+  // Click a group tag -> inline input -> PUT on Enter/blur.
+  document.querySelectorAll(".group-cell").forEach(el => el.addEventListener("click", () => {
+    if (el.querySelector("input")) return;
+    const h = HH.find(x => x.id === el.dataset.gid);
+    el.innerHTML = `<input class="field" value="${esc(h.group || "")}" placeholder="Group" autocomplete="off">`;
+    const inp = el.querySelector("input");
+    groupMenu(inp);
+    inp.focus();
+    const save = async () => {
+      await fetch("/api/guests/households/" + el.dataset.gid, {
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ group: inp.value }),
+      });
+      load();
+    };
+    inp.addEventListener("keydown", (e) => { if (e.key === "Enter") inp.blur(); });
+    inp.addEventListener("blur", save, { once: true });
+  }));
+
+  document.querySelectorAll(".copy-link").forEach(el => el.addEventListener("click", async () => {
+    try { await ensureLinks(); } catch (e) { toast(e.message); return; }
+    await navigator.clipboard.writeText(location.origin + LINKS[el.dataset.link]);
+    toast("RSVP link copied — paste it into a message.");
+  }));
+
+  // WhatsApp click-to-chat: opens WhatsApp with the invite pre-filled — the
+  // couple picks the chat and presses send themselves. If the household has a
+  // phone on file it opens that chat directly.
+  document.querySelectorAll("[data-wa]").forEach(el => el.addEventListener("click", async () => {
+    const h = HH.find(x => x.id === el.dataset.wa);
+    try { await openWhatsApp(h); } catch (e) { toast(e.message); }
+  }));
 
   document.querySelectorAll(".del").forEach(el => el.addEventListener("click", async () => {
-    const item = hh.find(h => h.id === el.dataset.id);
+    const item = HH.find(h => h.id === el.dataset.id);
     await fetch("/api/guests/households/" + el.dataset.id, { method: "DELETE" });
     load();
     toast(`Removed ${item ? item.household : "household"}`, { undo: async () => {
@@ -169,6 +496,9 @@ async function load() {
     }});
   }));
 }
+
+$("search").addEventListener("input", renderRows);
+groupMenu($("f-group"));
 
 /* enter-to-add */
 document.addEventListener("keydown", (e) => {
@@ -193,16 +523,17 @@ $("save-settings").addEventListener("click", async () => {
 $("add").addEventListener("click", async () => {
   const body = {
     household: $("f-household").value, side: $("f-side").value,
+    group: $("f-group").value,
     party_size: $("f-party").value, rsvp: $("f-rsvp").value,
     attending_count: $("f-attending").value, plus_one_allowed: $("f-plusone").checked,
-    dietary: $("f-dietary").value, notes: $("f-notes").value,
+    notes: $("f-notes").value,
   };
   if (!body.household.trim()) return;
   await fetch("/api/guests/households", {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  ["f-household","f-party","f-attending","f-dietary","f-notes"].forEach(id => $(id).value = "");
+  ["f-household","f-group","f-party","f-attending","f-notes"].forEach(id => $(id).value = "");
   $("f-plusone").checked = false;
   load();
 });
@@ -225,6 +556,11 @@ $("analyze").addEventListener("click", async () => {
 });
 
 function render({ analysis: a }) {
+  // Format drift: the agent answered in prose, not the schema — show it readably.
+  if (!a.headcount && !a.capacity && !a.warnings) {
+    $("result").innerHTML = proseFallback("Guest list review", a.summary);
+    return;
+  }
   const hc = a.headcount || {}, cap = a.capacity || {}, cat = a.catering_cost || {};
   $("stat-projection").textContent = (hc.likely_projection ?? "—");
 
@@ -232,33 +568,39 @@ function render({ analysis: a }) {
   const headroomStr = (headroom === undefined || headroom === null) ? "" :
     `<span class="${headroom >= 0 ? "headroom-neg" : "headroom-neg"}" style="font-size:1rem;color:${headroom >= 0 ? "var(--sev-green)" : "var(--sev-red)"}">${headroom >= 0 ? headroom + " seats to spare" : Math.abs(headroom) + " over capacity"}</span>`;
 
-  const warnings = (a.warnings || []).map(w => `
+  const wcard = (w) => `
     <div class="flag ${esc(w.severity)}">
       <span class="chip ${esc(w.severity)}">${esc(w.severity)}</span>
       <div><b>${esc(w.issue)}</b>${w.detail ? " — " + esc(w.detail) : ""}</div>
       <div class="rec"><b>Do:</b> ${esc(w.recommendation)}</div>
-    </div>`).join("") || "<p class='lede'>No warnings — guest list looks healthy.</p>";
+    </div>`;
+  const { hotHtml, foldHtml } = foldBySeverity(a.warnings, wcard,
+    "✓ Guest list looks healthy — nothing urgent.");
 
-  const dietary = (a.dietary_summary || []).map(d => `<li>${esc(d)}</li>`).join("") || "<li>—</li>";
-  const followUps = (a.follow_ups || []).map(f => `<li>${esc(f)}</li>`).join("") || "<li>—</li>";
+  const followUps = (a.follow_ups || []).map(f => `<li>${esc(f)}</li>`).join("") || "<li>No one — every reply is in.</li>";
 
   $("result").innerHTML = `
-    <div class="card" style="margin-top:1.5rem;">
-      <p class="eyebrow" style="margin-bottom:.3rem">Headcount projection</p>
-      <h2>${hc.likely_projection ?? "—"} likely ${headroomStr}</h2>
-      <p style="margin-top:.4rem;color:var(--ink-soft);">
-        Floor <b>${hc.confirmed_floor ?? "—"}</b> confirmed ·
-        ceiling <b>${hc.worst_case_ceiling ?? "—"}</b> if everyone says yes${cap.venue_capacity ? ` · venue holds <b>${cap.venue_capacity}</b>` : ""}
-      </p>
-      ${hc.assumptions ? `<p style="margin-top:.4rem;font-size:.88rem;color:var(--ink-soft);"><em>${esc(hc.assumptions)}</em></p>` : ""}
-      ${cat.at_likely ? `<p style="margin-top:.6rem">Catering at the likely headcount: <b>${money(cat.at_likely)}</b> <span style="color:var(--ink-soft)">(${money(cat.at_floor)}–${money(cat.at_ceiling)} across the range)</span></p>` : ""}
-      <p style="margin-top:.6rem">${esc(a.summary)}</p>
-    </div>
-    <h2 class="section-title">Warnings</h2>
-    <div class="flags-grid">${warnings}</div>
-    <div class="two-col">
-      <div><h2 class="section-title">Who to follow up with</h2><ul class="nice-list">${followUps}</ul></div>
-      <div><h2 class="section-title">For the caterer</h2><ul class="nice-list">${dietary}</ul></div>
+    <div class="card report" style="margin-top:1.5rem;">
+      <div class="report-head">
+        <p class="eyebrow" style="margin-bottom:.3rem">Headcount projection</p>
+        <h2>${hc.likely_projection ?? "—"} likely ${headroomStr}</h2>
+        <p style="margin-top:.4rem;color:var(--ink-soft);">
+          Floor <b>${hc.confirmed_floor ?? "—"}</b> confirmed ·
+          ceiling <b>${hc.worst_case_ceiling ?? "—"}</b> if everyone says yes${cap.venue_capacity ? ` · venue holds <b>${cap.venue_capacity}</b>` : ""}
+        </p>
+        ${cat.at_likely ? `<p style="margin-top:.6rem">Catering at the likely headcount: <b>${money(cat.at_likely)}</b> <span style="color:var(--ink-soft)">(${money(cat.at_floor)}–${money(cat.at_ceiling)} across the range)</span></p>` : ""}
+        <p style="margin-top:.6rem">${esc(a.summary)}</p>
+        ${verdictChips(a.warnings)}
+      </div>
+      <div class="report-section">
+        <h3>Sort these out</h3>
+        <div class="flag-list">${hotHtml}</div>
+        ${foldHtml}
+      </div>
+      <div class="report-section">
+        <h3>Who to follow up with</h3><ul class="nice-list">${followUps}</ul>
+      </div>
+      ${hc.assumptions ? `<div class="report-section"><p style="margin:0;font-size:.85rem;color:var(--ink-soft);"><em>How Vow got here: ${esc(hc.assumptions)}</em></p></div>` : ""}
     </div>`;
 }
 

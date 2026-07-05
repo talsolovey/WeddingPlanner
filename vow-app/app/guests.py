@@ -92,27 +92,73 @@ def add_household():
     side = str(data.get("side", "")).strip()
     if side not in {"partner_a", "partner_b"}:
         side = "partner_a"
-    dietary = data.get("dietary", [])
-    if isinstance(dietary, str):
-        dietary = [d.strip() for d in dietary.split(",") if d.strip()]
-
     household = {
         "id": uuid.uuid4().hex[:8],
         "household": name,
         "side": side,
+        "group": str(data.get("group", "")).strip()[:60],
+        "phone": str(data.get("phone", "")).strip()[:25],
         "party_size": party_size,
         "rsvp": rsvp,
         "attending_count": attending,
         "plus_one_allowed": bool(data.get("plus_one_allowed", False)),
         "plus_one_name": str(data.get("plus_one_name", "")).strip()[:100],
-        "meals": data.get("meals") if isinstance(data.get("meals"), dict) else {},
-        "dietary": [str(d)[:60] for d in dietary][:10],
         "notes": str(data.get("notes", "")).strip()[:300],
     }
     guests = load_guests()
     guests["households"].append(household)
     save_guests(guests)
     return jsonify(household)
+
+
+@guests_bp.put("/api/guests/households/<household_id>")
+def update_household(household_id):
+    """Partial update from the couple's UI — same validation rules as adding.
+    Meals stay guest-owned (only the magic link writes them)."""
+    data = request.get_json(force=True)
+    guests = load_guests()
+    h = next((x for x in guests["households"] if x["id"] == household_id), None)
+    if h is None:
+        return jsonify({"error": "Unknown household."}), 404
+
+    def num(key, lo=0):
+        try:
+            return max(lo, int(float(data.get(key))))
+        except (TypeError, ValueError):
+            return None
+
+    if str(data.get("household") or "").strip():
+        h["household"] = str(data["household"]).strip()[:100]
+    if "group" in data:
+        h["group"] = str(data.get("group") or "").strip()[:60]
+    if "phone" in data:
+        h["phone"] = str(data.get("phone") or "").strip()[:25]
+    if "invite_sent" in data:
+        h["invite_sent"] = bool(data.get("invite_sent"))
+    if "notes" in data:
+        h["notes"] = str(data.get("notes") or "").strip()[:300]
+    if "side" in data and str(data["side"]) in {"partner_a", "partner_b"}:
+        h["side"] = str(data["side"])
+    if "party_size" in data and num("party_size", 1) is not None:
+        h["party_size"] = num("party_size", 1)
+    if "rsvp" in data and str(data["rsvp"]) in RSVP_STATES:
+        h["rsvp"] = str(data["rsvp"])
+    if "plus_one_allowed" in data:
+        h["plus_one_allowed"] = bool(data.get("plus_one_allowed"))
+    if "plus_one_name" in data:
+        h["plus_one_name"] = str(data.get("plus_one_name") or "").strip()[:100]
+    if "attending_count" in data and num("attending_count") is not None:
+        h["attending_count"] = num("attending_count")
+
+    # Keep the row consistent (same rules as add + the RSVP form):
+    if h.get("rsvp") != "confirmed":
+        h["attending_count"] = 0
+    max_party = h["party_size"] + (
+        1 if h.get("plus_one_allowed") and h.get("plus_one_name") else 0)
+    h["attending_count"] = min(h.get("attending_count", 0), max_party)
+
+    save_guests(guests)
+    return jsonify(h)
 
 
 @guests_bp.delete("/api/guests/households/<household_id>")
@@ -136,7 +182,9 @@ def analyze_guests():
         answer = harness.run(
             "The couple wants their guest list reviewed: project the final headcount, "
             "check it against the venue capacity and catering per-head budget, and tell "
-            "them who to follow up with. Read the guest data."
+            "them who to follow up with. Read the guest data. "
+            "Respond with ONLY the JSON object defined in the guest-list-manager skill "
+            "— no prose, no markdown, no headings."
         )
         return {"analysis": parse_agent_json(answer),
                 "cost_usd": round(harness.last_run_cost, 4)}
