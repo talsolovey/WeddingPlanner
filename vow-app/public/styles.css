@@ -199,6 +199,83 @@ h1, h2, h3 {
 .btn-primary:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
 .btn-primary:disabled { opacity: 0.55; cursor: wait; transform: none; box-shadow: none; }
 
+/* Quiet secondary button — Save / Add / dismiss. Only agent actions stay rose. */
+.btn-ghost {
+  background: none;
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.5rem 1.2rem;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.btn-ghost:hover { color: var(--rose-deep); border-color: var(--rose-deep); }
+.btn-ghost:disabled { opacity: 0.55; cursor: wait; }
+
+/* Fold-away section for less urgent agent findings (shared by all analyses) */
+details.more summary {
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  margin: 1rem 0 0.6rem;
+  list-style: none;
+}
+details.more summary::-webkit-details-marker { display: none; }
+details.more summary::before { content: "▸ "; }
+details.more[open] summary::before { content: "▾ "; }
+
+/* Green reassurance chip (shared) */
+.ok-chip {
+  display: inline-block;
+  background: #eaf5ec;
+  color: #2e7d43;
+  border: 1px solid #2e7d4333;
+  border-radius: 999px;
+  padding: 0.3rem 0.85rem;
+  margin: 0.15rem;
+  font-size: 0.82rem;
+}
+
+/* Verdict row: instant read of an analysis before any scrolling */
+.verdict { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.6rem 0 0; }
+
+/* One-card agent report: header + bordered sections, so a result reads as a
+   single document instead of scattered fragments */
+.report { padding: 0 !important; overflow: hidden; }
+.report .report-head { padding: 1.5rem 1.6rem 1.3rem; }
+.report .report-section { padding: 1.1rem 1.6rem 1.35rem; border-top: 1px solid var(--line); }
+.report h3 {
+  font-size: 0.78rem;
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-soft);
+  margin: 0 0 0.7rem;
+}
+.report .flag-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.report .flag { margin: 0; }
+.report ul.nice-list { margin: 0; }
+.report details.more summary { margin: 0.7rem 0 0.4rem; }
+
+/* Collapsible settings — tucked away until needed */
+details.settings { margin-bottom: 1.2rem; }
+details.settings summary {
+  list-style: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+details.settings summary::-webkit-details-marker { display: none; }
+details.settings summary:hover { color: var(--rose-deep); }
+details.settings[open] summary { margin-bottom: 0.7rem; }
+
 .dropzone {
   border: 1.5px dashed #d9c9c2;
   border-radius: var(--radius);

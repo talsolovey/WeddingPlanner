@@ -18,7 +18,7 @@
       <a href="/contracts" class="active">Contracts</a>
       <a href="/budget">Budget</a>
       <a href="/guests">Guests</a>
-      <a href="/weekly-brief">Weekly Brief</a>
+      <a href="/seating">Seating</a>
     </nav>
   </header>
 
@@ -36,7 +36,7 @@
             <span id="drop-label">Drop the contract PDF here, or <u>browse</u></span>
           </div>
           <div style="text-align: right; margin-top: .9rem;">
-            <button id="btn" type="submit" class="btn-primary">Analyze contract</button>
+            <button id="btn" type="submit" class="btn-primary">✦ Analyze contract</button>
           </div>
         </form>
 
@@ -80,31 +80,46 @@ function showFile() {
 /* rendering */
 function render(record) {
   const a = record.analysis || {};
-  const flags = (a.red_flags || []).map(f => `
+  // Format drift: the agent answered in prose, not the schema — show it readably.
+  if (!a.red_flags && !a.payment_summary) {
+    $("result").innerHTML = proseFallback(`${record.vendor} — contract review`, a.summary);
+    return;
+  }
+  const card = (f) => `
     <div class="flag ${esc(f.severity)}">
       <span class="chip ${esc(f.severity)}">${esc(f.severity)}</span>
       <div class="clause">“${esc(f.clause)}”</div>
       <div>${esc(f.issue)}</div>
       <div class="rec"><b>Ask:</b> ${esc(f.recommendation)}</div>
-    </div>`).join("") || "<p class='lede'>No flags raised.</p>";
+    </div>`;
+  const { hotHtml, foldHtml } = foldBySeverity(a.red_flags, card,
+    "✓ Nothing alarming — this contract looks fair.");
   const list = (items) => (items || []).map(i => `<li>${esc(i)}</li>`).join("") || "<li>—</li>";
   $("result").innerHTML = `
-    <div class="card">
-      <p class="eyebrow" style="margin-bottom:.3rem">${esc(a.vendor_type || "vendor")}</p>
-      <h2>${esc(record.vendor)}</h2>
-      <p style="margin-top:.4rem">${esc(a.summary)}</p>
-      <div class="meta">${esc(record.filename)} · ${esc(record.uploaded_at)}</div>
-    </div>
-    <h2 class="section-title">Flags</h2>
-    <div class="flags-grid">${flags}</div>
-    <h2 class="section-title">Payment exposure</h2><p>${esc(a.payment_summary)}</p>
-    <div class="two-col">
-      <div><h2 class="section-title">Missing protections</h2><ul class="nice-list">${list(a.missing_protections)}</ul></div>
-      <div>
-        <h2 class="section-title">Questions for the vendor
-          <button id="copy-q" class="del" title="Copy questions" style="font-size:.8rem;">⧉ copy</button>
-        </h2>
-        <ul class="nice-list">${list(a.questions_for_vendor)}</ul>
+    <div class="card report">
+      <div class="report-head">
+        <p class="eyebrow" style="margin-bottom:.3rem">${esc(a.vendor_type || "vendor")}</p>
+        <h2>${esc(record.vendor)}</h2>
+        <p style="margin-top:.4rem">${esc(a.summary)}</p>
+        ${verdictChips(a.red_flags)}
+        <div class="meta">${esc(record.filename)} · ${esc(record.uploaded_at)}</div>
+      </div>
+      <div class="report-section">
+        <h3>Fix before signing</h3>
+        <div class="flag-list">${hotHtml}</div>
+        ${foldHtml}
+      </div>
+      <div class="report-section">
+        <h3>How the money flows</h3><p style="margin:0;">${esc(a.payment_summary)}</p>
+      </div>
+      <div class="report-section two-col">
+        <div><h3>Protections to ask for</h3><ul class="nice-list">${list(a.missing_protections)}</ul></div>
+        <div>
+          <h3>Ask the vendor
+            <button id="copy-q" class="del" title="Copy questions" style="font-size:.8rem;">⧉ copy</button>
+          </h3>
+          <ul class="nice-list">${list(a.questions_for_vendor)}</ul>
+        </div>
       </div>
     </div>`;
   const copyBtn = $("copy-q");

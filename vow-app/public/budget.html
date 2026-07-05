@@ -35,7 +35,7 @@
       <a href="/contracts">Contracts</a>
       <a href="/budget" class="active">Budget</a>
       <a href="/guests">Guests</a>
-      <a href="/weekly-brief">Weekly Brief</a>
+      <a href="/seating">Seating</a>
     </nav>
   </header>
 
@@ -44,11 +44,14 @@
     <h1>Where the money goes.</h1>
     <p class="lede">Track every line, then ask Vow what this wedding will <em>actually</em> cost.</p>
 
-    <div class="budget-input">
-      <label for="total-budget" style="color: var(--ink-soft); font-size:.9rem;">Total budget</label>
-      <input type="number" id="total-budget" class="field" min="0" step="100" placeholder="e.g. 40000">
-      <button id="save-budget" class="btn-primary" style="padding:.55rem 1.2rem;">Save</button>
-    </div>
+    <details class="settings">
+      <summary>⚙ Set total budget</summary>
+      <div class="budget-input">
+        <label for="total-budget" style="color: var(--ink-soft); font-size:.9rem;">Total budget</label>
+        <input type="number" id="total-budget" class="field" min="0" step="100" placeholder="e.g. 40000">
+        <button id="save-budget" class="btn-ghost">Save</button>
+      </div>
+    </details>
 
     <div class="stats">
       <div class="stat"><div class="label">Budget</div><div class="value" id="stat-budget">—</div></div>
@@ -71,14 +74,14 @@
             <td><input class="field" id="f-contracted" type="number" min="0" placeholder="0"></td>
             <td><input class="field" id="f-paid" type="number" min="0" placeholder="0"></td>
             <td><input class="field" id="f-notes" placeholder="Notes"></td>
-            <td><button class="btn-primary" id="add" style="padding:.45rem 1rem;">Add</button></td>
+            <td><button class="btn-ghost" id="add" style="padding:.45rem 1rem;">Add</button></td>
           </tr>
         </tbody>
       </table>
     </div>
 
     <div style="text-align:center; margin: 2rem 0 0;">
-      <button id="analyze" class="btn-primary">Ask Vow to forecast</button>
+      <button id="analyze" class="btn-primary">✦ Ask Vow to forecast the real cost</button>
     </div>
 
     <div id="status"></div>
@@ -180,26 +183,40 @@ $("analyze").addEventListener("click", async () => {
 });
 
 function render({ analysis: a }) {
+  // Format drift: the agent answered in prose, not the schema — show it readably.
+  if (a.forecast_total == null && !a.warnings) {
+    $("result").innerHTML = proseFallback("Budget forecast", a.summary);
+    return;
+  }
   const delta = a.delta || (a.forecast_total - a.budget_total) || 0;
   $("stat-forecast").textContent = fmt(a.forecast_total);
-  const warnings = (a.warnings || []).map(w => `
+  const card = (w) => `
     <div class="flag ${esc(w.severity)}">
       <span class="chip ${esc(w.severity)}">${esc(w.severity)}</span>
       <div><b>${esc(w.category)}</b> — ${esc(w.issue)}</div>
       <div class="rec"><b>Do:</b> ${esc(w.recommendation)}</div>
-    </div>`).join("") || "<p class='lede'>No warnings — looking healthy.</p>";
-  const missing = (a.missing_categories || []).map(m => `<li>${esc(m)}</li>`).join("") || "<li>—</li>";
+    </div>`;
+  const { hotHtml, foldHtml } = foldBySeverity(a.warnings, card,
+    "✓ No money worries right now.");
+  const missing = (a.missing_categories || []).map(m => `<li>${esc(m)}</li>`).join("") || "<li>Nothing — every usual category is covered.</li>";
+  const over = delta > 0;
   $("result").innerHTML = `
-    <div class="card" style="margin-top:1.5rem;">
-      <p class="eyebrow" style="margin-bottom:.3rem">Forecast · confidence: ${esc(a.confidence)}</p>
-      <h2>${fmt(a.forecast_total)} <span style="font-size:1rem;" class="${delta > 0 ? "delta-pos" : "delta-neg"}">${delta > 0 ? "+" : ""}${fmt(delta)} vs budget</span></h2>
-      <p style="margin-top:.4rem">${esc(a.summary)}</p>
-    </div>
-    <h2 class="section-title">Warnings</h2>
-    <div class="flags-grid">${warnings}</div>
-    <div class="two-col">
-      <div><h2 class="section-title">Missing categories</h2><ul class="nice-list">${missing}</ul></div>
-      <div><h2 class="section-title">Payment exposure</h2><p style="margin-top:.6rem">${esc(a.payment_exposure)}</p></div>
+    <div class="card report" style="margin-top:1.5rem;">
+      <div class="report-head">
+        <p class="eyebrow" style="margin-bottom:.3rem">What this wedding will actually cost${a.confidence ? ` · ${esc(a.confidence)} confidence` : ""}</p>
+        <h2>${fmt(a.forecast_total)} <span style="font-size:1rem;" class="${over ? "delta-pos" : "delta-neg"}">${over ? fmt(delta) + " over your budget" : "within budget"}</span></h2>
+        <p style="margin-top:.4rem">${esc(a.summary)}</p>
+        ${verdictChips(a.warnings)}
+      </div>
+      <div class="report-section">
+        <h3>Deal with these first</h3>
+        <div class="flag-list">${hotHtml}</div>
+        ${foldHtml}
+      </div>
+      <div class="report-section two-col">
+        <div><h3>You haven't budgeted for</h3><ul class="nice-list">${missing}</ul></div>
+        <div><h3>Money already at risk</h3><p style="margin:0;">${esc(a.payment_exposure)}</p></div>
+      </div>
     </div>`;
 }
 

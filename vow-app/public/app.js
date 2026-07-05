@@ -37,3 +37,58 @@ function toast(message, opts = {}) {
   root.appendChild(el);
   setTimeout(() => el.remove(), opts.undo ? 6000 : 3000);
 }
+
+/** Split severity items into urgent (red/high, always visible) and the rest
+    (folded behind a "N more" disclosure). `card` renders one item. */
+function foldBySeverity(items, card, emptyText, listClass = "flag-list") {
+  const urgent = ["red", "high"];
+  const sev = (i) => (i.severity || i.priority || "").toLowerCase();
+  const hot = (items || []).filter(i => urgent.includes(sev(i)));
+  const rest = (items || []).filter(i => !urgent.includes(sev(i)));
+  const hotHtml = hot.map(card).join("") ||
+    `<p class='lede' style='margin:0;'>${emptyText || "Nothing urgent here."}</p>`;
+  const foldHtml = rest.length ? `
+    <details class="more">
+      <summary>${rest.length} more item${rest.length === 1 ? "" : "s"} (less urgent)</summary>
+      <div class="${listClass}">${rest.map(card).join("")}</div>
+    </details>` : "";
+  return { hotHtml, foldHtml, hot: hot.length, rest: rest.length };
+}
+
+/** Chip row summarizing severity counts, e.g. "2 red · 3 yellow · 1 green". */
+function verdictChips(items) {
+  const counts = {};
+  (items || []).forEach(i => {
+    const s = (i.severity || i.priority || "").toLowerCase();
+    counts[s] = (counts[s] || 0) + 1;
+  });
+  const order = ["red", "high", "yellow", "medium", "green", "low"];
+  const cls = { red: "red", high: "red", yellow: "yellow", medium: "yellow", green: "green", low: "green" };
+  const chips = order.filter(s => counts[s]).map(s =>
+    `<span class="chip ${cls[s]}">${counts[s]} ${s}</span>`).join(" ");
+  return chips ? `<div class="verdict">${chips}</div>`
+               : `<div class="verdict"><span class="ok-chip">✓ all clear</span></div>`;
+}
+
+/** When the agent answers in prose instead of its JSON schema (format drift),
+    show the text readably rather than a broken report full of "—". */
+function proseFallback(title, text) {
+  const escP = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  let t = escP(text || "No answer produced — try again.");
+  t = t.replace(/###\s*/g, "\n\n");                 // markdown headings -> paragraph breaks
+  t = t.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");     // **bold**
+  t = t.replace(/(^|\n)\s*[-•]\s+/g, "$1• ");       // list dashes -> bullets
+  return `
+    <div class="card report" style="margin-top:1.5rem;">
+      <div class="report-head">
+        <p class="eyebrow" style="margin-bottom:.3rem">${escP(title)}</p>
+        <div style="white-space:pre-wrap; line-height:1.6;">${t}</div>
+      </div>
+      <div class="report-section">
+        <p style="margin:0;font-size:.85rem;color:var(--ink-soft);">
+          Vow answered in free text instead of its usual format this time, so the
+          structured view isn't available. Running the analysis again usually fixes it.
+        </p>
+      </div>
+    </div>`;
+}

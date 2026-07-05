@@ -16,12 +16,7 @@
   .stat .value { font-family: "Fraunces", serif; font-size: 1.5rem; color: var(--ink); }
   .stat.accent .value { color: var(--rose-deep); }
   .area-tag { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); }
-  details.more summary { cursor: pointer; color: var(--ink-soft); font-size: .9rem; margin: 1rem 0 .6rem; list-style: none; }
-  details.more summary::-webkit-details-marker { display: none; }
-  details.more summary::before { content: "▸ "; }
-  details.more[open] summary::before { content: "▾ "; }
-  .ok-chip { display: inline-block; background: #eaf5ec; color: #2e7d43; border: 1px solid #2e7d4333;
-             border-radius: 999px; padding: .3rem .85rem; margin: .15rem; font-size: .82rem; }
+  /* details.more and .ok-chip now live in styles.css (shared by all analyses) */
 </style>
 </head>
 <body>
@@ -32,6 +27,7 @@
       <a href="/contracts">Contracts</a>
       <a href="/budget">Budget</a>
       <a href="/guests">Guests</a>
+      <a href="/seating">Seating</a>
       <a href="/weekly-brief" class="active">Weekly Brief</a>
     </nav>
   </header>
@@ -42,7 +38,7 @@
     <p class="lede">Vow reads your budget, contracts, and guest list together and tells you what to focus on this week — ranked by what's most urgent.</p>
 
     <div style="text-align:center; margin: 1.5rem 0;">
-      <button id="generate" class="btn-primary">Generate this week's brief</button>
+      <button id="generate" class="btn-primary">✦ Generate this week's brief</button>
     </div>
 
     <div id="status"></div>
