@@ -1,7 +1,7 @@
 # PROJECT_STATE — WeddingOS / Vow
 
 > A plain-language summary of where the project stands, updated after every step.
-> Last updated: 2026-07-05 (Step 15: guest groups — grouped guest list, seat-by-group, group-aware auto-seat).
+> Last updated: 2026-07-05 (Step 16: home is now mission control — countdown, brief-as-todos, summary sidebar).
 
 ## What is this project
 
@@ -91,6 +91,8 @@ threat model + defenses in `vow-app/SECURITY.md`.
 | Step 14 | Built-in RSVP + seating (replaces external vendors): per-household magic links (`app/rsvp.py` — public, scoped writes, strict validation, injection-scanned free text, tighter rate limit) + guest form (`rsvp.html`); seating chart (`app/seating.py` + `seating.html`) with tables, click-to-assign, deterministic conflict engine; `seating-planner` skill — agent proposes, code validates, couple clicks Apply (HITL). Full loop: RSVP submits report conflicts they create; seating conflicts feed the weekly-brief merge as computed facts; home card + nav everywhere | ✅ 40 tests pass (14 new, offline); live auto-seat run: agent proposed 13 sensible tables, validation caught 3 capacity errors before Apply, $0.029 |
 | Step 14b | UI de-listing pass: guests page got filter chips + search + scrolling table + per-row RSVP-link copy (long links card removed); seating page draws real round table-tops with seat dots, conflicts collapsed into grouped chips; weekly brief shows only high priority by default (medium/low fold away), on-track as chips | ✅ 40 tests pass; JS syntax-checked on all three pages |
 | Step 15 | Guest groups: `group` field on households, editable inline in the guest list (with autocomplete of existing groups) and settable on add; whitelisted `PUT /api/guests/households/<id>` (group/notes/side only — RSVP fields stay guest-owned); seating page groups the unassigned list with one-click "seat group" onto a table; `seating-planner` skill now keeps groups together (notes still beat groups) | ✅ 45 tests pass (5 new, offline); pages serve; JS checked |
+| Step 15b | Iteration round from live use: full inline row editing in the guest list (PUT now covers all fields with add-rules validation; meals then dietary removed end-to-end — form, API, skills, data); WhatsApp invites via click-to-chat with per-household magic links, phone capture, one-tap invite queue with ✓ sent tracking; visual seating room (round table-tops, seat dots, hover-✕ remove, seat-by-group); auto-seat applies directly with code validation as the gate; UI minimalism pass (ghost buttons, folded settings, single rose action per page); agent results unified into one sectioned report card with verdict chips + severity folding; JSON-only reinforcement on all agent endpoints + graceful prose fallback | ✅ 47 tests pass; all pages serve; JS syntax-checked |
+| Step 16 | Home = mission control: countdown hero (days/weeks from `wedding_date`), the weekly brief moved home as a checkable to-do list (latest brief cached to `data/brief.json`, served by `GET /api/weekly-brief/latest`, so home loads instantly; "✦ Ask Vow to refresh" re-runs the orchestrator), summary sidebar (budget/guests/seating/contracts/lessons). Weekly Brief dropped from the nav (page still serves at /weekly-brief) | ✅ 47 tests pass; all 6 pages serve; JS checked |
 
 ## Decisions made (and why)
 
@@ -115,10 +117,14 @@ threat model + defenses in `vow-app/SECURITY.md`.
 - **RSVP links are capability tokens, not logins** — one token = write access to exactly
   one household's RSVP fields. No accounts, no passwords, nothing else reachable. Free
   text from guests is injection-scanned before it's stored, because agents read it later.
-- **Agent proposes, human applies (seating)** — the auto-seat run has no write path; the
-  couple's Apply click goes through code validation (capacity, no splits, known ids).
-  First live run proved the pattern: the model broke capacity on 3 of 13 tables and the
-  gate caught it.
+- **Auto-seat applies directly, validation still gates (seating)** — originally the couple
+  had to click Apply on a proposal card; that felt like homework, so auto-seat now saves
+  the arrangement immediately and the couple corrects on the visual chart. The safety
+  didn't go away, it moved: code validation still rejects hard-invalid plans (unknown
+  households, one household at two tables) before saving, soft issues (over-capacity)
+  surface as conflict chips, and the agent itself still has no write path — the endpoint
+  code writes. First live run had justified this gate: the model broke capacity on 3 of
+  13 tables.
 
 ## Next steps
 

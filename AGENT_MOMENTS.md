@@ -131,6 +131,18 @@ surprised you").
   attending_count (+1 per named plus-one) and re-check it before answering."
 - Cost $0.029, 4 iterations.
 
+## 2026-07-05 — Format drift recurrence (guests analyze, live)
+
+- **Struggle (format drift, again):** the guests analysis returned a full markdown
+  briefing instead of schema JSON; the tolerant parser fell back and the UI rendered a
+  broken report ("— likely", empty sections, false "all clear"). Root cause: unlike the
+  weekly brief (fixed in Step 10), the guests/budget/contracts endpoint prompts never got
+  the "ONLY the JSON object — no prose" reinforcement; the instruction lived only in the
+  skill. Fixes: reinforcement added to all three endpoint prompts, and every render now
+  detects the fallback shape and shows the prose readably with a "run it again" note
+  instead of a skeleton of dashes. Lesson reaffirmed, third time: reinforce at the
+  endpoint + parse defensively + degrade *visibly gracefully*.
+
 ## 2026-06-11 — UI round (live progress + dashboard)
 
 - **Surprise (good):** after a lesson landed in contract-analyzer/LESSONS.md (from a
