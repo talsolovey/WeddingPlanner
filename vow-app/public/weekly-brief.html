@@ -71,7 +71,7 @@ $("generate").addEventListener("click", async () => {
   }
 });
 
-function render({ analysis: a }) {
+function render({ analysis: a, agents, cost_usd }) {
   const items = a.action_items || [];
 
   // Graceful fallback: if the model returned prose instead of the JSON schema,
@@ -89,14 +89,25 @@ function render({ analysis: a }) {
 
   const cards = items.map(i => {
     const sev = SEV[(i.priority || "").toLowerCase()] || "yellow";
+    const verified = i.flagged_by === "verifier"
+      ? ` <span class="area-tag" title="Caught by the verifier agent on re-check">✓ verifier catch</span>` : "";
     return `
       <div class="flag ${sev}">
         <span class="chip ${sev}">${esc(i.priority)}</span>
-        <div><b>${esc(i.title)}</b> &nbsp;<span class="area-tag">${esc(i.area)}</span></div>
+        <div><b>${esc(i.title)}</b> &nbsp;<span class="area-tag">${esc(i.area)}</span>${verified}</div>
         <div>${esc(i.why)}</div>
         <div class="rec"><b>Do:</b> ${esc(i.do)}</div>
       </div>`;
   }).join("") || "<p class='lede'>Nothing pressing — enjoy the calm.</p>";
+
+  // Observability: how the brief was assembled (sub-agents + verifier + cost).
+  const crew = (agents || []).map(g =>
+    `${esc(g.name)} (${g.findings} finding${g.findings === 1 ? "" : "s"}` +
+    (g.verifier_added ? `, +${g.verifier_added} verifier` : "") + `)`
+  ).join(" · ");
+  const crewLine = crew
+    ? `<p class="area-tag" style="margin-top:1rem;">Assembled by 3 specialist agents run in parallel, re-checked by a verifier: ${crew}${cost_usd != null ? ` · total cost $${cost_usd}` : ""}</p>`
+    : "";
 
   const onTrack = (a.on_track || []).map(t => `<li>${esc(t)}</li>`).join("") || "<li>—</li>";
 
@@ -113,7 +124,8 @@ function render({ analysis: a }) {
     <h2 class="section-title">Action items</h2>
     <div class="flags-grid">${cards}</div>
     <h2 class="section-title">On track</h2>
-    <ul class="nice-list">${onTrack}</ul>`;
+    <ul class="nice-list">${onTrack}</ul>
+    ${crewLine}`;
 }
 </script>
 </body>

@@ -4,8 +4,8 @@ from datetime import date
 
 from flask import Blueprint, jsonify, send_from_directory
 
-from agent.harness import AgentHarness
-from .core import PUBLIC_DIR, parse_agent_json, rate_limit, run_job
+from agent.orchestrator import WeeklyBriefOrchestrator
+from .core import PUBLIC_DIR, rate_limit, run_job
 
 weekly_brief_bp = Blueprint("weekly_brief", __name__)
 
@@ -21,15 +21,11 @@ def analyze_weekly_brief():
     today = date.today().isoformat()
 
     def task(on_event):
-        # No data in the prompt: the agent reads budget, contracts, and guests itself.
-        harness = AgentHarness(verbose=False, on_event=on_event)
-        answer = harness.run(
-            f"Today is {today}. Give the couple their weekly brief: what needs their "
-            f"attention right now? Read the budget, contracts, and guest data. "
-            f"Respond with ONLY the JSON object defined in the weekly-brief skill — "
-            f"no prose, no markdown, no headings."
-        )
-        return {"analysis": parse_agent_json(answer),
-                "cost_usd": round(harness.last_run_cost, 4)}
+        # Orchestrated run (WS5): three parallel specialist sub-agents in isolated
+        # contexts + a verifier pass each + one merge call. The orchestrator reads
+        # the data itself; response keeps the old {analysis, cost_usd} shape and
+        # adds a per-agent breakdown.
+        orch = WeeklyBriefOrchestrator(on_event=on_event)
+        return orch.run(today)
 
     return jsonify({"job_id": run_job(task)})
