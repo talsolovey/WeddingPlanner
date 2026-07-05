@@ -1,7 +1,7 @@
 # PROJECT_STATE — WeddingOS / Vow
 
 > A plain-language summary of where the project stands, updated after every step.
-> Last updated: 2026-07-05 (Step 13: weekly brief rebuilt as parallel sub-agents + a verifier).
+> Last updated: 2026-07-05 (Step 15: guest groups — grouped guest list, seat-by-group, group-aware auto-seat).
 
 ## What is this project
 
@@ -66,6 +66,7 @@ threat model + defenses in `vow-app/SECURITY.md`.
 | `budget-forecaster` | ✅ working — realistic final-cost forecast + risk warnings |
 | `guest-list-manager` | ✅ working — headcount projection, capacity + catering reconciliation, dietary roll-up, RSVP follow-ups; full UI |
 | `weekly-brief` | ✅ working — now orchestrated: 3 specialist sub-agents (contracts/budget/guests) run in parallel in isolated contexts, a verifier re-checks each against its skill checklist, one merge call ranks it all; full UI + home card |
+| `seating-planner` | ✅ working — proposes a full table arrangement (families together, dietary clustering, notes as preferences, capacity math); proposal-only: code validates it and the couple must click Apply |
 
 ## Done so far
 
@@ -87,6 +88,9 @@ threat model + defenses in `vow-app/SECURITY.md`.
 | Step 11 | Settled the layout: home = instant summary dashboard (no agent call on load); weekly brief lives on its own page, generated on demand | ✅ all 5 pages serve; nav consistent; analyze endpoint intact |
 | Step 12 | Security hardening for autonomous running: prompt-injection guard (`agent/guard.py` + hardened system prompt), `write_data` backups + destructive-write guard, per-run cost ceiling, per-IP rate limiting on agent endpoints, output-escaping regression. Threat model in `SECURITY.md`; 17-test suite in `tests/` | ✅ all 17 tests pass (no network); all 5 pages still serve |
 | Step 13 | WS5 sub-agents: weekly brief rebuilt as an orchestrator (`agent/orchestrator.py`) — 3 specialists fan out in parallel (fresh context + own $0.15 cap each), a verifier (tool-free call with skill + data + findings) appends misses tagged `flagged_by: "verifier"`, one merge call produces the brief; `weeks_to_wedding` computed in code; whole run capped at `VOW_ORCH_MAX_COST_USD` ($0.50). UI shows verifier catches + per-agent breakdown | ✅ 26 tests pass (9 new, offline); live e2e run: verifier caught 5 items the specialists missed, $0.083 total |
+| Step 14 | Built-in RSVP + seating (replaces external vendors): per-household magic links (`app/rsvp.py` — public, scoped writes, strict validation, injection-scanned free text, tighter rate limit) + guest form (`rsvp.html`); seating chart (`app/seating.py` + `seating.html`) with tables, click-to-assign, deterministic conflict engine; `seating-planner` skill — agent proposes, code validates, couple clicks Apply (HITL). Full loop: RSVP submits report conflicts they create; seating conflicts feed the weekly-brief merge as computed facts; home card + nav everywhere | ✅ 40 tests pass (14 new, offline); live auto-seat run: agent proposed 13 sensible tables, validation caught 3 capacity errors before Apply, $0.029 |
+| Step 14b | UI de-listing pass: guests page got filter chips + search + scrolling table + per-row RSVP-link copy (long links card removed); seating page draws real round table-tops with seat dots, conflicts collapsed into grouped chips; weekly brief shows only high priority by default (medium/low fold away), on-track as chips | ✅ 40 tests pass; JS syntax-checked on all three pages |
+| Step 15 | Guest groups: `group` field on households, editable inline in the guest list (with autocomplete of existing groups) and settable on add; whitelisted `PUT /api/guests/households/<id>` (group/notes/side only — RSVP fields stay guest-owned); seating page groups the unassigned list with one-click "seat group" onto a table; `seating-planner` skill now keeps groups together (notes still beat groups) | ✅ 45 tests pass (5 new, offline); pages serve; JS checked |
 
 ## Decisions made (and why)
 
@@ -108,6 +112,13 @@ threat model + defenses in `vow-app/SECURITY.md`.
   itself useful signal in the UI.
 - **Dates computed in code, not by the model** — `weeks_to_wedding` comes from
   `guests.settings.wedding_date`; the merge model can't overrule arithmetic.
+- **RSVP links are capability tokens, not logins** — one token = write access to exactly
+  one household's RSVP fields. No accounts, no passwords, nothing else reachable. Free
+  text from guests is injection-scanned before it's stored, because agents read it later.
+- **Agent proposes, human applies (seating)** — the auto-seat run has no write path; the
+  couple's Apply click goes through code validation (capacity, no splits, known ids).
+  First live run proved the pattern: the model broke capacity on 3 of 13 tables and the
+  gate caught it.
 
 ## Next steps
 

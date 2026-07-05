@@ -116,6 +116,21 @@ surprised you").
   (log shows interleaved progress); whole orchestration $0.083 — ~3.5x a single
   weekly-brief run, buying 5 extra catches and per-area cost attribution.
 
+## 2026-07-05 — Step 14 (seating-planner, live auto-seat)
+
+- **Surprise (good):** first live run showed real seating judgment — clustered the
+  kosher households at dedicated tables, kept every family whole, gave lone households
+  same-side company, and flagged the no-meals household in its reasoning. It even used
+  the current room's tables instead of inventing its own.
+- **Struggle (arithmetic, again):** capacity math failed on 3 of 13 tables — it summed
+  party sizes loosely instead of confirmed attending counts. Models drift on arithmetic
+  under load; this is why `validate_proposal` recomputes every table's load in code and
+  the UI shows the failures next to the Apply button. The HITL gate earned its keep on
+  run one.
+- Candidate lesson for the skill: "compute each table's load as the sum of
+  attending_count (+1 per named plus-one) and re-check it before answering."
+- Cost $0.029, 4 iterations.
+
 ## 2026-06-11 — UI round (live progress + dashboard)
 
 - **Surprise (good):** after a lesson landed in contract-analyzer/LESSONS.md (from a
