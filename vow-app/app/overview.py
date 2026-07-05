@@ -6,6 +6,7 @@ from .core import SKILLS_DIR
 from .budget import load_budget
 from .contracts import load_contracts
 from .guests import load_guests
+from .seating import load_seating, seating_conflicts
 
 overview_bp = Blueprint("overview", __name__)
 
@@ -53,11 +54,21 @@ def overview():
         "venue_capacity": guests["settings"].get("venue_capacity", 0),
     }
 
+    seating = load_seating()
+    seated = {hid for t in seating["tables"] for hid in t.get("households", [])}
+    seating_card = {
+        "table_count": len(seating["tables"]),
+        "seated_households": len(seated),
+        "conflicts": len(seating_conflicts(guests, seating)),
+    }
+
     return jsonify({
+        "wedding_date": guests["settings"].get("wedding_date", ""),
         "budget": {"total_budget": budget["total_budget"], "currency": budget.get("currency", "USD"),
                    "committed": committed, "paid": paid, "item_count": len(budget["items"])},
         "latest_contract": latest_card,
         "contract_count": len(contracts),
         "guests": guests_card,
+        "seating": seating_card,
         "skills": skills,
     })

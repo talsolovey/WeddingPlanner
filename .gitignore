@@ -224,3 +224,6 @@ vow-app/logs/
 vow-app/data/.backups/
 
 .DS_Store
+
+# generated at runtime: cached latest weekly brief
+vow-app/data/brief.json

@@ -8,6 +8,35 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<script src="app.js" defer></script>
+<style>
+  .countdown { text-align: center; margin: .5rem 0 2rem; }
+  .countdown .days { font-family: "Fraunces", serif; font-size: clamp(3.2rem, 8vw, 5rem); line-height: 1; color: var(--rose-deep); }
+  .countdown .until { font-size: .8rem; text-transform: uppercase; letter-spacing: .14em; color: var(--ink-soft); margin-top: .4rem; }
+  .countdown .date { color: var(--ink-soft); margin-top: .2rem; font-size: .95rem; }
+
+  .home-layout { display: grid; grid-template-columns: 1fr 320px; gap: 1.6rem; align-items: start; }
+  @media (max-width: 900px) { .home-layout { grid-template-columns: 1fr; } }
+
+  .todo-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+  .todo-item { display: flex; gap: .7rem; align-items: flex-start; padding: .65rem 0; border-bottom: 1px dashed var(--line); }
+  .todo-item:last-child { border-bottom: none; }
+  .todo-item input[type=checkbox] { margin-top: .3rem; width: 16px; height: 16px; accent-color: var(--rose-deep); cursor: pointer; flex: none; }
+  .todo-item .t-title { font-weight: 600; }
+  .todo-item .t-why { color: var(--ink-soft); font-size: .88rem; margin-top: .1rem; }
+  .todo-item .t-do { font-size: .88rem; margin-top: .15rem; }
+  .todo-item .t-do b { color: var(--rose-deep); }
+  .todo-item.done .t-title { text-decoration: line-through; opacity: .55; }
+  .todo-item.done .t-why, .todo-item.done .t-do { opacity: .45; }
+  .todo-meta { font-size: .78rem; color: var(--ink-soft); margin-top: .9rem; }
+
+  .side-card { background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.2rem; margin-bottom: 1rem; }
+  .side-card .eyebrow { margin-bottom: .15rem; }
+  .side-card .big { font-family: "Fraunces", serif; font-size: 1.35rem; }
+  .side-card .sub { color: var(--ink-soft); font-size: .85rem; margin-top: .1rem; }
+  .side-card a.go { display: inline-block; margin-top: .45rem; font-size: .85rem; color: var(--rose-deep); text-decoration: none; }
+  .side-card a.go:hover { text-decoration: underline; }
+</style>
 </head>
 <body>
   <header class="site-header">
@@ -17,49 +46,57 @@
       <a href="/contracts">Contracts</a>
       <a href="/budget">Budget</a>
       <a href="/guests">Guests</a>
-      <a href="/weekly-brief">Weekly Brief</a>
+      <a href="/seating">Seating</a>
     </nav>
   </header>
 
   <main class="page">
-    <p class="eyebrow">Your wedding at a glance</p>
-    <h1>Welcome back.</h1>
-    <p class="lede">Here's where things stand — and where Vow can help next.</p>
+    <div class="countdown" id="countdown">
+      <div class="days" id="cd-days">—</div>
+      <div class="until" id="cd-until">days to go</div>
+      <div class="date" id="cd-date"></div>
+    </div>
 
-    <div class="dash-grid">
-      <div class="card dash-card">
-        <p class="eyebrow" style="margin-bottom:0">Budget</p>
-        <div class="big" id="d-budget">—</div>
-        <div id="d-budget-sub" style="color:var(--ink-soft); font-size:.92rem;">No budget set up yet.</div>
-        <div class="cta"><a class="go" href="/budget">Open budget →</a></div>
-      </div>
-
-      <div class="card dash-card">
-        <p class="eyebrow" style="margin-bottom:0">Latest contract</p>
-        <div id="d-contract">
-          <div style="color:var(--ink-soft); font-size:.92rem;">No contracts analyzed yet — upload one and Vow will flag the traps.</div>
+    <div class="home-layout">
+      <div class="card" style="padding:1.5rem 1.6rem;">
+        <div class="todo-head">
+          <h2 style="margin:0; font-size:1.25rem;">This week's to-dos</h2>
+          <button id="refresh" class="btn-primary" style="padding:.5rem 1.2rem; font-size:.9rem;">✦ Ask Vow to refresh</button>
         </div>
-        <div class="cta"><a class="go" href="/contracts">Open contracts →</a></div>
+        <p id="headline" style="color:var(--ink-soft); margin:.6rem 0 0; font-size:.95rem;"></p>
+        <div id="status"></div>
+        <div id="todos" style="margin-top:.6rem;">
+          <p style="color:var(--ink-soft); font-size:.92rem;">No to-do list yet — ask Vow to review everything and build one.</p>
+        </div>
+        <div id="on-track" style="margin-top:.7rem;"></div>
+        <div class="todo-meta" id="todo-meta"></div>
       </div>
 
-      <div class="card dash-card">
-        <p class="eyebrow" style="margin-bottom:0">Guests</p>
-        <div class="big" id="d-guests">—</div>
-        <div id="d-guests-sub" style="color:var(--ink-soft); font-size:.92rem;">No guest list yet.</div>
-        <div class="cta"><a class="go" href="/guests">Open guests →</a></div>
-      </div>
-
-      <div class="card dash-card">
-        <p class="eyebrow" style="margin-bottom:0">Weekly brief</p>
-        <div style="margin-top:.4rem; color:var(--ink-soft); font-size:.92rem;">Your prioritized to-dos for the week — Vow reviews your budget, contracts, and guests together and ranks what's urgent.</div>
-        <div class="cta"><a class="go" href="/weekly-brief">Open weekly brief →</a></div>
-      </div>
-
-      <div class="card dash-card">
-        <p class="eyebrow" style="margin-bottom:0">What Vow has learned</p>
-        <div id="d-skills" style="margin-top:.3rem;"><div style="color:var(--ink-soft); font-size:.92rem;">Loading…</div></div>
-        <div class="cta" style="color:var(--ink-soft); font-size:.8rem;">Vow records lessons from every analysis and uses them next time.</div>
-      </div>
+      <aside>
+        <div class="side-card">
+          <p class="eyebrow">Budget</p>
+          <div class="big" id="d-budget">—</div>
+          <div class="sub" id="d-budget-sub">No budget set up yet.</div>
+          <a class="go" href="/budget">Open budget →</a>
+        </div>
+        <div class="side-card">
+          <p class="eyebrow">Guests</p>
+          <div class="big" id="d-guests">—</div>
+          <div class="sub" id="d-guests-sub">No guest list yet.</div>
+          <a class="go" href="/guests">Open guests →</a>
+        </div>
+        <div class="side-card">
+          <p class="eyebrow">Seating</p>
+          <div class="big" id="d-seating">—</div>
+          <div class="sub" id="d-seating-sub">No tables yet.</div>
+          <a class="go" href="/seating">Open seating →</a>
+        </div>
+        <div class="side-card">
+          <p class="eyebrow">Latest contract</p>
+          <div id="d-contract" class="sub">No contracts analyzed yet.</div>
+          <a class="go" href="/contracts">Open contracts →</a>
+        </div>
+      </aside>
     </div>
   </main>
 
@@ -67,39 +104,133 @@
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
+/* ---------- countdown ---------- */
+function renderCountdown(dateStr) {
+  if (!dateStr) {
+    $("cd-days").textContent = "—";
+    $("cd-until").textContent = "set your wedding date";
+    $("cd-date").innerHTML = `<a href="/guests" style="color:var(--rose-deep);">Add it in guest settings →</a>`;
+    return;
+  }
+  const wedding = new Date(dateStr + "T00:00:00");
+  const days = Math.ceil((wedding - new Date()) / 86400000);
+  if (days > 0) {
+    $("cd-days").textContent = days;
+    $("cd-until").textContent = `day${days === 1 ? "" : "s"} to go · ${Math.floor(days / 7)} week${Math.floor(days / 7) === 1 ? "" : "s"}`;
+  } else if (days === 0) {
+    $("cd-days").textContent = "Today";
+    $("cd-until").textContent = "it's happening!";
+  } else {
+    $("cd-days").textContent = "🎉";
+    $("cd-until").textContent = "happily married";
+  }
+  $("cd-date").textContent = wedding.toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+}
+
+/* ---------- to-dos from the weekly brief ---------- */
+function todoKey(gen, i) { return `vow-todo-${gen}-${i}`; }
+
+function renderBrief(b) {
+  const a = b.analysis || {};
+  const items = a.action_items || [];
+  const gen = b.generated_at || "";
+  if (a.headline) $("headline").textContent = a.headline;
+
+  if (!items.length) {
+    $("todos").innerHTML = `<p style="color:var(--ink-soft); font-size:.92rem;">Nothing on the list — ask Vow to refresh.</p>`;
+  } else {
+    const SEV = { high: "red", medium: "yellow", low: "green" };
+    const row = (i, idx) => {
+      const done = localStorage.getItem(todoKey(gen, idx)) === "1";
+      const verified = i.flagged_by === "verifier" ? ` <span style="font-size:.7rem;color:var(--ink-soft);" title="Caught by the verifier agent">✓ verifier</span>` : "";
+      return `
+      <div class="todo-item ${done ? "done" : ""}" data-idx="${idx}">
+        <input type="checkbox" ${done ? "checked" : ""} title="Done?">
+        <div>
+          <div class="t-title"><span class="chip ${SEV[(i.priority || "").toLowerCase()] || "yellow"}" style="margin-right:.4rem;">${esc(i.priority)}</span>${esc(i.title)}${verified}</div>
+          <div class="t-why">${esc(i.why)}</div>
+          <div class="t-do"><b>Do:</b> ${esc(i.do)}</div>
+        </div>
+      </div>`;
+    };
+    const highs = items.map((i, idx) => ({ i, idx })).filter(x => (x.i.priority || "").toLowerCase() === "high");
+    const rest = items.map((i, idx) => ({ i, idx })).filter(x => (x.i.priority || "").toLowerCase() !== "high");
+    $("todos").innerHTML =
+      highs.map(x => row(x.i, x.idx)).join("") +
+      (rest.length ? `
+        <details class="more">
+          <summary>${rest.length} more (medium / low)</summary>
+          ${rest.map(x => row(x.i, x.idx)).join("")}
+        </details>` : "");
+    $("todos").querySelectorAll(".todo-item input").forEach(cb => cb.addEventListener("change", () => {
+      const item = cb.closest(".todo-item");
+      localStorage.setItem(todoKey(gen, item.dataset.idx), cb.checked ? "1" : "0");
+      item.classList.toggle("done", cb.checked);
+    }));
+  }
+
+  $("on-track").innerHTML = (a.on_track || []).map(t => `<span class="ok-chip">✓ ${esc(t)}</span>`).join("");
+  const crew = (b.agents || []).map(g => `${esc(g.name)} (${g.findings})`).join(" · ");
+  $("todo-meta").textContent = gen
+    ? `Generated ${gen.replace("T", " ")} by 3 specialist agents + a verifier${crew ? ` — ${crew}` : ""}${b.cost_usd != null ? ` · $${b.cost_usd}` : ""}`
+    : "";
+}
+
+$("refresh").addEventListener("click", async () => {
+  $("refresh").disabled = true;
+  try {
+    const res = await fetch("/api/weekly-brief/analyze", { method: "POST" });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || "Could not start the review.");
+    const result = await pollJob(json.job_id, $("status"), "Vow's agents are reviewing everything… usually 30–90 seconds.");
+    $("status").innerHTML = "";
+    result.generated_at = new Date().toISOString().slice(0, 19);
+    renderBrief(result);
+  } catch (err) {
+    $("status").innerHTML = `<p class="status">⚠ ${esc(err.message)}</p>`;
+  } finally {
+    $("refresh").disabled = false;
+  }
+});
+
+/* ---------- sidebar summaries ---------- */
 (async function load() {
-  const o = await (await fetch("/api/overview")).json();
+  const [o, brief] = await Promise.all([
+    (await fetch("/api/overview")).json(),
+    (await fetch("/api/weekly-brief/latest")).json(),
+  ]);
+  renderCountdown(o.wedding_date);
+  if (brief.exists) renderBrief(brief);
+
   const fmt = (n) => new Intl.NumberFormat(undefined, { style: "currency", currency: o.budget.currency || "USD", maximumFractionDigits: 0 }).format(n || 0);
 
   if (o.budget.item_count) {
     $("d-budget").textContent = o.budget.total_budget ? fmt(o.budget.total_budget) : fmt(o.budget.committed);
-    $("d-budget-sub").innerHTML = `${fmt(o.budget.committed)} committed · ${fmt(o.budget.paid)} paid · ${o.budget.item_count} items`;
+    $("d-budget-sub").innerHTML = `${fmt(o.budget.committed)} committed · ${fmt(o.budget.paid)} paid`;
   }
-
+  if (o.guests && o.guests.household_count) {
+    const g = o.guests;
+    $("d-guests").textContent = `${g.confirmed_people} confirmed`;
+    $("d-guests-sub").innerHTML = `${g.invited_people} invited · ${g.outstanding_households} awaiting reply${g.venue_capacity ? ` · venue holds ${g.venue_capacity}` : ""}`;
+  }
+  if (o.seating && o.seating.table_count) {
+    const s = o.seating;
+    $("d-seating").textContent = `${s.table_count} table${s.table_count === 1 ? "" : "s"}`;
+    $("d-seating-sub").innerHTML = s.conflicts
+      ? `${s.seated_households} seated · <span class="chip red">${s.conflicts} conflict${s.conflicts === 1 ? "" : "s"}</span>`
+      : `${s.seated_households} households seated · no conflicts`;
+  }
   if (o.latest_contract) {
     const c = o.latest_contract, fc = c.flag_counts;
     $("d-contract").innerHTML = `
-      <div style="font-weight:600">${esc(c.vendor)}</div>
-      <div style="margin:.3rem 0 .5rem;">
+      <div style="font-weight:600; color:var(--ink);">${esc(c.vendor)}</div>
+      <div style="margin:.25rem 0;">
         ${fc.red ? `<span class="chip red">${fc.red} red</span> ` : ""}
         ${fc.yellow ? `<span class="chip yellow">${fc.yellow} yellow</span> ` : ""}
         ${fc.green ? `<span class="chip green">${fc.green} green</span>` : ""}
       </div>
-      <div style="color:var(--ink-soft); font-size:.92rem;">${esc(c.summary)}</div>
-      <div class="meta">${o.contract_count} contract${o.contract_count === 1 ? "" : "s"} analyzed in total</div>`;
+      ${o.contract_count} contract${o.contract_count === 1 ? "" : "s"} analyzed`;
   }
-
-  if (o.guests && o.guests.household_count) {
-    const g = o.guests;
-    $("d-guests").textContent = `${g.confirmed_people} confirmed`;
-    const capNote = g.venue_capacity ? ` · venue holds ${g.venue_capacity}` : "";
-    $("d-guests-sub").innerHTML = `${g.invited_people} invited · ${g.outstanding_households} awaiting reply${capNote}`;
-  }
-
-  $("d-skills").innerHTML = o.skills.map(s => `
-    <div class="lesson-row"><span>${esc(s.name)}</span>
-    <span class="n">${s.lessons} lesson${s.lessons === 1 ? "" : "s"}</span></div>`).join("")
-    || `<div style="color:var(--ink-soft)">No skills installed.</div>`;
 })();
 </script>
 </body>
