@@ -103,6 +103,19 @@ surprised you").
   no-blanking, cost ceiling, rate limit) are what I'd actually trust unattended; the
   injection scanner is probabilistic and is there to reduce attempts, not guarantee.
 
+## 2026-07-05 — Step 13 (sub-agents + verifier, live e2e)
+
+- **Surprise (great):** the verifier pass earned its keep on the very first live run —
+  it added 5 findings the specialists missed (4 in budget, incl. hidden service
+  charges and a flowers/decor under-estimate; 1 in guests). Same model, same data —
+  the only difference is one narrow job with a clean context. Isolation works.
+- **Interesting:** contracts verifier added 0 — the contract specialist, doing exactly
+  one contract against its checklist, was already complete. The dilution problem is
+  real mainly where one agent juggles breadth.
+- Parallel fan-out worked as advertised: all three specialists ran concurrently
+  (log shows interleaved progress); whole orchestration $0.083 — ~3.5x a single
+  weekly-brief run, buying 5 extra catches and per-area cost attribution.
+
 ## 2026-06-11 — UI round (live progress + dashboard)
 
 - **Surprise (good):** after a lesson landed in contract-analyzer/LESSONS.md (from a

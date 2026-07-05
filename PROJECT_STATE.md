@@ -1,7 +1,7 @@
 # PROJECT_STATE — WeddingOS / Vow
 
 > A plain-language summary of where the project stands, updated after every step.
-> Last updated: 2026-06-23 (Step 12: security hardening — defenses implemented, tested, documented).
+> Last updated: 2026-07-05 (Step 13: weekly brief rebuilt as parallel sub-agents + a verifier).
 
 ## What is this project
 
@@ -26,6 +26,7 @@ WeddingOS/
     │   ├── guests.py      #   /api/guests routes + helpers
     │   └── overview.py    #   /api/overview (home dashboard)
     ├── agent/             # the "brain": talks to GPT-4o, picks tools, loops until done
+    │   └── orchestrator.py #  weekly brief: 3 specialist sub-agents in parallel + verifier + merge
     ├── skills/            # instruction files the agent reads to know HOW to do a job
     ├── data/              # the couple's wedding data — sample ILS wedding (~200 guests) loaded
     └── logs/              # every API call recorded: tokens used, cost in $, tools called
@@ -64,7 +65,7 @@ threat model + defenses in `vow-app/SECURITY.md`.
 | `contract-analyzer` | ✅ working — red-flag checklist for vendor contracts |
 | `budget-forecaster` | ✅ working — realistic final-cost forecast + risk warnings |
 | `guest-list-manager` | ✅ working — headcount projection, capacity + catering reconciliation, dietary roll-up, RSVP follow-ups; full UI |
-| `weekly-brief` | ✅ working — cross-feature triage (budget + contracts + guests) → ranked action list; full UI + home card |
+| `weekly-brief` | ✅ working — now orchestrated: 3 specialist sub-agents (contracts/budget/guests) run in parallel in isolated contexts, a verifier re-checks each against its skill checklist, one merge call ranks it all; full UI + home card |
 
 ## Done so far
 
@@ -85,6 +86,7 @@ threat model + defenses in `vow-app/SECURITY.md`.
 | Step 10 | 4th feature — `weekly-brief` skill + page + home card + nav; made JSON parsing degrade generically | ✅ tested end to end (~$0.024/run); 4 features now live |
 | Step 11 | Settled the layout: home = instant summary dashboard (no agent call on load); weekly brief lives on its own page, generated on demand | ✅ all 5 pages serve; nav consistent; analyze endpoint intact |
 | Step 12 | Security hardening for autonomous running: prompt-injection guard (`agent/guard.py` + hardened system prompt), `write_data` backups + destructive-write guard, per-run cost ceiling, per-IP rate limiting on agent endpoints, output-escaping regression. Threat model in `SECURITY.md`; 17-test suite in `tests/` | ✅ all 17 tests pass (no network); all 5 pages still serve |
+| Step 13 | WS5 sub-agents: weekly brief rebuilt as an orchestrator (`agent/orchestrator.py`) — 3 specialists fan out in parallel (fresh context + own $0.15 cap each), a verifier (tool-free call with skill + data + findings) appends misses tagged `flagged_by: "verifier"`, one merge call produces the brief; `weeks_to_wedding` computed in code; whole run capped at `VOW_ORCH_MAX_COST_USD` ($0.50). UI shows verifier catches + per-agent breakdown | ✅ 26 tests pass (9 new, offline); live e2e run: verifier caught 5 items the specialists missed, $0.083 total |
 
 ## Decisions made (and why)
 
@@ -99,6 +101,13 @@ threat model + defenses in `vow-app/SECURITY.md`.
 - **Stayed on Python (Flask), did not move to TS/Nest/Express** — a rewrite is pure
   plumbing with no agentic payoff, and the workshop explicitly de-prioritizes it. Solved
   the real "feels messy" concern by splitting `server.py` into per-feature blueprints.
+- **Sub-agents for the weekly brief, not for every feature** — the brief is the one task
+  that spans all three areas, so it's where a single diluted context demonstrably missed
+  things (the contingency, the Patel meal row). Verifier appends misses rather than
+  re-running the specialist — simpler, bounded cost, and the "verifier catch" tag is
+  itself useful signal in the UI.
+- **Dates computed in code, not by the model** — `weeks_to_wedding` comes from
+  `guests.settings.wedding_date`; the merge model can't overrule arithmetic.
 
 ## Next steps
 
@@ -107,8 +116,9 @@ threat model + defenses in `vow-app/SECURITY.md`.
    (no MCP) vs GitHub MCP line-count, then compare.
 3. A scored eval harness (still deferred).
 
-Backlog: vendor comparison with a reasoned recommendation; weekly "what needs your
-attention" brief.
+Backlog: capstone demo video (due Wed Jul 8, 10:00) — the before/after verifier story is
+the centerpiece; vendor comparison with a reasoned recommendation; scheduled autonomous
+brief (WS4); measure the lessons-loop effect with the eval suite.
 
 ## How to run it
 
