@@ -177,8 +177,8 @@ class TestVerifier(unittest.TestCase):
             raise RuntimeError("verifier down")
         orch._client.chat.completions.create = boom
         # Merge also uses the client, so patch _merge to isolate the verifier path.
-        orch._merge = lambda results, today, weeks: {"headline": "ok",
-                                                     "action_items": [], "on_track": []}
+        orch._merge = lambda results, today, weeks, extra_facts=None: {
+            "headline": "ok", "action_items": [], "on_track": []}
         out = orch.run(TODAY)
         per_agent = {a["name"]: a for a in out["agents"]}
         for name in SPECIALISTS:
