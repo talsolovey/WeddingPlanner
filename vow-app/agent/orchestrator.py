@@ -247,7 +247,7 @@ class WeeklyBriefOrchestrator:
         self._emit(f"{name} verifier: added {result['verifier_added']} missed item(s)")
         return result
 
-    def _merge(self, results: list, today: str, weeks):
+    def _merge(self, results: list, today: str, weeks, extra_facts: dict = None):
         payload = {
             "as_of": today,
             "weeks_to_wedding": weeks,
@@ -256,6 +256,10 @@ class WeeklyBriefOrchestrator:
                 for r in results
             ],
         }
+        if extra_facts:
+            # Deterministic, code-computed facts (e.g. seating conflicts) the
+            # merge should weave in — not model output, so they can be trusted.
+            payload["computed_facts"] = extra_facts
         tools = ToolRegistry()
         skill_text = tools._read_skill("weekly-brief")
         self._emit("merging the three reviews into one ranked brief")
@@ -281,7 +285,7 @@ class WeeklyBriefOrchestrator:
 
     # ---- entry point --------------------------------------------------------
 
-    def run(self, today: str = None):
+    def run(self, today: str = None, extra_facts: dict = None):
         today = today or date.today().isoformat()
         tools = ToolRegistry()
         weeks = _weeks_to_wedding(tools._read_data("guests"), date.fromisoformat(today))
@@ -298,7 +302,7 @@ class WeeklyBriefOrchestrator:
 
         # Phase 3: merge into the brief the UI renders.
         if self._budget_left():
-            analysis = self._merge(results, today, weeks)
+            analysis = self._merge(results, today, weeks, extra_facts)
         else:
             self._emit("merge: skipped (orchestration cost cap); returning raw findings")
             analysis = {
