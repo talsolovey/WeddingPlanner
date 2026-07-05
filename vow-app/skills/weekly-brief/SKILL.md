@@ -35,8 +35,7 @@ urgent deadlines are); if it isn't, reason in relative terms and say so.
 - RSVPs still pending / no-response, especially past the deadline (chase the big parties
   first — they move the headcount most).
 - Projected headcount vs `venue_capacity`; over/near capacity is urgent.
-- Missing meal choices for confirmed guests; severe allergies/dietary needs to pass to
-  catering; plus-ones offered but unnamed.
+- Plus-ones offered but unnamed.
 
 ## How to prioritize
 

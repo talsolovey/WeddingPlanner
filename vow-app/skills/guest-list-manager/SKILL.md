@@ -1,6 +1,6 @@
 ---
 name: guest-list-manager
-description: Review a wedding guest list and RSVP status — project the final headcount, reconcile it against venue capacity and the catering per-head budget, flag missing meal choices, dietary needs, ambiguous plus-ones, and overdue RSVPs. Use when asked to analyze, check, or reconcile the guest list, RSVPs, headcount, or seating capacity.
+description: Review a wedding guest list and RSVP status — project the final headcount, reconcile it against venue capacity and the catering per-head budget, flag ambiguous plus-ones and overdue RSVPs. Use when asked to analyze, check, or reconcile the guest list, RSVPs, headcount, or seating capacity.
 ---
 
 # Guest List Manager
@@ -13,8 +13,7 @@ that fits the room and the budget, and what the couple needs to chase before the
 Read the data with `read_data("guests")`. It has a `settings` block
 (`venue_capacity`, `catering_per_head`, `currency`, `rsvp_deadline`, `wedding_date`) and a
 list of `households`, each with a `party_size`, an `rsvp` status
-(`confirmed | declined | pending | no_response`), an `attending_count`, plus-one fields,
-a `meals` tally, and `dietary` needs.
+(`confirmed | declined | pending | no_response`), an `attending_count`, and plus-one fields.
 
 ## How to project the headcount
 
@@ -48,25 +47,20 @@ this against the venue/catering line — but only if useful; don't force it.
 
 ## Data-quality checks (the unglamorous, high-value part)
 
-- **Missing meal choices** — for any confirmed household, the `meals` tally should sum to
-  `attending_count`. Flag every household where it doesn't, and say how many meals are
-  unaccounted for. Caterers need final numbers per entrée.
-- **Dietary needs** — collect every dietary requirement across attending households into
-  one list for the caterer. Treat allergies (especially "severe") as red, not a footnote.
 - **Ambiguous plus-ones** — list guests offered a plus-one who haven't named one.
 - **Overdue RSVPs** — anyone `pending` or `no_response` past `rsvp_deadline` needs a chase.
 
 ## Follow-up list
 
 Produce a **prioritized** list of who to chase and why — overdue large parties first
-(they move the headcount most), then ambiguous plus-ones, then missing meal choices.
+(they move the headcount most), then ambiguous plus-ones.
 Specific and actionable: name the household and the one thing needed from them.
 
 ## Severity
 
-- **red** — likely over capacity, an unhandled severe allergy, or RSVPs so incomplete the
-  headcount can't be trusted for catering
-- **yellow** — worst-case risk, missing meal choices, overdue replies, fuzzy plus-ones
+- **red** — likely over capacity, or RSVPs so incomplete the headcount can't be
+  trusted for catering
+- **yellow** — worst-case risk, overdue replies, fuzzy plus-ones
 - **green** — comfortably within capacity and budget, data is clean
 
 ## Output format
@@ -97,7 +91,6 @@ Respond with ONLY a JSON object (no markdown fences, no commentary):
     {"issue": "what's wrong", "detail": "households/people involved",
      "severity": "red | yellow | green", "recommendation": "what to do"}
   ],
-  "dietary_summary": ["each distinct dietary/allergy need + how many people"],
   "follow_ups": ["prioritized, specific: who to chase and for what"],
   "summary": "2-3 plain sentences: are we on track, and what's the single biggest risk"
 }
