@@ -15,7 +15,7 @@ BACKUP_DIR = DATA_DIR / ".backups"
 KEEP_BACKUPS = 10  # per dataset
 
 # Guardrail: the agent may only read/write these datasets.
-ALLOWED_DATA = {"budget", "vendors", "guests", "contracts", "decisions"}
+ALLOWED_DATA = {"budget", "vendors", "guests", "contracts", "decisions", "seating"}
 
 
 class ToolRegistry:

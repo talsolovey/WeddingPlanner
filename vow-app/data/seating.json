@@ -1,0 +1,101 @@
+{
+  "tables": [
+    {
+      "id": "8022624f",
+      "name": "1",
+      "capacity": 10,
+      "households": [
+        "g01"
+      ]
+    },
+    {
+      "id": "1f809ab6",
+      "name": "2",
+      "capacity": 3,
+      "households": []
+    },
+    {
+      "id": "a6e2baff",
+      "name": "3",
+      "capacity": 5,
+      "households": []
+    },
+    {
+      "id": "9e6bba20",
+      "name": "6",
+      "capacity": 9,
+      "households": [
+        "g04",
+        "g14"
+      ]
+    },
+    {
+      "id": "2e990509",
+      "name": "7",
+      "capacity": 10,
+      "households": [
+        "g16"
+      ]
+    },
+    {
+      "id": "7be60b33",
+      "name": "8",
+      "capacity": 5,
+      "households": [
+        "g07"
+      ]
+    },
+    {
+      "id": "e18e41e7",
+      "name": "9",
+      "capacity": 12,
+      "households": [
+        "g11"
+      ]
+    },
+    {
+      "id": "8100dae1",
+      "name": "10",
+      "capacity": 15,
+      "households": [
+        "g08",
+        "g15"
+      ]
+    },
+    {
+      "id": "79fa4d7c",
+      "name": "11",
+      "capacity": 50,
+      "households": []
+    },
+    {
+      "id": "dc9f37de",
+      "name": "12",
+      "capacity": 30,
+      "households": [
+        "g03",
+        "g10",
+        "g17"
+      ]
+    },
+    {
+      "id": "b93e5aa7",
+      "name": "13",
+      "capacity": 20,
+      "households": [
+        "g05",
+        "g12"
+      ]
+    },
+    {
+      "id": "4cf4689c",
+      "name": "14",
+      "capacity": 50,
+      "households": [
+        "g06",
+        "g09",
+        "g02"
+      ]
+    }
+  ]
+}
