@@ -16,6 +16,12 @@
   .stat .value { font-family: "Fraunces", serif; font-size: 1.5rem; color: var(--ink); }
   .stat.accent .value { color: var(--rose-deep); }
   .area-tag { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); }
+  details.more summary { cursor: pointer; color: var(--ink-soft); font-size: .9rem; margin: 1rem 0 .6rem; list-style: none; }
+  details.more summary::-webkit-details-marker { display: none; }
+  details.more summary::before { content: "▸ "; }
+  details.more[open] summary::before { content: "▾ "; }
+  .ok-chip { display: inline-block; background: #eaf5ec; color: #2e7d43; border: 1px solid #2e7d4333;
+             border-radius: 999px; padding: .3rem .85rem; margin: .15rem; font-size: .82rem; }
 </style>
 </head>
 <body>
@@ -85,9 +91,11 @@ function render({ analysis: a, agents, cost_usd }) {
     return;
   }
 
-  const highCount = items.filter(i => (i.priority || "").toLowerCase() === "high").length;
+  const highs = items.filter(i => (i.priority || "").toLowerCase() === "high");
+  const rest = items.filter(i => (i.priority || "").toLowerCase() !== "high");
+  const highCount = highs.length;
 
-  const cards = items.map(i => {
+  const card = (i) => {
     const sev = SEV[(i.priority || "").toLowerCase()] || "yellow";
     const verified = i.flagged_by === "verifier"
       ? ` <span class="area-tag" title="Caught by the verifier agent on re-check">✓ verifier catch</span>` : "";
@@ -98,7 +106,14 @@ function render({ analysis: a, agents, cost_usd }) {
         <div>${esc(i.why)}</div>
         <div class="rec"><b>Do:</b> ${esc(i.do)}</div>
       </div>`;
-  }).join("") || "<p class='lede'>Nothing pressing — enjoy the calm.</p>";
+  };
+  // Only "do this week" is in your face; the rest folds away until you want it.
+  const highCards = highs.map(card).join("") || "<p class='lede'>Nothing urgent — enjoy the calm.</p>";
+  const moreBlock = rest.length ? `
+      <details class="more">
+        <summary>${rest.length} more item${rest.length === 1 ? "" : "s"} (medium / low)</summary>
+        <div class="flags-grid">${rest.map(card).join("")}</div>
+      </details>` : "";
 
   // Observability: how the brief was assembled (sub-agents + verifier + cost).
   const crew = (agents || []).map(g =>
@@ -109,7 +124,7 @@ function render({ analysis: a, agents, cost_usd }) {
     ? `<p class="area-tag" style="margin-top:1rem;">Assembled by 3 specialist agents run in parallel, re-checked by a verifier: ${crew}${cost_usd != null ? ` · total cost $${cost_usd}` : ""}</p>`
     : "";
 
-  const onTrack = (a.on_track || []).map(t => `<li>${esc(t)}</li>`).join("") || "<li>—</li>";
+  const onTrack = (a.on_track || []).map(t => `<span class="ok-chip">✓ ${esc(t)}</span>`).join("") || "<span class='ok-chip'>—</span>";
 
   $("result").innerHTML = `
     <div class="card" style="margin-top:1rem;">
@@ -121,10 +136,11 @@ function render({ analysis: a, agents, cost_usd }) {
       <div class="stat accent"><div class="label">High priority</div><div class="value">${highCount}</div></div>
       <div class="stat"><div class="label">Action items</div><div class="value">${items.length}</div></div>
     </div>
-    <h2 class="section-title">Action items</h2>
-    <div class="flags-grid">${cards}</div>
+    <h2 class="section-title">Do this week</h2>
+    <div class="flags-grid">${highCards}</div>
+    ${moreBlock}
     <h2 class="section-title">On track</h2>
-    <ul class="nice-list">${onTrack}</ul>
+    <div>${onTrack}</div>
     ${crewLine}`;
 }
 </script>

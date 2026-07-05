@@ -24,8 +24,14 @@ def analyze_weekly_brief():
         # Orchestrated run (WS5): three parallel specialist sub-agents in isolated
         # contexts + a verifier pass each + one merge call. The orchestrator reads
         # the data itself; response keeps the old {analysis, cost_usd} shape and
-        # adds a per-agent breakdown.
+        # adds a per-agent breakdown. Seating conflicts are computed in code and
+        # handed to the merge as trusted facts.
+        from .seating import seating_conflicts
         orch = WeeklyBriefOrchestrator(on_event=on_event)
-        return orch.run(today)
+        return orch.run(today, extra_facts={
+            "seating_conflicts": seating_conflicts(),
+            "note": "seating_conflicts is computed by code from the live seating "
+                    "chart — include unresolved ones as action items (area: guests).",
+        })
 
     return jsonify({"job_id": run_job(task)})
