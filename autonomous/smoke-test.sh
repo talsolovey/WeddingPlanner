@@ -128,6 +128,18 @@ else
   fail "vow-app test suite FAILED — run: cd vow-app && python3 -m unittest discover tests"
 fi
 
+# ── 7b. Judge + golden set ──
+echo "7b. Judge + golden set"
+jq -e 'length > 0 and all(.[]; .human_label == "pass" or .human_label == "fail")' \
+  "$SCRIPT_DIR/golden/golden_set.json" >/dev/null 2>&1 \
+  && pass "golden_set.json parses ($(jq length "$SCRIPT_DIR/golden/golden_set.json") cases, labels valid)" \
+  || fail "golden_set.json invalid"
+if [ -n "$PYBIN" ] && "$PYBIN" "$SCRIPT_DIR/judge.py" --dry-run >/dev/null 2>&1; then
+  pass "judge.py --dry-run works"
+else
+  fail "judge.py --dry-run failed"
+fi
+
 # ── 8. MCP registration (info) ──
 echo "8. MCP registration"
 if command -v claude &>/dev/null; then
