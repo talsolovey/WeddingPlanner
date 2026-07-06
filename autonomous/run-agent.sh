@@ -93,3 +93,8 @@ if command -v jq &>/dev/null; then
   jq '{cost: .total_cost_usd, turns: .num_turns, ok: (.is_error|not)}' \
     "$RUN_DIR/run_$STAMP.json" 2>/dev/null || true
 fi
+
+# ── Self-notification: push today's draft to the couple's own Telegram chat ──
+# Deterministic post-run code, NOT an agent tool — the model never holds a
+# messaging capability. Skips silently if autonomous/.env has no bot creds.
+"$SCRIPT_DIR/notify-telegram.sh" || echo "[WARN] Telegram push failed (run itself succeeded)"

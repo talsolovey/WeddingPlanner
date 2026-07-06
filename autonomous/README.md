@@ -12,6 +12,7 @@ launchd (daily 08:00)
         └→ brief cached → couple's home dashboard   (self-notification)
       → draft written → outbox/wedding_actions_<date>.md   (Stop-hook enforced)
     → run record → agent-runs/run_<stamp>.json   (cost, turns, ok)
+    → notify-telegram.sh → the brief lands in YOUR Telegram chat  (self-notification)
 ```
 
 ## Layout
@@ -25,6 +26,8 @@ launchd (daily 08:00)
 | `guardrails/hooks/require-brief.sh` | Stop hook: no non-empty draft → force-continue (once) |
 | `LaunchAgents/com.vow.weekly-brief.plist` | durable daily schedule (fires on wake) |
 | `run-loop-fallback.sh` | tmux loop if MDM blocks launchd |
+| `notify-telegram.sh` | post-run push of the draft to YOUR Telegram chat (creds in `.env`) |
+| `.env.example` | template for `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` (never committed) |
 | `outbox/` | the drafts (gitignored; curate into the capstone submission) |
 | `agent-runs/` | run records + blocked.log (gitignored; same) |
 
@@ -70,6 +73,10 @@ launchctl list | grep com.vow
 - **No high-harm actions possible:** the allow-list has no Bash, no messaging,
   no data-write tool. `run_weekly_brief` writes exactly one code-owned cache
   document (`brief`) — a reversible self-notification to the couple's dashboard.
+- **Telegram push is code, not a capability:** notify-telegram.sh runs AFTER the
+  agent exits, sends only to the couple's own pinned chat id (a self-notification),
+  and reads its creds from `autonomous/.env` — which the agent is deny-listed
+  from reading. The model never holds a messaging tool.
 - **Layered spend caps:** `--max-budget-usd 1.00` on the run, `$0.50` orchestration
   cap and `$0.15`/specialist inside the tool. Two independent layers must fail
   before money runs away.
