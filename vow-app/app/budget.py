@@ -3,29 +3,24 @@
 The latest forecast is cached to disk (data/forecast.json) so the budget page
 can show the forecast card instantly without an agent run on every visit."""
 
-import json
 import uuid
 from datetime import datetime
 
 from flask import Blueprint, jsonify, request, send_from_directory
 
+import storage
 from agent.harness import AgentHarness
-from .core import BUDGET_PATH, DATA_DIR, PUBLIC_DIR, parse_agent_json, rate_limit, run_job
+from .core import PUBLIC_DIR, parse_agent_json, rate_limit, run_job
 
 budget_bp = Blueprint("budget", __name__)
 
-FORECAST_PATH = DATA_DIR / "forecast.json"
-
 
 def load_budget():
-    if BUDGET_PATH.exists():
-        return json.loads(BUDGET_PATH.read_text())
-    return {"currency": "USD", "total_budget": 0, "items": []}
+    return storage.load("budget", {"currency": "USD", "total_budget": 0, "items": []})
 
 
 def save_budget(budget):
-    BUDGET_PATH.parent.mkdir(exist_ok=True)
-    BUDGET_PATH.write_text(json.dumps(budget, indent=2))
+    storage.save("budget", budget)
 
 
 @budget_bp.get("/budget")
@@ -91,11 +86,8 @@ def delete_budget_item(item_id):
 
 @budget_bp.get("/api/budget/forecast/latest")
 def latest_forecast():
-    if not FORECAST_PATH.exists():
-        return jsonify({"exists": False})
-    try:
-        cached = json.loads(FORECAST_PATH.read_text())
-    except (json.JSONDecodeError, OSError):
+    cached = storage.load("forecast")
+    if cached is None:
         return jsonify({"exists": False})
     return jsonify(dict(cached, exists=True))
 
@@ -118,9 +110,8 @@ def analyze_budget():
         )
         result = {"analysis": parse_agent_json(answer),
                   "cost_usd": round(harness.last_run_cost, 4)}
-        FORECAST_PATH.parent.mkdir(exist_ok=True)
-        FORECAST_PATH.write_text(json.dumps(dict(
-            result, generated_at=datetime.now().isoformat(timespec="seconds")), indent=2))
+        storage.save("forecast", dict(
+            result, generated_at=datetime.now().isoformat(timespec="seconds")))
         return result
 
     return jsonify({"job_id": run_job(task)})

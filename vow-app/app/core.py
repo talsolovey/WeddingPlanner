@@ -23,11 +23,6 @@ DATA_DIR = Path(os.environ.get("VOW_DATA_DIR", BASE / "data"))
 SKILLS_DIR = BASE / "skills"
 PUBLIC_DIR = BASE / "public"
 
-CONTRACTS_PATH = DATA_DIR / "contracts.json"
-BUDGET_PATH = DATA_DIR / "budget.json"
-GUESTS_PATH = DATA_DIR / "guests.json"
-SEATING_PATH = DATA_DIR / "seating.json"
-
 MAX_PDF_MB = 10          # guardrail: upload size
 MAX_TEXT_CHARS = 40_000  # guardrail: token burn
 

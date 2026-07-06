@@ -1,16 +1,18 @@
 import json
 import os
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable
 
 BASE = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(BASE))
+import storage  # noqa: E402  — shared document store (Supabase or local files)
+
 SKILLS_DIR = BASE / "skills"
-# Must match the server's data dir (see app/core.py) so the agent reads/writes
-# the same files the web app does. Overridable via VOW_DATA_DIR.
 DATA_DIR = Path(os.environ.get("VOW_DATA_DIR", BASE / "data"))
-# Timestamped copies are written here before every overwrite, so a bad or
-# injected write is always reversible.
+# Timestamped local copies are written here before every overwrite (whatever
+# the storage backend), so a bad or injected write is always reversible.
 BACKUP_DIR = DATA_DIR / ".backups"
 KEEP_BACKUPS = 10  # per dataset
 
@@ -99,10 +101,10 @@ class ToolRegistry:
     def _read_data(self, name: str):
         if name not in ALLOWED_DATA:
             return {"error": f"Unknown dataset '{name}'.", "allowed": sorted(ALLOWED_DATA)}
-        path = DATA_DIR / f"{name}.json"
-        if not path.exists():
+        data = storage.load(name)
+        if data is None:
             return {"note": f"'{name}' has no data yet."}
-        return json.loads(path.read_text())
+        return data
 
     @staticmethod
     def _is_empty(value) -> bool:
@@ -113,14 +115,16 @@ class ToolRegistry:
             return True
         return False
 
-    def _backup(self, name: str, path: Path):
-        """Copy the current file to .backups/<name>.<timestamp>.json before it
-        is overwritten, and prune to the most recent KEEP_BACKUPS."""
-        if not path.exists():
+    def _backup(self, name: str, existing):
+        """Snapshot the current document to .backups/<name>.<timestamp>.json
+        before it is overwritten (a local copy regardless of the storage
+        backend), and prune to the most recent KEEP_BACKUPS."""
+        if existing is None:
             return
         BACKUP_DIR.mkdir(parents=True, exist_ok=True)
         stamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
-        (BACKUP_DIR / f"{name}.{stamp}.json").write_text(path.read_text())
+        (BACKUP_DIR / f"{name}.{stamp}.json").write_text(
+            json.dumps(existing, indent=2))
         backups = sorted(BACKUP_DIR.glob(f"{name}.*.json"))
         for old in backups[:-KEEP_BACKUPS]:
             old.unlink()
@@ -133,32 +137,25 @@ class ToolRegistry:
         except json.JSONDecodeError as e:
             return {"error": f"Invalid JSON: {e}"}
 
-        path = DATA_DIR / f"{name}.json"
-
         # Destructive-write guard: refuse to blank out or change the shape of an
         # existing, non-empty dataset. A legitimate edit keeps the same top-level
         # type and still has content; blanking/retyping signals a bug or an
         # injected "wipe the data" instruction.
-        if path.exists():
-            try:
-                existing = json.loads(path.read_text())
-            except (json.JSONDecodeError, OSError):
-                existing = None
-            if existing is not None and not self._is_empty(existing):
-                if self._is_empty(parsed):
-                    return {"error": (
-                        f"Refused: this would erase all '{name}' data. Deleting "
-                        f"everything must be done explicitly by the couple, not via "
-                        f"write_data.")}
-                if type(parsed) is not type(existing):
-                    return {"error": (
-                        f"Refused: '{name}' is a {type(existing).__name__} but the new "
-                        f"content is a {type(parsed).__name__}. This looks like "
-                        f"corruption, not an edit.")}
+        existing = storage.load(name)
+        if existing is not None and not self._is_empty(existing):
+            if self._is_empty(parsed):
+                return {"error": (
+                    f"Refused: this would erase all '{name}' data. Deleting "
+                    f"everything must be done explicitly by the couple, not via "
+                    f"write_data.")}
+            if type(parsed) is not type(existing):
+                return {"error": (
+                    f"Refused: '{name}' is a {type(existing).__name__} but the new "
+                    f"content is a {type(parsed).__name__}. This looks like "
+                    f"corruption, not an edit.")}
 
-        DATA_DIR.mkdir(parents=True, exist_ok=True)
-        self._backup(name, path)
-        path.write_text(json.dumps(parsed, indent=2))
+        self._backup(name, existing)
+        storage.save(name, parsed)
         return {"ok": True}
 
     # --- self-improvement ---

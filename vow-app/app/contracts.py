@@ -1,6 +1,5 @@
 """Contract analyzer: upload a vendor PDF, the agent flags risks."""
 
-import json
 import uuid
 from datetime import datetime
 from io import BytesIO
@@ -8,23 +7,21 @@ from io import BytesIO
 from flask import Blueprint, jsonify, request, send_from_directory
 from pypdf import PdfReader
 
+import storage
 from agent.harness import AgentHarness
 from agent.guard import wrap_untrusted
-from .core import (CONTRACTS_PATH, MAX_PDF_MB, MAX_TEXT_CHARS, PUBLIC_DIR,
+from .core import (MAX_PDF_MB, MAX_TEXT_CHARS, PUBLIC_DIR,
                    parse_agent_json, rate_limit, run_job)
 
 contracts_bp = Blueprint("contracts", __name__)
 
 
 def load_contracts() -> list:
-    if CONTRACTS_PATH.exists():
-        return json.loads(CONTRACTS_PATH.read_text())
-    return []
+    return storage.load("contracts", [])
 
 
 def save_contracts(contracts: list):
-    CONTRACTS_PATH.parent.mkdir(exist_ok=True)
-    CONTRACTS_PATH.write_text(json.dumps(contracts, indent=2))
+    storage.save("contracts", contracts)
 
 
 def _extract_pdf_text(raw: bytes):

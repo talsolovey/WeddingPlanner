@@ -4,23 +4,20 @@ The latest brief is cached to disk (data/brief.json, code-owned — not one of
 the agent's writable datasets) so the home page can show the to-do list
 instantly without spending an agent run on every visit."""
 
-import json
 from datetime import date, datetime
 
 from flask import Blueprint, jsonify, send_from_directory
 
+import storage
 from agent.orchestrator import WeeklyBriefOrchestrator
-from .core import DATA_DIR, PUBLIC_DIR, rate_limit, run_job
+from .core import PUBLIC_DIR, rate_limit, run_job
 
 weekly_brief_bp = Blueprint("weekly_brief", __name__)
 
-BRIEF_PATH = DATA_DIR / "brief.json"
-
 
 def _save_latest(result: dict):
-    BRIEF_PATH.parent.mkdir(parents=True, exist_ok=True)
-    BRIEF_PATH.write_text(json.dumps(dict(
-        result, generated_at=datetime.now().isoformat(timespec="seconds")), indent=2))
+    storage.save("brief", dict(
+        result, generated_at=datetime.now().isoformat(timespec="seconds")))
 
 
 @weekly_brief_bp.get("/weekly-brief")
@@ -30,11 +27,8 @@ def weekly_brief_page():
 
 @weekly_brief_bp.get("/api/weekly-brief/latest")
 def latest_brief():
-    if not BRIEF_PATH.exists():
-        return jsonify({"exists": False})
-    try:
-        cached = json.loads(BRIEF_PATH.read_text())
-    except (json.JSONDecodeError, OSError):
+    cached = storage.load("brief")
+    if cached is None:
         return jsonify({"exists": False})
     return jsonify(dict(cached, exists=True))
 

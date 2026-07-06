@@ -1,20 +1,18 @@
 """Home dashboard: a single summary across budget, contracts, guests, and skills,
 plus a lightweight partner-activity log ("Omer nudged the Malka family · Tuesday")."""
 
-import json
 from datetime import datetime
 
 from flask import Blueprint, jsonify, request, send_from_directory
 
-from .core import DATA_DIR, PUBLIC_DIR, SKILLS_DIR
+import storage
+from .core import PUBLIC_DIR, SKILLS_DIR
 from .budget import load_budget
 from .contracts import load_contracts
 from .guests import load_guests
 from .seating import load_seating, seating_conflicts, _table_load
 
 overview_bp = Blueprint("overview", __name__)
-
-ACTIVITY_PATH = DATA_DIR / "activity.json"
 
 
 @overview_bp.get("/vendors")
@@ -23,12 +21,7 @@ def vendors_page():
 
 
 def load_activity() -> list:
-    if ACTIVITY_PATH.exists():
-        try:
-            return json.loads(ACTIVITY_PATH.read_text())
-        except (json.JSONDecodeError, OSError):
-            return []
-    return []
+    return storage.load("activity", [])
 
 
 @overview_bp.post("/api/activity")
@@ -41,8 +34,7 @@ def add_activity():
     entries = load_activity()
     entries.append({"actor": actor, "text": text,
                     "at": datetime.now().isoformat(timespec="seconds")})
-    ACTIVITY_PATH.parent.mkdir(exist_ok=True)
-    ACTIVITY_PATH.write_text(json.dumps(entries[-50:], indent=2))
+    storage.save("activity", entries[-50:])
     return jsonify({"ok": True})
 
 

@@ -8,29 +8,26 @@ confirmed households, seated decliners) are computed deterministically in code
 and reused by the RSVP loop and the weekly brief.
 """
 
-import json
 import uuid
 
 from flask import Blueprint, jsonify, request, send_from_directory
 
+import storage
 from agent.harness import AgentHarness
-from .core import PUBLIC_DIR, SEATING_PATH, parse_agent_json, rate_limit, run_job
+from .core import PUBLIC_DIR, parse_agent_json, rate_limit, run_job
 from .guests import load_guests
 
 seating_bp = Blueprint("seating", __name__)
 
 
 def load_seating():
-    if SEATING_PATH.exists():
-        data = json.loads(SEATING_PATH.read_text())
-        data.setdefault("tables", [])
-        return data
-    return {"tables": []}
+    data = storage.load("seating", {})
+    data.setdefault("tables", [])
+    return data
 
 
 def save_seating(seating):
-    SEATING_PATH.parent.mkdir(exist_ok=True)
-    SEATING_PATH.write_text(json.dumps(seating, indent=2))
+    storage.save("seating", seating)
 
 
 def _table_load(table, by_id):

@@ -5,18 +5,16 @@ app data on every read, so Vow checks things off as the couple actually does
 them in the app (books the venue, sends save-the-dates, seats everyone...).
 A manual toggle always wins over the rule — unchecking an auto item sticks."""
 
-import json
 from datetime import date
 
 from flask import Blueprint, jsonify, request, send_from_directory
 
-from .core import DATA_DIR, PUBLIC_DIR
+import storage
+from .core import PUBLIC_DIR
 from .budget import load_budget
 from .guests import load_guests
 
 checklist_bp = Blueprint("checklist", __name__)
-
-CHECKLIST_PATH = DATA_DIR / "checklist.json"
 
 
 # ---------- auto-check rules (evaluated on read, all deterministic) ----------
@@ -87,17 +85,11 @@ def _current_phase_index(wedding_iso: str) -> int:
 
 
 def load_checklist() -> dict:
-    if CHECKLIST_PATH.exists():
-        try:
-            return json.loads(CHECKLIST_PATH.read_text())
-        except (json.JSONDecodeError, OSError):
-            pass
-    return {"phases": []}
+    return storage.load("checklist", {"phases": []})
 
 
 def save_checklist(data: dict):
-    CHECKLIST_PATH.parent.mkdir(exist_ok=True)
-    CHECKLIST_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False))
+    storage.save("checklist", data)
 
 
 def _view() -> dict:

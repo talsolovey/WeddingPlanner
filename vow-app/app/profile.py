@@ -7,17 +7,16 @@ rest of the app reads one source of truth.
 """
 
 import copy
-import json
 
 from flask import Blueprint, jsonify, request, send_from_directory
 
-from .core import DATA_DIR, PUBLIC_DIR
+import storage
+from .core import PUBLIC_DIR
 from .budget import load_budget, save_budget
 from .guests import load_guests, save_guests
 
 profile_bp = Blueprint("profile", __name__)
 
-PROFILE_PATH = DATA_DIR / "profile.json"
 MAX_PHOTO_CHARS = 2_000_000  # ~1.5 MB of base64 image
 PRIORITY_CHOICES = {
     "Food & wine", "Music & party", "Photography", "Flowers & decor",
@@ -32,20 +31,15 @@ DEFAULT_PROFILE = {
 
 
 def load_profile() -> dict:
-    if PROFILE_PATH.exists():
-        try:
-            data = json.loads(PROFILE_PATH.read_text())
-        except (json.JSONDecodeError, OSError):
-            return copy.deepcopy(DEFAULT_PROFILE)
-        merged = copy.deepcopy(DEFAULT_PROFILE)
+    data = storage.load("profile")
+    merged = copy.deepcopy(DEFAULT_PROFILE)
+    if isinstance(data, dict):
         merged.update({k: data.get(k, v) for k, v in DEFAULT_PROFILE.items()})
-        return merged
-    return copy.deepcopy(DEFAULT_PROFILE)
+    return merged
 
 
 def save_profile(profile: dict):
-    PROFILE_PATH.parent.mkdir(exist_ok=True)
-    PROFILE_PATH.write_text(json.dumps(profile, indent=2))
+    storage.save("profile", profile)
 
 
 @profile_bp.get("/login")

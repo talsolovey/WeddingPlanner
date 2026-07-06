@@ -12,17 +12,16 @@ Scheduler semantics (all deterministic code, no agent writes):
 Message writing is delegated to the LLM via /api/invitations/generate with a
 per-wave prompt (which wave, deadline, logistics)."""
 
-import json
 from datetime import date, datetime, timedelta
 
 from flask import Blueprint, jsonify, request, send_from_directory
 
-from .core import DATA_DIR, PUBLIC_DIR, rate_limit
+import storage
+from .core import PUBLIC_DIR, rate_limit
 from .guests import load_guests
 
 invitations_bp = Blueprint("invitations", __name__)
 
-INVITATIONS_PATH = DATA_DIR / "invitations.json"
 MAX_REMINDERS = 3
 
 WAVE_DEFS = [
@@ -82,20 +81,16 @@ def _default_waves(guests) -> list:
 
 def load_invitations(guests=None) -> dict:
     guests = guests or load_guests()
-    if INVITATIONS_PATH.exists():
-        try:
-            data = json.loads(INVITATIONS_PATH.read_text())
-            data.setdefault("waves", _default_waves(guests))
-            data.setdefault("reminder_counts", {})
-            return data
-        except (json.JSONDecodeError, OSError):
-            pass
+    data = storage.load("invitations")
+    if isinstance(data, dict):
+        data.setdefault("waves", _default_waves(guests))
+        data.setdefault("reminder_counts", {})
+        return data
     return {"waves": _default_waves(guests), "reminder_counts": {}}
 
 
 def save_invitations(data: dict):
-    INVITATIONS_PATH.parent.mkdir(exist_ok=True)
-    INVITATIONS_PATH.write_text(json.dumps(data, indent=2))
+    storage.save("invitations", data)
 
 
 def _recipients(wave, guests, reminder_counts) -> list:
@@ -180,9 +175,7 @@ def invitations_page():
 def get_invitations():
     guests = load_guests()
     data = load_invitations(guests)
-    if _check_due(data, guests):
-        save_invitations(data)
-    if not INVITATIONS_PATH.exists():
+    if _check_due(data, guests) or not storage.exists("invitations"):
         save_invitations(data)
     return jsonify(_view(data, guests))
 

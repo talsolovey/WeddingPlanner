@@ -12,13 +12,12 @@ import uuid
 
 from flask import Blueprint, jsonify, request, send_from_directory
 
-from .core import DATA_DIR, PUBLIC_DIR, parse_agent_json, rate_limit
+import storage
+from .core import PUBLIC_DIR, parse_agent_json, rate_limit
 from .budget import load_budget
 from .guests import load_guests
 
 timeline_bp = Blueprint("timeline", __name__)
-
-TIMELINE_PATH = DATA_DIR / "timeline.json"
 
 DEFAULT_TIMELINE = {
     "sunset": "",
@@ -32,20 +31,15 @@ DEFAULT_TIMELINE = {
 
 
 def load_timeline() -> dict:
-    if TIMELINE_PATH.exists():
-        try:
-            data = json.loads(TIMELINE_PATH.read_text())
-            merged = copy.deepcopy(DEFAULT_TIMELINE)
-            merged.update(data)
-            return merged
-        except (json.JSONDecodeError, OSError):
-            pass
-    return copy.deepcopy(DEFAULT_TIMELINE)
+    data = storage.load("timeline")
+    merged = copy.deepcopy(DEFAULT_TIMELINE)
+    if isinstance(data, dict):
+        merged.update(data)
+    return merged
 
 
 def save_timeline(data: dict):
-    TIMELINE_PATH.parent.mkdir(exist_ok=True)
-    TIMELINE_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False))
+    storage.save("timeline", data)
 
 
 def _signed_categories() -> set:

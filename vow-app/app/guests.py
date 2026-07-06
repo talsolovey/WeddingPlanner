@@ -4,18 +4,16 @@ against venue capacity and the catering budget.
 The latest headcount check is cached to disk (data/headcount.json) so the
 guests page can show the projection card instantly."""
 
-import json
 import uuid
 from datetime import datetime
 
 from flask import Blueprint, jsonify, request, send_from_directory
 
+import storage
 from agent.harness import AgentHarness
-from .core import DATA_DIR, GUESTS_PATH, PUBLIC_DIR, parse_agent_json, run_job
+from .core import PUBLIC_DIR, parse_agent_json, run_job
 
 guests_bp = Blueprint("guests", __name__)
-
-HEADCOUNT_PATH = DATA_DIR / "headcount.json"
 
 DEFAULT_GUEST_SETTINGS = {
     "currency": "USD", "venue_capacity": 0, "catering_per_head": 0,
@@ -25,17 +23,14 @@ RSVP_STATES = {"confirmed", "declined", "pending", "no_response"}
 
 
 def load_guests():
-    if GUESTS_PATH.exists():
-        data = json.loads(GUESTS_PATH.read_text())
-        data.setdefault("settings", dict(DEFAULT_GUEST_SETTINGS))
-        data.setdefault("households", [])
-        return data
-    return {"settings": dict(DEFAULT_GUEST_SETTINGS), "households": []}
+    data = storage.load("guests", {})
+    data.setdefault("settings", dict(DEFAULT_GUEST_SETTINGS))
+    data.setdefault("households", [])
+    return data
 
 
 def save_guests(guests):
-    GUESTS_PATH.parent.mkdir(exist_ok=True)
-    GUESTS_PATH.write_text(json.dumps(guests, indent=2))
+    storage.save("guests", guests)
 
 
 @guests_bp.get("/guests")
@@ -178,11 +173,8 @@ def delete_household(household_id):
 
 @guests_bp.get("/api/guests/headcount/latest")
 def latest_headcount():
-    if not HEADCOUNT_PATH.exists():
-        return jsonify({"exists": False})
-    try:
-        cached = json.loads(HEADCOUNT_PATH.read_text())
-    except (json.JSONDecodeError, OSError):
+    cached = storage.load("headcount")
+    if cached is None:
         return jsonify({"exists": False})
     return jsonify(dict(cached, exists=True))
 
@@ -205,9 +197,8 @@ def analyze_guests():
         )
         result = {"analysis": parse_agent_json(answer),
                   "cost_usd": round(harness.last_run_cost, 4)}
-        HEADCOUNT_PATH.parent.mkdir(exist_ok=True)
-        HEADCOUNT_PATH.write_text(json.dumps(dict(
-            result, generated_at=datetime.now().isoformat(timespec="seconds")), indent=2))
+        storage.save("headcount", dict(
+            result, generated_at=datetime.now().isoformat(timespec="seconds")))
         return result
 
     return jsonify({"job_id": run_job(task)})
