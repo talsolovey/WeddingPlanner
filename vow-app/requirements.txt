@@ -5,3 +5,4 @@ tiktoken
 pypdf
 gunicorn
 supabase
+mcp
