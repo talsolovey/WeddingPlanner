@@ -32,18 +32,36 @@ threads, so it needs a real server (not serverless). Render fits as-is.
 > Keep it **1 worker** (`-w 1`). The live "analyzing…" progress uses an
 > in-memory job list; multiple workers wouldn't share it.
 
-## Data persistence (optional)
+## Data persistence
 
-By default the app ships with the sample wedding baked in, and any edits made on
-the live site are lost when the instance restarts or redeploys — perfectly fine
-for a demo.
+By default the app ships with the sample wedding baked in as local JSON files,
+and any edits made on the live site are lost when the instance restarts or
+redeploys — perfectly fine for a demo.
 
-To keep data permanently:
+### Option A — Supabase (recommended)
+
+All wedding data lives as JSON documents behind one storage layer
+(`storage.py`); pointing it at Supabase gives you a real Postgres database
+that survives restarts, redeploys and multiple instances.
+
+1. Create a project at supabase.com, open the **SQL editor**, and run
+   `supabase_schema.sql` (creates the `vow_documents` table with RLS on and
+   no public policies — only the server can touch it).
+2. From **Project Settings ▸ API** copy the URL and the `service_role` key,
+   and set them as env vars (or in `vow-app/.env` locally):
+   - `SUPABASE_URL` = `https://<project>.supabase.co`
+   - `SUPABASE_SERVICE_KEY` = the service_role key (server-side only — never
+     ship it to a browser).
+3. Push the current data up once: `python migrate_to_supabase.py`
+4. Restart the app. It now reads and writes Supabase; the local `data/`
+   files are ignored (kept as a seed/fallback). Setting
+   `VOW_STORAGE_BACKEND=files` forces the old behavior at any time.
+
+### Option B — Render persistent disk (files, single instance)
 
 1. In `render.yaml`, uncomment the `disk:` block (mounts at `/var/vow-data`).
 2. Add an env var **`VOW_DATA_DIR`** = `/var/vow-data`.
-3. The app already honors `VOW_DATA_DIR` (see `app/core.py` and
-   `agent/registry.py`) — both the web app and the agent read/write there.
+3. Both the web app and the agent honor it (see `storage.py`).
 4. The disk starts empty, so copy your starting `data/*.json` into it once.
 
 ## Notes

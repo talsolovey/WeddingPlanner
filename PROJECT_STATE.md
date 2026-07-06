@@ -1,7 +1,7 @@
 # PROJECT_STATE — WeddingOS / Vow
 
 > A plain-language summary of where the project stands, updated after every step.
-> Last updated: 2026-07-06 (Step 17: full UI redesign from the design handoff — 13 screens, floating AI chat, invitation scheduler, checklist, timeline + printable day-of sheet).
+> Last updated: 2026-07-06 (Step 18: Supabase-ready storage — all data goes through one document store; Postgres when configured, local files otherwise).
 
 ## What is this project
 
@@ -98,6 +98,7 @@ threat model + defenses in `vow-app/SECURITY.md`.
 | Step 15 | Guest groups: `group` field on households, editable inline in the guest list (with autocomplete of existing groups) and settable on add; whitelisted `PUT /api/guests/households/<id>` (group/notes/side only — RSVP fields stay guest-owned); seating page groups the unassigned list with one-click "seat group" onto a table; `seating-planner` skill now keeps groups together (notes still beat groups) | ✅ 45 tests pass (5 new, offline); pages serve; JS checked |
 | Step 15b | Iteration round from live use: full inline row editing in the guest list (PUT now covers all fields with add-rules validation; meals then dietary removed end-to-end — form, API, skills, data); WhatsApp invites via click-to-chat with per-household magic links, phone capture, one-tap invite queue with ✓ sent tracking; visual seating room (round table-tops, seat dots, hover-✕ remove, seat-by-group); auto-seat applies directly with code validation as the gate; UI minimalism pass (ghost buttons, folded settings, single rose action per page); agent results unified into one sectioned report card with verdict chips + severity folding; JSON-only reinforcement on all agent endpoints + graceful prose fallback | ✅ 47 tests pass; all pages serve; JS syntax-checked |
 | Step 16 | Home = mission control: countdown hero (days/weeks from `wedding_date`), the weekly brief moved home as a checkable to-do list (latest brief cached to `data/brief.json`, served by `GET /api/weekly-brief/latest`, so home loads instantly; "✦ Ask Vow to refresh" re-runs the orchestrator), summary sidebar (budget/guests/seating/contracts/lessons). Weekly Brief dropped from the nav (page still serves at /weekly-brief) | ✅ 47 tests pass; all 6 pages serve; JS checked |
+| Step 18 | Supabase migration: new `storage.py` document layer — every dataset (budget, guests, seating, contracts, profile, waves, checklist, timeline, caches) is one JSON document read/written through a single module by both the web app and the agent's tools. With `SUPABASE_URL` + `SUPABASE_SERVICE_KEY` set it uses a Postgres `vow_documents` JSONB table (RLS on, no public policies, service key server-side only, short write-through read cache); without them it falls back to the local `data/*.json` files unchanged. `supabase_schema.sql` + `migrate_to_supabase.py` do the one-time setup; agent write backups + destructive-write guard preserved | ✅ 68 tests pass (6 new storage tests incl. a fake-client Supabase suite); live app verified on the file backend; Supabase push pending credentials |
 | Step 17 | Full UI redesign from the `design_handoff_vow_app/` package: shared design system (`public/vow.css` tokens + `vow-shell.js` header/nav/toasts/mobile tab bar), all pages rebuilt to the reference designs (Home with refresh progress + new-couple state, Budget with payments calendar + what-if sliders, Guests with filters + WhatsApp nudges, Seating, Contracts, guest RSVP invitation card), five new screens (Checklist, Invitations, Vendors, Timeline, Login + 6-step Onboarding), a print-ready day-of handoff sheet, and a floating "✦ Ask Vow" chat on every page. New backend: couple profile (photo, priorities; syncs date/budget), invitation wave scheduler (recipients recomputed at send time — repliers skipped, max 3 reminders per household, due waves auto-send), checklist with auto-check rules driven by live app data, day-of timeline + LLM "check the flow", chat + message-generation endpoints (couple's data snapshot injected server-side as the system prompt) | ✅ 62 tests pass (15 new, offline); every page screenshotted against the reference; live chat + message-generation calls verified |
 
 ## Decisions made (and why)
@@ -123,6 +124,13 @@ threat model + defenses in `vow-app/SECURITY.md`.
 - **RSVP links are capability tokens, not logins** — one token = write access to exactly
   one household's RSVP fields. No accounts, no passwords, nothing else reachable. Free
   text from guests is injection-scanned before it's stored, because agents read it later.
+- **Supabase as a document store (one JSONB table), not a normalized schema** — the
+  app's data model is already whole-document JSON with guards at the edges; swapping
+  the persistence behind the existing load/save helpers changed ~10 lines per module
+  and zero behavior. Normalizing into per-entity tables was rejected as a rewrite with
+  no feature payoff; it can still happen later behind the same storage API.
+- **File fallback stays** — no Supabase credentials means local files, so dev and the
+  offline test suite need zero setup, and `VOW_STORAGE_BACKEND=files` is an escape hatch.
 - **Redesign kept the stack: static pages + vanilla JS, no build step** — the handoff
   allowed a light React setup, but the app already worked as server-served HTML; a shared
   `vow.css` + `vow-shell.js` gives the same consistency without adding a toolchain.
