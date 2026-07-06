@@ -1,226 +1,441 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vow — Budget</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
-<script src="app.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vow ✦ — Budget</title>
+<link rel="stylesheet" href="/vow.css">
+<script src="/vow-shell.js"></script>
 <style>
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-  .stat { background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.2rem; }
-  .stat .label { font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-soft); }
-  .stat .value { font-family: "Fraunces", serif; font-size: 1.5rem; color: var(--ink); }
-  .stat.accent .value { color: var(--rose-deep); }
-  table { width: 100%; border-collapse: collapse; font-size: .92rem; }
-  th { text-align: left; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); padding: .5rem .6rem; border-bottom: 1px solid var(--line); }
-  td { padding: .55rem .6rem; border-bottom: 1px solid var(--line); }
-  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
-  .del { background: none; border: 0; color: var(--ink-soft); cursor: pointer; font-size: 1rem; }
-  .del:hover { color: var(--sev-red); }
-  .add-row .field { padding: .45rem .6rem; border-radius: 8px; font-size: .9rem; }
-  .budget-input { display: flex; gap: .6rem; align-items: center; margin-bottom: 1.5rem; }
-  .budget-input .field { max-width: 200px; }
-  .delta-pos { color: var(--sev-red); } .delta-neg { color: var(--sev-green); }
+  main { width: 100%; max-width: 960px; margin: 0 auto; padding: 3rem 1.5rem 4rem; flex: 1; }
+  .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+
+  .summary-card { background: var(--card); border: 1px solid var(--hairline); border-radius: 16px; padding: 1.5rem 1.8rem; margin-top: 1.8rem; box-shadow: var(--card-shadow); }
+  .summary-row { display: flex; gap: 2.5rem; flex-wrap: wrap; align-items: baseline; }
+  .summary-stat { font-family: var(--serif); font-size: 1.9rem; }
+  .summary-stat.red { color: var(--red); }
+  .vows-read { margin-left: auto; text-align: right; }
+  .vows-read .label { text-transform: uppercase; letter-spacing: 0.14em; font-size: 0.66rem; font-weight: 600; color: var(--rose); }
+  .vows-read .text { font-size: 0.88rem; color: var(--ink); max-width: 24ch; }
+  .stacked-bar { height: 6px; border-radius: 999px; background: var(--divider); overflow: hidden; display: flex; margin-top: 1.2rem; }
+  .bar-legend { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--ink-soft); margin-top: 0.4rem; }
+  .bar-legend .dot8 { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 0.3rem; }
+
+  .table-card { background: var(--card); border: 1px solid var(--hairline); border-radius: 16px; margin-top: 1.4rem; box-shadow: var(--card-shadow); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  th { text-align: left; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-soft); font-weight: 600; padding: 0.9rem 1rem 0.6rem; border-bottom: 1px solid var(--hairline); }
+  th:first-child { padding-left: 1.8rem; }
+  th:last-child { padding-right: 1.8rem; }
+  th.num { text-align: right; }
+  td { padding: 0.7rem 1rem; border-bottom: 1px solid var(--divider); }
+  td:first-child { padding-left: 1.8rem; font-weight: 600; }
+  td:last-child { padding-right: 1.8rem; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.paid-col { color: var(--ink-soft); }
+  tbody tr:hover { background: var(--bg); }
+  .vendor-empty { color: var(--ink-faint); }
+  .status-cell { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; }
+  .row-del { float: right; background: none; border: none; color: var(--ink-faint); font-size: 0.8rem; cursor: pointer; opacity: 0; padding: 0 0 0 0.6rem; }
+  tbody tr:hover .row-del { opacity: 1; }
+  .add-line { background: none; border: none; color: var(--rose); font: inherit; font-size: 0.88rem; font-weight: 500; cursor: pointer; padding: 0; }
+  .add-form td { padding: 0.6rem 1rem; }
+  .add-form input, .add-form select { padding: 0.45rem 0.7rem; border: 1px solid var(--hairline); border-radius: 10px; font: inherit; font-size: 0.85rem; width: 100%; background: #fff; outline: none; }
+  .add-form input:focus { border-color: var(--rose); }
+
+  .months-card { background: var(--card); border: 1px solid var(--hairline); border-radius: 16px; padding: 1.5rem 1.8rem; margin-top: 1.4rem; box-shadow: var(--card-shadow); }
+  .months-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+  .months-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.8rem; margin-top: 1.3rem; }
+  .month-col { padding-top: 0.6rem; border-top: 2px solid var(--rose-tint-border); }
+  .month-name { font-family: var(--serif); font-size: 0.95rem; }
+  .month-due { font-size: 0.8rem; margin-top: 0.3rem; }
+  .months-note { color: var(--ink-faint); font-size: 0.8rem; margin: 1.2rem 0 0; }
+
+  .forecast-card { border: 1px solid var(--rose-tint-border); background: var(--rose-tint); border-radius: 16px; padding: 1.4rem 1.8rem; margin-top: 1.4rem; }
+  .forecast-eyebrow { color: var(--rose); font-size: 0.8rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; }
+  .forecast-total { font-family: var(--serif); font-size: 1.6rem; margin-top: 0.4rem; }
+  .forecast-delta { font-size: 0.95rem; font-family: var(--sans); }
+  .forecast-recs { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.9rem; }
+  .rec-row { display: flex; gap: 0.7rem; align-items: baseline; font-size: 0.9rem; }
+  .rec-row .dot { position: relative; top: -2px; }
+  .thinking-line { color: var(--rose); font-size: 0.88rem; animation: vow-pulse 1.2s ease-in-out infinite; margin-top: 0.6rem; }
+
+  .whatif-card { background: var(--card); border: 1px solid var(--hairline); border-radius: 16px; padding: 1.5rem 1.8rem; margin-top: 1.4rem; box-shadow: var(--card-shadow); }
+  .whatif-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.6rem 2.5rem; align-items: start; }
+  .slider-block .slider-head { display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 0.4rem; }
+  .slider-block .slider-head .val { color: var(--rose); font-variant-numeric: tabular-nums; }
+  .slider-block .slider-ends { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--ink-faint); }
+  .whatif-result { border-left: 1px solid var(--divider); padding-left: 2.5rem; align-self: stretch; display: flex; flex-direction: column; justify-content: center; }
+  .whatif-total { font-family: var(--serif); font-size: 2.4rem; line-height: 1.1; margin-top: 0.3rem; }
+  .whatif-bar { height: 6px; border-radius: 999px; background: var(--divider); overflow: hidden; margin-top: 0.9rem; max-width: 260px; }
+  @media (max-width: 760px) {
+    .months-grid { grid-template-columns: repeat(2, 1fr); }
+    .whatif-grid { grid-template-columns: 1fr; }
+    .whatif-result { border-left: none; padding-left: 0; }
+  }
 </style>
 </head>
-<body>
-  <header class="site-header">
-    <a class="logo" href="/">Vow <span class="logo-mark">✦</span></a>
-    <nav class="nav">
-      <a href="/">Home</a>
-      <a href="/contracts">Contracts</a>
-      <a href="/budget" class="active">Budget</a>
-      <a href="/guests">Guests</a>
-      <a href="/seating">Seating</a>
-    </nav>
-  </header>
-
-  <main class="page">
-    <p class="eyebrow">Budget</p>
-    <h1>Where the money goes.</h1>
-    <p class="lede">Track every line, then ask Vow what this wedding will <em>actually</em> cost.</p>
-
-    <details class="settings">
-      <summary>⚙ Set total budget</summary>
-      <div class="budget-input">
-        <label for="total-budget" style="color: var(--ink-soft); font-size:.9rem;">Total budget</label>
-        <input type="number" id="total-budget" class="field" min="0" step="100" placeholder="e.g. 40000">
-        <button id="save-budget" class="btn-ghost">Save</button>
-      </div>
-    </details>
-
-    <div class="stats">
-      <div class="stat"><div class="label">Budget</div><div class="value" id="stat-budget">—</div></div>
-      <div class="stat"><div class="label">Committed</div><div class="value" id="stat-committed">—</div></div>
-      <div class="stat"><div class="label">Paid so far</div><div class="value" id="stat-paid">—</div></div>
-      <div class="stat accent"><div class="label">Vow's forecast</div><div class="value" id="stat-forecast">ask ↓</div></div>
+<body data-page="budget">
+<main>
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">Budget</h1>
+      <p class="page-sub" style="margin-top:0.3rem">Every line in one place — Vow watches the total for you.</p>
     </div>
+    <button class="btn primary" id="forecast-btn">✦ Forecast the real cost</button>
+  </div>
 
-    <div class="card" style="overflow-x:auto;">
-      <table>
-        <thead>
-          <tr><th>Category</th><th>Vendor</th><th class="num">Estimated</th><th class="num">Contracted</th><th class="num">Paid</th><th>Notes</th><th></th></tr>
-        </thead>
-        <tbody id="rows"></tbody>
-        <tbody>
-          <tr class="add-row">
-            <td><input class="field" id="f-category" placeholder="Category"></td>
-            <td><input class="field" id="f-vendor" placeholder="Vendor"></td>
-            <td><input class="field" id="f-estimated" type="number" min="0" placeholder="0"></td>
-            <td><input class="field" id="f-contracted" type="number" min="0" placeholder="0"></td>
-            <td><input class="field" id="f-paid" type="number" min="0" placeholder="0"></td>
-            <td><input class="field" id="f-notes" placeholder="Notes"></td>
-            <td><button class="btn-ghost" id="add" style="padding:.45rem 1rem;">Add</button></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div style="text-align:center; margin: 2rem 0 0;">
-      <button id="analyze" class="btn-primary">✦ Ask Vow to forecast the real cost</button>
-    </div>
-
-    <div id="status"></div>
-    <div id="result"></div>
-  </main>
+  <section class="summary-card" id="summary"></section>
+  <section class="table-card"><table id="budget-table"></table></section>
+  <section class="months-card" id="months"></section>
+  <section class="forecast-card" id="forecast" hidden></section>
+  <section class="whatif-card" id="whatif"></section>
+</main>
 
 <script>
-const $ = (id) => document.getElementById(id);
-const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-let CUR = "USD";
-const fmt = (n) => new Intl.NumberFormat(undefined, { style: "currency", currency: CUR, maximumFractionDigits: 0 }).format(n || 0);
+(async function () {
+  const $ = (id) => document.getElementById(id);
+  const esc = VOW.esc, money = VOW.money;
 
-async function load() {
-  const b = await (await fetch("/api/budget")).json();
-  CUR = b.currency || "USD";
-  $("total-budget").value = b.total_budget || "";
-  const committed = b.items.reduce((s, i) => s + (i.contracted || i.estimated || 0), 0);
-  const paid = b.items.reduce((s, i) => s + (i.paid || 0), 0);
-  $("stat-budget").textContent = b.total_budget ? fmt(b.total_budget) : "—";
-  $("stat-committed").textContent = fmt(committed);
-  $("stat-paid").textContent = fmt(paid);
-  if (!b.items.length) {
-    $("rows").innerHTML = `<tr><td colspan="7" style="text-align:center; padding:1.4rem; color:var(--ink-soft);">
-      No items yet — add your first line below.
-    </td></tr>`;
-    return;
-  }
-  $("rows").innerHTML = b.items.map(i => `
-    <tr>
-      <td><b>${esc(i.category)}</b></td>
-      <td>${esc(i.vendor)}</td>
-      <td class="num">${i.estimated ? fmt(i.estimated) : "—"}</td>
-      <td class="num">${i.contracted ? fmt(i.contracted) : "—"}</td>
-      <td class="num">${i.paid ? fmt(i.paid) : "—"}</td>
-      <td style="color:var(--ink-soft); font-size:.85rem;">${esc(i.notes)}</td>
-      <td><button class="del" data-id="${i.id}" title="Remove">✕</button></td>
-    </tr>`).join("");
-  document.querySelectorAll(".del").forEach(el => el.addEventListener("click", async () => {
-    const item = b.items.find(i => i.id === el.dataset.id);
-    await fetch("/api/budget/items/" + el.dataset.id, { method: "DELETE" });
-    load();
-    toast(`Removed ${item ? item.category : "item"}`, { undo: async () => {
-      await fetch("/api/budget/items", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(item),
-      });
-      load();
-    }});
-  }));
-}
-
-/* enter-to-add */
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && e.target.id && e.target.id.startsWith("f-")) {
-    e.preventDefault();
-    $("add").click();
-  }
-});
-
-$("save-budget").addEventListener("click", async () => {
-  await fetch("/api/budget/settings", {
-    method: "PUT", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ total_budget: $("total-budget").value || 0 }),
-  });
-  toast("Budget saved");
-  load();
-});
-
-$("add").addEventListener("click", async () => {
-  const body = {
-    category: $("f-category").value, vendor: $("f-vendor").value,
-    estimated: $("f-estimated").value, contracted: $("f-contracted").value,
-    paid: $("f-paid").value, notes: $("f-notes").value,
+  let budget, guests, forecast;
+  const PRETTY = {
+    "venue": "Venue & catering", "photography": "Photography & video",
+    "flowers/decor": "Flowers & decor", "music/DJ": "Music — DJ",
+    "music/ceremony": "Music — ceremony", "cake": "Cake & desserts",
+    "hair/makeup": "Hair & makeup", "attire": "Attire", "rings": "Rings",
+    "stationery": "Stationery", "transport": "Transport",
   };
-  if (!body.category.trim()) return;
-  await fetch("/api/budget/items", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  ["f-category","f-vendor","f-estimated","f-contracted","f-paid","f-notes"].forEach(id => $(id).value = "");
-  load();
-});
+  const pretty = (c) => PRETTY[c] || (c.charAt(0).toUpperCase() + c.slice(1));
+  const cost = (i) => i.contracted || i.estimated || 0;
+  const statusOf = (i) => i.contracted > 0 ? "signed" : (i.vendor && i.estimated > 0 ? "quote" : "estimate");
+  const STATUS_COLOR = { signed: "#5a8a6a", quote: "#a8873d", estimate: "#b3a8ad" };
 
-$("analyze").addEventListener("click", async () => {
-  $("analyze").disabled = true;
-  $("result").innerHTML = "";
-  try {
-    const res = await fetch("/api/budget/analyze", { method: "POST" });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error || "Analysis failed.");
-    const result = await pollJob(json.job_id, $("status"), "Vow is going through your budget… usually 20–60 seconds.");
-    $("status").innerHTML = "";
-    render(result);
-  } catch (err) {
-    $("status").innerHTML = `<p class="status">⚠ ${esc(err.message)}</p>`;
-  } finally {
-    $("analyze").disabled = false;
+  async function load() {
+    [budget, guests, forecast] = await Promise.all([
+      fetch("/api/budget").then((r) => r.json()),
+      fetch("/api/guests").then((r) => r.json()),
+      fetch("/api/budget/forecast/latest").then((r) => r.json()).catch(() => ({ exists: false })),
+    ]);
   }
-});
 
-function render({ analysis: a }) {
-  // Format drift: the agent answered in prose, not the schema — show it readably.
-  if (a.forecast_total == null && !a.warnings) {
-    $("result").innerHTML = proseFallback("Budget forecast", a.summary);
-    return;
+  /* ---------- summary ---------- */
+  function renderSummary() {
+    const committed = budget.items.reduce((s, i) => s + cost(i), 0);
+    const paid = budget.items.reduce((s, i) => s + (i.paid || 0), 0);
+    const cap = budget.total_budget || 0;
+    const over = committed - cap;
+    const denom = Math.max(cap, committed, 1);
+    const read = over > 0
+      ? `You're <b style="color:var(--red)">${money(over)} over</b> before extras — trim or raise the cap.`
+      : `You're <b style="color:var(--green)">${money(-over)} under</b> the cap — a healthy cushion.`;
+    $("summary").innerHTML = `
+      <div class="summary-row">
+        <div>
+          <div class="eyebrow">Total budget</div>
+          <div class="summary-stat">${money(cap)}</div>
+        </div>
+        <div>
+          <div class="eyebrow">Committed</div>
+          <div class="summary-stat ${over > 0 ? "red" : ""}">${money(committed)}</div>
+        </div>
+        <div>
+          <div class="eyebrow">Paid so far</div>
+          <div class="summary-stat">${money(paid)}</div>
+        </div>
+        <div class="vows-read">
+          <div class="label">Vow's read</div>
+          <div class="text">${read}</div>
+        </div>
+      </div>
+      <div>
+        <div class="stacked-bar">
+          <div style="width:${(paid / denom) * 100}%;background:var(--rose-deep)"></div>
+          <div style="width:${((committed - paid) / denom) * 100}%;background:var(--rose-tint-border)"></div>
+        </div>
+        <div class="bar-legend">
+          <span><span class="dot8" style="background:var(--rose-deep)"></span>Paid</span>
+          <span><span class="dot8" style="background:var(--rose-tint-border)"></span>Committed, not yet paid</span>
+        </div>
+      </div>`;
   }
-  const delta = a.delta || (a.forecast_total - a.budget_total) || 0;
-  $("stat-forecast").textContent = fmt(a.forecast_total);
-  const card = (w) => `
-    <div class="flag ${esc(w.severity)}">
-      <span class="chip ${esc(w.severity)}">${esc(w.severity)}</span>
-      <div><b>${esc(w.category)}</b> — ${esc(w.issue)}</div>
-      <div class="rec"><b>Do:</b> ${esc(w.recommendation)}</div>
-    </div>`;
-  const { hotHtml, foldHtml } = foldBySeverity(a.warnings, card,
-    "✓ No money worries right now.");
-  const missing = (a.missing_categories || []).map(m => `<li>${esc(m)}</li>`).join("") || "<li>Nothing — every usual category is covered.</li>";
-  const over = delta > 0;
-  $("result").innerHTML = `
-    <div class="card report" style="margin-top:1.5rem;">
-      <div class="report-head">
-        <p class="eyebrow" style="margin-bottom:.3rem">What this wedding will actually cost${a.confidence ? ` · ${esc(a.confidence)} confidence` : ""}</p>
-        <h2>${fmt(a.forecast_total)} <span style="font-size:1rem;" class="${over ? "delta-pos" : "delta-neg"}">${over ? fmt(delta) + " over your budget" : "within budget"}</span></h2>
-        <p style="margin-top:.4rem">${esc(a.summary)}</p>
-        ${verdictChips(a.warnings)}
-      </div>
-      <div class="report-section">
-        <h3>Deal with these first</h3>
-        <div class="flag-list">${hotHtml}</div>
-        ${foldHtml}
-      </div>
-      <div class="report-section two-col">
-        <div><h3>You haven't budgeted for</h3><ul class="nice-list">${missing}</ul></div>
-        <div><h3>Money already at risk</h3><p style="margin:0;">${esc(a.payment_exposure)}</p></div>
-      </div>
-    </div>`;
-}
 
-load();
+  /* ---------- table ---------- */
+  let adding = false;
+  function renderTable() {
+    const rows = [...budget.items].sort((a, b) => cost(b) - cost(a));
+    $("budget-table").innerHTML = `
+      <thead>
+        <tr>
+          <th>Category</th><th>Vendor</th><th class="num">Cost</th><th class="num">Paid</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map((i) => {
+          const st = statusOf(i);
+          return `
+          <tr data-id="${i.id}">
+            <td>${esc(pretty(i.category))}</td>
+            <td class="${i.vendor ? "" : "vendor-empty"}">${esc(i.vendor || "Add a vendor")}</td>
+            <td class="num">${money(cost(i))}</td>
+            <td class="num paid-col">${i.paid ? money(i.paid) : "—"}</td>
+            <td>
+              <span class="status-cell" style="color:${STATUS_COLOR[st]}">
+                <span class="dot" style="background:${STATUS_COLOR[st]}"></span>${st}
+              </span>
+              <button class="row-del" title="Remove line">✕</button>
+            </td>
+          </tr>`;
+        }).join("")}
+        ${adding ? `
+        <tr class="add-form">
+          <td><input id="nl-category" placeholder="Category"></td>
+          <td><input id="nl-vendor" placeholder="Vendor (optional)"></td>
+          <td><input id="nl-cost" type="number" min="0" placeholder="Cost"></td>
+          <td><input id="nl-paid" type="number" min="0" placeholder="Paid"></td>
+          <td style="white-space:nowrap">
+            <select id="nl-status"><option>estimate</option><option>quote</option><option>signed</option></select>
+            <button class="btn tertiary" id="nl-save" style="margin-left:0.5rem">Save</button>
+            <button class="btn tertiary" id="nl-cancel" style="margin-left:0.4rem;color:var(--ink-faint)">✕</button>
+          </td>
+        </tr>` : `
+        <tr><td colspan="5" style="padding:0.8rem 1.8rem;font-weight:400"><button class="add-line" id="add-line">+ Add a line</button></td></tr>`}
+      </tbody>`;
+
+    document.querySelectorAll(".row-del").forEach((btn) => {
+      btn.onclick = async () => {
+        const id = btn.closest("tr").dataset.id;
+        await fetch("/api/budget/items/" + id, { method: "DELETE" });
+        await load(); renderAll();
+        VOW.toast("Line removed ✦");
+      };
+    });
+    if (adding) {
+      $("nl-save").onclick = async () => {
+        const c = $("nl-cost").value, st = $("nl-status").value;
+        const body = {
+          category: $("nl-category").value.trim(),
+          vendor: $("nl-vendor").value.trim(),
+          estimated: st === "signed" ? 0 : +c || 0,
+          contracted: st === "signed" ? +c || 0 : 0,
+          paid: +$("nl-paid").value || 0,
+        };
+        if (!body.category) { VOW.toast("Give the line a category"); return; }
+        const res = await fetch("/api/budget/items", { method: "POST",
+          headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        if (res.ok) { adding = false; await load(); renderAll(); }
+      };
+      $("nl-cancel").onclick = () => { adding = false; renderTable(); };
+      $("nl-category").focus();
+    } else {
+      $("add-line").onclick = () => { adding = true; renderTable(); };
+    }
+  }
+
+  /* ---------- what's due, and when ---------- */
+  function renderMonths() {
+    const committed = budget.items.reduce((s, i) => s + cost(i), 0);
+    const paid = budget.items.reduce((s, i) => s + (i.paid || 0), 0);
+    const weddingStr = guests.settings.wedding_date;
+    const wedding = weddingStr ? new Date(weddingStr + "T00:00:00") : null;
+    if (!wedding || !budget.items.length) { $("months").hidden = true; return; }
+
+    const now = new Date();
+    const monthsBetween = (wedding.getFullYear() - now.getFullYear()) * 12 + (wedding.getMonth() - now.getMonth());
+    const n = Math.min(5, Math.max(1, monthsBetween + 1));
+    const months = Array.from({ length: n }, (_, k) => {
+      const d = new Date(wedding.getFullYear(), wedding.getMonth() - (n - 1 - k), 1);
+      return { name: d.toLocaleDateString("en-US", { month: "long" }), dues: [] };
+    });
+    const SHADES5 = ["#e4c9cf", "#e4c9cf", "#d9b6be", "#c08c99", "#85495a"];
+    const shade = (k) => SHADES5[Math.round((k / Math.max(1, n - 1)) * 4)];
+
+    const items = [...budget.items].sort((a, b) => cost(b) - cost(a));
+    const venue = items.find((i) => (i.contracted || 0) > 0);
+    const short = (i) => esc(pretty(i.category)).split(" — ")[0].split(" & ")[0];
+    let qi = 0, ei = 0;
+    for (const i of items) {
+      const remaining = cost(i) - (i.paid || 0);
+      if (remaining <= 0) continue;
+      const st = statusOf(i);
+      if (i === venue) {
+        // The venue takes its balance on the day itself.
+        months[n - 1].dues.push({
+          html: `${short(i)} balance · ${money(remaining)}<br><span style="color:var(--ink-faint);font-weight:400">due on the day</span>`,
+          cls: "red",
+        });
+      } else if (st === "signed") {
+        months[Math.max(0, n - 2)].dues.push({
+          html: `${short(i)} balance · ${money(remaining)}`,
+        });
+      } else if (st === "quote") {
+        // Unsigned quotes: a ~30% deposit lands as soon as they sign.
+        const m = Math.min([0, 1][qi++ % 2], n - 1);
+        months[m].dues.push({
+          html: `${short(i)} deposit · ${money(Math.round(remaining * 0.3 / 100) * 100)}` +
+            (m === 0 ? `<br><span style="color:var(--ink-faint)">if you sign now</span>` : ""),
+          cls: m === 0 ? "amber" : "",
+        });
+      } else {
+        // Estimates settle through the middle months.
+        const m = Math.min([2, 1][ei++ % 2], n - 1);
+        months[m].dues.push({
+          html: i.paid > 0
+            ? `${short(i)} balance · ${money(remaining)}`
+            : `${short(i)} · ${money(remaining)} <span style="color:var(--ink-faint)">est.</span>`,
+        });
+      }
+    }
+
+    const venueRemaining = venue ? cost(venue) - (venue.paid || 0) : 0;
+    const totalRemaining = committed - paid;
+    const noteMonths = n >= 3 ? `${months[n - 3].name} and ${months[n - 2].name}` : "";
+    $("months").hidden = false;
+    $("months").innerHTML = `
+      <div class="months-head">
+        <h2>What's due, and when</h2>
+        <span style="color:var(--ink-soft);font-size:0.85rem">${money(totalRemaining)} still to pay before the wedding</span>
+      </div>
+      <div class="months-grid" style="grid-template-columns:repeat(${n},1fr)">
+        ${months.map((m, k) => `
+          <div class="month-col" style="border-top-color:${shade(k)}">
+            <div class="month-name">${m.name}</div>
+            ${m.dues.map((d) => `
+              <div class="month-due" style="color:${d.cls === "red" ? "var(--red)" : d.cls === "amber" ? "var(--amber)" : "var(--ink)"};${d.cls === "red" ? "font-weight:500" : ""}">${d.html}</div>`).join("") || `<div class="month-due" style="color:var(--ink-faint)">nothing due</div>`}
+          </div>`).join("")}
+      </div>
+      ${venueRemaining > totalRemaining * 0.4 && noteMonths ? `
+      <p class="months-note">✦ ${months[n - 1].name} is heavy on purpose — the venue takes everything up front. Vow suggests asking to split the balance across ${noteMonths}.</p>` : ""}`;
+  }
+
+  /* ---------- forecast card ---------- */
+  const SEV_COLOR = { red: "var(--red)", yellow: "var(--amber)", green: "var(--green)" };
+  let forecasting = false;
+
+  function renderForecast() {
+    const card = $("forecast");
+    if (forecasting) {
+      card.hidden = false;
+      card.innerHTML = `
+        <span class="forecast-eyebrow">✦ Vow's forecast</span>
+        <div class="thinking-line">✦ Reading the budget and contracts — usually 20–60 seconds. You can keep working.</div>`;
+      return;
+    }
+    if (!forecast || !forecast.exists) { card.hidden = true; return; }
+    const a = forecast.analysis || {};
+    const cap = budget.total_budget || a.budget_total || 0;
+    const delta = (a.forecast_total || 0) - cap;
+    const when = forecast.generated_at
+      ? new Date(forecast.generated_at).toLocaleDateString("en-US", { month: "long", day: "numeric" }) : "";
+    card.hidden = false;
+    card.innerHTML = `
+      <div style="display:flex;align-items:baseline;gap:0.6rem;flex-wrap:wrap">
+        <span class="forecast-eyebrow">✦ Vow's forecast</span>
+        <span style="color:var(--ink-faint);font-size:0.75rem">${when}</span>
+      </div>
+      <div class="forecast-total">Expect around ${money(a.forecast_total || 0)}
+        <span class="forecast-delta" style="color:${delta > 0 ? "var(--red)" : "var(--green)"}">${money(Math.abs(delta))} ${delta > 0 ? "over" : "under"} budget</span>
+      </div>
+      <div class="forecast-recs">
+        ${(a.warnings || []).slice(0, 3).map((w) => `
+          <div class="rec-row">
+            <span class="dot" style="background:${SEV_COLOR[w.severity] || "var(--amber)"}"></span>
+            <span><b>${esc(w.recommendation || w.category || "")}</b> — ${esc(w.issue || "")}</span>
+          </div>`).join("")}
+      </div>
+      <details class="fold" style="margin-top:0.8rem">
+        <summary>Full reasoning ▾</summary>
+        <p style="color:var(--ink-soft);font-size:0.85rem;margin:0.5rem 0 0;max-width:64ch">${esc(a.summary || "")} ${esc(a.payment_exposure || "")} Confidence: ${esc(a.confidence || "medium")}.</p>
+      </details>`;
+  }
+
+  $("forecast-btn").onclick = async () => {
+    if (forecasting) return;
+    forecasting = true;
+    $("forecast-btn").disabled = true;
+    $("forecast-btn").textContent = "✦ Forecasting…";
+    renderForecast();
+    $("forecast").scrollIntoView({ behavior: "smooth", block: "center" });
+    try {
+      const res = await fetch("/api/budget/analyze", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Couldn't start the forecast.");
+      await VOW.pollJob(data.job_id);
+      forecast = await fetch("/api/budget/forecast/latest").then((r) => r.json());
+    } catch (e) {
+      VOW.toast(e.message || "Something went wrong — try again.");
+    }
+    forecasting = false;
+    $("forecast-btn").disabled = false;
+    $("forecast-btn").textContent = "✦ Forecast the real cost";
+    renderForecast();
+    renderWhatIf();
+  };
+
+  /* ---------- what if ---------- */
+  function renderWhatIf() {
+    const cap = budget.total_budget || 0;
+    const households = guests.households || [];
+    const confirmed = households.reduce((s, h) => s + (h.rsvp === "confirmed" ? (h.attending_count || 0) : 0), 0);
+    const invited = households.reduce((s, h) => s + (h.party_size || 0), 0);
+    const outstanding = households.reduce((s, h) =>
+      s + (["pending", "no_response"].includes(h.rsvp) ? (h.party_size || 0) : 0), 0);
+    const likely = confirmed + Math.round(outstanding * 0.8);
+    const perHead = guests.settings.catering_per_head || 0;
+
+    const flex = [...budget.items].filter((i) => !(i.contracted > 0)).sort((a, b) => cost(b) - cost(a))[0];
+    if (!flex || !cap) { $("whatif").hidden = true; return; }
+    const quoted = cost(flex);
+    const r500 = (n) => Math.round(n / 500) * 500;
+    const fMin = r500(quoted * 0.45), fMax = r500(quoted * 1.33);
+    const baseForecast = (forecast && forecast.exists && (forecast.analysis || {}).forecast_total)
+      || budget.items.reduce((s, i) => s + cost(i), 0);
+
+    const state = { flex: quoted, guests: Math.min(Math.max(likely, confirmed), invited || likely), cushion: 0 };
+
+    function draw() {
+      const total = (baseForecast + (state.flex - quoted) + (state.guests - likely) * perHead) * (1 + state.cushion / 100);
+      const delta = total - cap;
+      const color = delta > 0 ? "var(--red)" : "var(--green)";
+      $("whatif").hidden = false;
+      $("whatif").innerHTML = `
+        <h2>What if…</h2>
+        <p style="color:var(--ink-soft);font-size:0.88rem;margin:0.3rem 0 1.4rem">Drag to explore. Nothing changes until you say so — this is just thinking out loud.</p>
+        <div class="whatif-grid">
+          <div style="display:flex;flex-direction:column;gap:1.3rem">
+            <div class="slider-block">
+              <div class="slider-head"><span style="font-weight:600">${esc(pretty(flex.category))}</span><span class="val">${money(state.flex)}</span></div>
+              <input type="range" class="vow-range" id="s-flex" min="${fMin}" max="${fMax}" step="500" value="${state.flex}">
+              <div class="slider-ends"><span>simpler · ${money(fMin)}</span><span>quoted · ${money(quoted)}</span></div>
+            </div>
+            <div class="slider-block">
+              <div class="slider-head"><span style="font-weight:600">Final guest count</span><span class="val">${state.guests} guests</span></div>
+              <input type="range" class="vow-range" id="s-guests" min="${confirmed}" max="${Math.max(invited, confirmed)}" step="1" value="${state.guests}">
+              <div class="slider-ends"><span>confirmed · ${confirmed}</span><span>everyone says yes · ${Math.max(invited, confirmed)}</span></div>
+            </div>
+            <div class="slider-block">
+              <div class="slider-head"><span style="font-weight:600">Contingency cushion</span><span class="val">${state.cushion}%</span></div>
+              <input type="range" class="vow-range" id="s-cushion" min="0" max="10" step="1" value="${state.cushion}">
+              <div class="slider-ends"><span>none</span><span>10% — Vow's advice</span></div>
+            </div>
+          </div>
+          <div class="whatif-result">
+            <div class="eyebrow">This version would cost</div>
+            <div class="whatif-total" style="color:${color}">${money(total)}</div>
+            <div style="font-size:0.88rem;color:${color};margin-top:0.2rem">${money(Math.abs(delta))} ${delta > 0 ? "over" : "under"} budget</div>
+            <div class="whatif-bar"><div style="width:${Math.min(100, Math.round((total / cap) * 100))}%;height:100%;background:${color}"></div></div>
+            <div style="font-size:0.72rem;color:var(--ink-faint);margin-top:0.35rem">against your ${money(cap)} budget</div>
+          </div>
+        </div>`;
+      $("s-flex").oninput = (e) => { state.flex = +e.target.value; draw(); };
+      $("s-guests").oninput = (e) => { state.guests = +e.target.value; draw(); };
+      $("s-cushion").oninput = (e) => { state.cushion = +e.target.value; draw(); };
+    }
+    draw();
+  }
+
+  function renderAll() { renderSummary(); renderTable(); renderMonths(); renderForecast(); renderWhatIf(); }
+  await load();
+  renderAll();
+})();
 </script>
 </body>
 </html>

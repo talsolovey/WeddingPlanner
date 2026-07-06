@@ -1,185 +1,253 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vow — Contract Analyzer</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
-<script src="app.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vow ✦ — Contracts</title>
+<link rel="stylesheet" href="/vow.css">
+<script src="/vow-shell.js"></script>
+<style>
+  main { width: 100%; max-width: 880px; margin: 0 auto; padding: 3rem 1.5rem 4rem; flex: 1; }
+
+  .drop-card {
+    background: var(--card); border: 1.5px dashed #ddd3ca; border-radius: 16px;
+    padding: 1.6rem 1.8rem; margin-top: 1.8rem; display: flex; align-items: center;
+    gap: 1.2rem; flex-wrap: wrap; cursor: pointer;
+  }
+  .drop-card:hover, .drop-card.over { border-color: var(--rose); }
+  .drop-title { font-weight: 600; font-size: 0.95rem; }
+  .drop-sub { color: var(--ink-soft); font-size: 0.85rem; }
+  .vendor-ask { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+  .vendor-ask input { padding: 0.55rem 0.9rem; border: 1px solid var(--hairline); border-radius: 10px; font: inherit; font-size: 0.88rem; background: #fff; outline: none; }
+  .vendor-ask input:focus { border-color: var(--rose); }
+  .thinking-line { color: var(--rose); font-size: 0.88rem; animation: vow-pulse 1.2s ease-in-out infinite; }
+
+  .report { background: var(--card); border: 1px solid var(--hairline); border-radius: 16px; margin-top: 1.4rem; box-shadow: var(--card-shadow); overflow: hidden; }
+  .report-head { padding: 1.6rem 1.8rem 1.3rem; border-bottom: 1px solid var(--divider); }
+  .report-head h2 { font-family: var(--serif); font-weight: 500; font-size: 1.5rem; margin: 0.2rem 0 0; }
+  .report-head .summary { color: var(--ink-soft); font-size: 0.9rem; margin: 0.7rem 0 0; max-width: 66ch; }
+  .verdict-chip { display: inline-flex; align-items: center; gap: 0.45rem; border-radius: 999px; padding: 0.3rem 0.9rem; font-size: 0.82rem; font-weight: 500; }
+  .verdict-chip.red { border: 1px solid var(--red-border); background: var(--red-tint); color: var(--red); }
+  .verdict-chip.amber { border: 1px solid var(--amber-border); background: var(--amber-tint); color: var(--amber); }
+  .verdict-chip.green { border: 1px solid var(--green-border); background: var(--green-tint); color: var(--green); }
+  .report-section { padding: 1.3rem 1.8rem; border-bottom: 1px solid var(--divider); }
+  .issue-row { display: flex; gap: 0.8rem; align-items: flex-start; }
+  .issue-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; margin-top: 0.5rem; }
+  .issue-title { font-weight: 600; font-size: 0.95rem; }
+  .issue-detail { color: var(--ink-soft); font-size: 0.88rem; margin-top: 0.15rem; }
+  .clause-fold summary { list-style: none; cursor: pointer; color: var(--ink-faint); font-size: 0.8rem; }
+  .clause-fold summary::-webkit-details-marker { display: none; }
+  .clause-fold p { font-style: italic; color: var(--ink-soft); font-size: 0.85rem; margin: 0.3rem 0 0; border-left: 2px solid var(--hairline); padding-left: 0.8rem; }
+  .report-footer { padding: 1.3rem 1.8rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem 2.5rem; }
+  .report-footer h3 { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-soft); margin: 0 0 0.5rem; }
+  .copy-btn { background: none; border: none; color: var(--rose); font-size: 0.78rem; cursor: pointer; font-family: inherit; padding: 0; }
+  .report-footer ul { margin: 0; padding-left: 1.1rem; font-size: 0.88rem; color: var(--ink); }
+  .report-footer li { margin: 0.25rem 0; }
+  .report-del { float: right; background: none; border: none; color: var(--ink-faint); cursor: pointer; font-size: 0.85rem; padding: 0.2rem; opacity: 0; }
+  .report:hover .report-del { opacity: 1; }
+  .disclaimer { color: var(--ink-faint); font-size: 0.8rem; margin-top: 1rem; text-align: center; }
+  @media (max-width: 640px) { .report-footer { grid-template-columns: 1fr; } }
+</style>
 </head>
-<body>
-  <header class="site-header">
-    <a class="logo" href="/">Vow <span class="logo-mark">✦</span></a>
-    <nav class="nav">
-      <a href="/">Home</a>
-      <a href="/contracts" class="active">Contracts</a>
-      <a href="/budget">Budget</a>
-      <a href="/guests">Guests</a>
-      <a href="/seating">Seating</a>
-    </nav>
-  </header>
+<body data-page="contracts">
+<main>
+  <div>
+    <h1 class="page-title">Contracts</h1>
+    <p class="page-sub" style="margin-top:0.3rem">Vow reads the fine print before you sign.</p>
+  </div>
 
-  <main class="page">
-    <p class="eyebrow">Contract analyzer</p>
-    <h1>Know what you're signing.</h1>
-    <p class="lede">Upload a vendor contract and Vow will read it for you — hidden fees, cancellation traps, and the questions worth asking before you sign.</p>
-
-    <div class="layout">
-      <div class="pane-left">
-        <form id="form" class="card">
-          <input type="text" id="vendor" class="field" placeholder="Vendor name — e.g. Bloom Photography" required style="margin-bottom: .9rem;">
-          <div class="dropzone" id="dropzone">
-            <input type="file" id="file" accept="application/pdf" hidden>
-            <span id="drop-label">Drop the contract PDF here, or <u>browse</u></span>
-          </div>
-          <div style="text-align: right; margin-top: .9rem;">
-            <button id="btn" type="submit" class="btn-primary">✦ Analyze contract</button>
-          </div>
-        </form>
-
-        <h2 class="section-title">Previously analyzed</h2>
-        <div id="past-list"><p class="lede" style="margin:0">Nothing yet — your analyzed contracts will appear here.</p></div>
-      </div>
-
-      <div class="pane-right">
-        <div id="status"></div>
-        <div id="result">
-          <div class="placeholder">
-            <span class="mark">✦</span>
-            Your contract review will appear here — flags, payment exposure,
-            and the questions worth asking before you sign.
-          </div>
-        </div>
-      </div>
-    </div>
-  </main>
+  <section class="drop-card" id="drop"></section>
+  <div id="reports"></div>
+  <p class="disclaimer" id="disclaimer" hidden>Vow isn't a lawyer — for big commitments, have a professional take a look too.</p>
+</main>
 
 <script>
-const $ = (id) => document.getElementById(id);
-const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+(async function () {
+  const $ = (id) => document.getElementById(id);
+  const esc = VOW.esc;
 
-/* dropzone */
-const dz = $("dropzone"), fileInput = $("file");
-dz.addEventListener("click", () => fileInput.click());
-dz.addEventListener("dragover", (e) => { e.preventDefault(); dz.classList.add("dragover"); });
-dz.addEventListener("dragleave", () => dz.classList.remove("dragover"));
-dz.addEventListener("drop", (e) => {
-  e.preventDefault();
-  dz.classList.remove("dragover");
-  if (e.dataTransfer.files.length) { fileInput.files = e.dataTransfer.files; showFile(); }
-});
-fileInput.addEventListener("change", showFile);
-function showFile() {
-  const f = fileInput.files[0];
-  if (f) $("drop-label").innerHTML = `<span class="file-name">${esc(f.name)}</span> — ready to analyze`;
-}
+  let contracts = [];
+  let pendingFile = null, analyzing = false;
+  let fileInput;
 
-/* rendering */
-function render(record) {
-  const a = record.analysis || {};
-  // Format drift: the agent answered in prose, not the schema — show it readably.
-  if (!a.red_flags && !a.payment_summary) {
-    $("result").innerHTML = proseFallback(`${record.vendor} — contract review`, a.summary);
-    return;
+  async function load() {
+    contracts = await fetch("/api/contracts").then((r) => r.json());
   }
-  const card = (f) => `
-    <div class="flag ${esc(f.severity)}">
-      <span class="chip ${esc(f.severity)}">${esc(f.severity)}</span>
-      <div class="clause">“${esc(f.clause)}”</div>
-      <div>${esc(f.issue)}</div>
-      <div class="rec"><b>Ask:</b> ${esc(f.recommendation)}</div>
-    </div>`;
-  const { hotHtml, foldHtml } = foldBySeverity(a.red_flags, card,
-    "✓ Nothing alarming — this contract looks fair.");
-  const list = (items) => (items || []).map(i => `<li>${esc(i)}</li>`).join("") || "<li>—</li>";
-  $("result").innerHTML = `
-    <div class="card report">
-      <div class="report-head">
-        <p class="eyebrow" style="margin-bottom:.3rem">${esc(a.vendor_type || "vendor")}</p>
-        <h2>${esc(record.vendor)}</h2>
-        <p style="margin-top:.4rem">${esc(a.summary)}</p>
-        ${verdictChips(a.red_flags)}
-        <div class="meta">${esc(record.filename)} · ${esc(record.uploaded_at)}</div>
-      </div>
-      <div class="report-section">
-        <h3>Fix before signing</h3>
-        <div class="flag-list">${hotHtml}</div>
-        ${foldHtml}
-      </div>
-      <div class="report-section">
-        <h3>How the money flows</h3><p style="margin:0;">${esc(a.payment_summary)}</p>
-      </div>
-      <div class="report-section two-col">
-        <div><h3>Protections to ask for</h3><ul class="nice-list">${list(a.missing_protections)}</ul></div>
-        <div>
-          <h3>Ask the vendor
-            <button id="copy-q" class="del" title="Copy questions" style="font-size:.8rem;">⧉ copy</button>
-          </h3>
-          <ul class="nice-list">${list(a.questions_for_vendor)}</ul>
+
+  /* ---------- drop card ---------- */
+  function renderDrop() {
+    const drop = $("drop");
+    if (analyzing) {
+      drop.innerHTML = `<div class="thinking-line">✦ Reading the fine print — usually 20–60 seconds. You can keep working, the report appears here.</div>`;
+      return;
+    }
+    if (pendingFile) {
+      drop.innerHTML = `
+        <div style="flex:1;min-width:220px">
+          <div class="drop-title">${esc(pendingFile.name)}</div>
+          <div class="drop-sub">Who is this contract from?</div>
         </div>
+        <div class="vendor-ask">
+          <input id="vendor-name" placeholder="Vendor name">
+          <button class="btn primary" id="go-review">✦ Review it</button>
+          <button class="btn tertiary" id="cancel-file" style="color:var(--ink-faint)">✕</button>
+        </div>`;
+      $("go-review").onclick = (e) => { e.stopPropagation(); analyze(); };
+      $("cancel-file").onclick = (e) => { e.stopPropagation(); pendingFile = null; renderDrop(); };
+      $("vendor-name").onclick = (e) => e.stopPropagation();
+      $("vendor-name").onkeydown = (e) => { if (e.key === "Enter") analyze(); };
+      $("vendor-name").focus();
+      return;
+    }
+    drop.innerHTML = `
+      <div style="flex:1;min-width:220px">
+        <div class="drop-title">Drop a vendor contract here</div>
+        <div class="drop-sub">PDF — Vow flags hidden fees, cancellation traps and what to ask before signing.</div>
       </div>
-    </div>`;
-  const copyBtn = $("copy-q");
-  if (copyBtn) copyBtn.addEventListener("click", () => {
-    navigator.clipboard.writeText((a.questions_for_vendor || []).map(q => "• " + q).join("\n"));
-    toast("Questions copied to clipboard");
-  });
-}
-
-async function runJobAndRender(startRes) {
-  const json = await startRes.json();
-  if (!startRes.ok) throw new Error(json.error || "Analysis failed.");
-  const record = await pollJob(json.job_id, $("status"), "Vow is reading the contract… usually 20–60 seconds.");
-  $("status").innerHTML = "";
-  render(record);
-  loadPast();
-}
-
-async function loadPast() {
-  const res = await fetch("/api/contracts");
-  const all = await res.json();
-  if (!all.length) return;
-  $("past-list").innerHTML = all.slice().reverse().map((r, i) =>
-    `<div class="past-item" data-i="${all.length - 1 - i}">
-       <span><b>${esc(r.vendor)}</b><br><span class="meta">${esc(r.uploaded_at)}</span></span>
-       <span style="display:flex; align-items:center; gap:.6rem;">
-         <span class="count">${(r.analysis?.red_flags || []).length} flags</span>
-         <button class="del" data-id="${r.id}" title="Remove analysis">✕</button>
-       </span>
-     </div>`).join("");
-  $("past-list").querySelectorAll(".past-item").forEach(el =>
-    el.addEventListener("click", () => { render(all[el.dataset.i]); window.scrollTo({top: 0, behavior: "smooth"}); }));
-  $("past-list").querySelectorAll(".del").forEach(el =>
-    el.addEventListener("click", async (e) => {
-      e.stopPropagation();
-      await fetch("/api/contracts/" + el.dataset.id, { method: "DELETE" });
-      toast("Analysis removed");
-      loadPast();
-    }));
-}
-
-/* submit */
-$("form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  if (!fileInput.files[0]) { $("status").innerHTML = `<p class="status">Please choose a PDF first.</p>`; return; }
-  const data = new FormData();
-  data.append("vendor", $("vendor").value);
-  data.append("file", fileInput.files[0]);
-  $("btn").disabled = true;
-  $("result").innerHTML = "";
-  try {
-    await runJobAndRender(await fetch("/api/contracts/analyze", { method: "POST", body: data }));
-  } catch (err) {
-    $("status").innerHTML = `<p class="status">⚠ ${esc(err.message)}</p>`;
-  } finally {
-    $("btn").disabled = false;
+      <button class="btn primary" style="flex:none">✦ Review a contract</button>`;
   }
-});
 
-loadPast();
+  fileInput = document.createElement("input");
+  fileInput.type = "file";
+  fileInput.accept = "application/pdf";
+  fileInput.onchange = () => {
+    if (fileInput.files[0]) { pendingFile = fileInput.files[0]; renderDrop(); }
+    fileInput.value = "";
+  };
+
+  $("drop").onclick = () => { if (!pendingFile && !analyzing) fileInput.click(); };
+  $("drop").ondragover = (e) => { e.preventDefault(); $("drop").classList.add("over"); };
+  $("drop").ondragleave = () => $("drop").classList.remove("over");
+  $("drop").ondrop = (e) => {
+    e.preventDefault();
+    $("drop").classList.remove("over");
+    const f = e.dataTransfer.files[0];
+    if (f && f.name.toLowerCase().endsWith(".pdf")) { pendingFile = f; renderDrop(); }
+    else VOW.toast("PDF files only, please");
+  };
+
+  async function analyze() {
+    const vendor = $("vendor-name").value.trim();
+    if (!vendor) { VOW.toast("Tell Vow who the vendor is"); return; }
+    const form = new FormData();
+    form.append("file", pendingFile);
+    form.append("vendor", vendor);
+    pendingFile = null;
+    analyzing = true;
+    renderDrop();
+    try {
+      const res = await fetch("/api/contracts/analyze", { method: "POST", body: form });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Couldn't read that PDF.");
+      await VOW.pollJob(data.job_id);
+      await load();
+      VOW.toast("The report is ready ✦");
+    } catch (e) {
+      VOW.toast(e.message || "Something went wrong — try again.");
+    }
+    analyzing = false;
+    renderDrop();
+    renderReports();
+  }
+
+  /* ---------- report cards ---------- */
+  const displayVendor = (v) => (v || "").split(" - ")[0].trim();
+
+  function issueRow(f, withClause) {
+    const color = f.severity === "red" ? "var(--red)" : f.severity === "green" ? "var(--green)" : "var(--amber)";
+    return `
+      <div class="issue-row">
+        <span class="issue-dot" style="background:${color}"></span>
+        <div style="flex:1">
+          <div class="issue-title">${esc(f.recommendation || f.issue || "")}</div>
+          <div class="issue-detail">${esc(f.issue || "")}</div>
+          ${withClause && f.clause ? `
+          <details class="clause-fold" style="margin-top:0.3rem">
+            <summary>the clause ▾</summary>
+            <p>“${esc(f.clause)}”</p>
+          </details>` : ""}
+        </div>
+      </div>`;
+  }
+
+  function renderReports() {
+    const list = [...contracts].reverse();
+    $("disclaimer").hidden = list.length === 0;
+    $("reports").innerHTML = list.map((c) => {
+      const a = c.analysis || {};
+      const flags = a.red_flags || [];
+      const reds = flags.filter((f) => f.severity === "red");
+      const ambers = flags.filter((f) => f.severity !== "red");
+      const chip = reds.length
+        ? `<span class="verdict-chip red">${reds.length} clause${reds.length === 1 ? "" : "s"} to fix before signing</span>`
+        : ambers.length
+          ? `<span class="verdict-chip amber">${ambers.length} thing${ambers.length === 1 ? "" : "s"} to ask about</span>`
+          : `<span class="verdict-chip green">✓ nothing alarming</span>`;
+      const when = c.uploaded_at
+        ? new Date(c.uploaded_at).toLocaleDateString("en-US", { month: "long", day: "numeric" }) : "";
+      const vtype = a.vendor_type ? a.vendor_type.charAt(0).toUpperCase() + a.vendor_type.slice(1) : "Contract";
+      const askWho = a.vendor_type ? `the ${a.vendor_type}` : "the vendor";
+      return `
+      <section class="report" data-id="${c.id}">
+        <div class="report-head">
+          <button class="report-del" title="Remove this report">✕</button>
+          <div style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:baseline">
+            <div>
+              <div class="eyebrow">${esc(vtype)} · reviewed ${when}</div>
+              <h2>${esc(displayVendor(c.vendor))}</h2>
+            </div>
+            ${chip}
+          </div>
+          <p class="summary">${esc(a.summary || "")}</p>
+        </div>
+        ${reds.length ? `
+        <div class="report-section">
+          <div style="display:flex;flex-direction:column;gap:1rem">
+            ${reds.map((f) => issueRow(f, true)).join("")}
+          </div>
+        </div>` : ""}
+        ${ambers.length ? `
+        <div class="report-section">
+          <div style="display:flex;flex-direction:column;gap:1rem">
+            ${ambers.map((f) => issueRow(f, false)).join("")}
+          </div>
+        </div>` : ""}
+        <div class="report-footer">
+          <div>
+            <h3>The money</h3>
+            <p style="font-size:0.88rem;margin:0;color:var(--ink)">${esc(a.payment_summary || "—")}</p>
+          </div>
+          <div>
+            <h3>Ask ${esc(askWho)} <button class="copy-btn">copy ⧉</button></h3>
+            <ul>
+              ${(a.questions_for_vendor || []).map((q) => `<li>${esc(q)}</li>`).join("") || "<li>—</li>"}
+            </ul>
+          </div>
+        </div>
+      </section>`;
+    }).join("");
+
+    document.querySelectorAll(".report").forEach((card) => {
+      const id = card.dataset.id;
+      const c = contracts.find((x) => x.id === id);
+      card.querySelector(".copy-btn").onclick = async () => {
+        const qs = ((c.analysis || {}).questions_for_vendor || []).join("\n");
+        try { await navigator.clipboard.writeText(qs); VOW.toast("Questions copied ✦"); }
+        catch (e) { VOW.toast("Couldn't copy — select and copy by hand"); }
+      };
+      card.querySelector(".report-del").onclick = async () => {
+        if (!confirm(`Remove the ${displayVendor(c.vendor)} report?`)) return;
+        await fetch("/api/contracts/" + id, { method: "DELETE" });
+        await load();
+        renderReports();
+      };
+    });
+  }
+
+  await load();
+  renderDrop();
+  renderReports();
+})();
 </script>
 </body>
 </html>

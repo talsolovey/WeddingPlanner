@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vow ✦ — Timeline</title>
+<link rel="stylesheet" href="/vow.css">
+<script src="/vow-shell.js"></script>
+<style>
+  main { width: 100%; max-width: 760px; margin: 0 auto; padding: 3rem 1.5rem 4rem; flex: 1; }
+  .tl-head { text-align: center; margin-bottom: 2.5rem; }
+  .tl-flags { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin-bottom: 2.2rem; }
+
+  .event-row { display: grid; grid-template-columns: 82px 20px 1fr; gap: 0 1.1rem; align-items: stretch; }
+  .event-time { text-align: right; font-family: var(--serif); font-size: 1.05rem; color: var(--rose); padding-top: 0.1rem; }
+  .event-dotcol { display: flex; flex-direction: column; align-items: center; }
+  .event-dot { flex: none; width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--rose); background: var(--rose); margin-top: 0.4rem; }
+  .event-dot.hollow { background: transparent; }
+  .event-line { flex: 1; width: 1.5px; background: var(--hairline); margin-top: 2px; }
+  .event-body { padding-bottom: 1.7rem; }
+  .event-title { font-weight: 600; font-size: 0.98rem; }
+  .event-detail { color: var(--ink-soft); font-size: 0.86rem; }
+  .event-flag {
+    display: inline-flex; align-items: flex-start; gap: 0.45rem; margin-top: 0.45rem;
+    border: 1px solid var(--red-border); background: var(--red-tint); border-radius: 10px;
+    padding: 0.4rem 0.8rem; font-size: 0.8rem; color: var(--red);
+  }
+  .event-del { background: none; border: none; color: var(--ink-faint); cursor: pointer; font-size: 0.78rem; padding: 0 0 0 0.5rem; opacity: 0; }
+  .event-row:hover .event-del { opacity: 1; }
+  .tl-actions { text-align: center; margin-top: 0.5rem; }
+
+  .add-moment { display: none; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin-top: 1rem; }
+  .add-moment.open { display: flex; }
+  .add-moment input { padding: 0.5rem 0.9rem; border: 1px solid var(--hairline); border-radius: 10px; font: inherit; font-size: 0.86rem; background: #fff; outline: none; }
+  .add-moment input:focus { border-color: var(--rose); }
+</style>
+</head>
+<body data-page="timeline">
+<main>
+  <div class="tl-head">
+    <p class="eyebrow rose" id="date-eyebrow" style="margin:0 0 0.8rem">&nbsp;</p>
+    <h1 class="page-title">The day itself</h1>
+    <p class="page-sub" style="margin-top:0.5rem">Vow checks the flow — buffers, sunset, vendor arrival times.</p>
+  </div>
+
+  <div class="tl-flags" id="flags"></div>
+  <div id="events"></div>
+
+  <div class="tl-actions">
+    <button class="btn secondary" id="add-btn">+ Add a moment</button>
+    <button class="btn primary" id="check-btn" style="margin-left:0.5rem">✦ Check the flow</button>
+    <a href="/day-of" class="btn tertiary" style="margin-left:0.5rem">Print the handoff sheet →</a>
+    <div class="add-moment" id="add-form">
+      <input id="m-time" placeholder="17:00" style="width:80px" maxlength="5">
+      <input id="m-title" placeholder="What happens" style="width:220px">
+      <input id="m-detail" placeholder="Detail (optional)" style="width:220px">
+      <button class="btn primary small" id="m-save">Add</button>
+    </div>
+  </div>
+</main>
+
+<script>
+(async function () {
+  const $ = (id) => document.getElementById(id);
+  const esc = VOW.esc;
+
+  let view = await fetch("/api/timeline").then((r) => r.json());
+  const guests = await fetch("/api/guests").then((r) => r.json());
+
+  const dateStr = guests.settings.wedding_date;
+  $("date-eyebrow").textContent = dateStr
+    ? new Date(dateStr + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })
+    : "Pick a date to plan the day";
+
+  function render() {
+    $("flags").innerHTML = (view.flags || []).map((f, i) => `
+      <span class="${i === 0 ? "chip-warn" : "chip-alert"}">${esc(f)}</span>`).join("");
+
+    const events = view.events || [];
+    $("events").innerHTML = events.map((e, i) => `
+      <div class="event-row" data-id="${e.id}">
+        <div class="event-time">${esc(e.time)}</div>
+        <div class="event-dotcol">
+          <span class="event-dot ${e.vendor_unbooked ? "hollow" : ""}" ${e.vendor_unbooked ? 'title="This slot\'s vendor is not booked yet"' : ""}></span>
+          ${i < events.length - 1 ? `<span class="event-line"></span>` : ""}
+        </div>
+        <div class="event-body">
+          <div class="event-title">${esc(e.title)}<button class="event-del" title="Remove">✕</button></div>
+          <div class="event-detail">${esc(e.detail || "")}</div>
+          ${e.flag ? `<div class="event-flag">✦ ${esc(e.flag)}</div>` : ""}
+        </div>
+      </div>`).join("") ||
+      `<p style="text-align:center;color:var(--ink-faint)">No moments yet — start with the ceremony time.</p>`;
+
+    document.querySelectorAll(".event-del").forEach((btn) => {
+      btn.onclick = async () => {
+        const id = btn.closest(".event-row").dataset.id;
+        view = await fetch("/api/timeline/events/" + id, { method: "DELETE" }).then((r) => r.json());
+        render();
+      };
+    });
+  }
+
+  $("add-btn").onclick = () => {
+    $("add-form").classList.toggle("open");
+    $("m-time").focus();
+  };
+  $("m-save").onclick = async () => {
+    const body = { time: $("m-time").value.trim(), title: $("m-title").value.trim(), detail: $("m-detail").value.trim() };
+    if (!/^\d{1,2}:\d{2}$/.test(body.time)) { VOW.toast("Time looks off — try 17:00"); return; }
+    if (!body.title) { VOW.toast("What happens at " + body.time + "?"); return; }
+    const res = await fetch("/api/timeline/events", { method: "POST",
+      headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (res.ok) {
+      view = await res.json();
+      $("m-time").value = $("m-title").value = $("m-detail").value = "";
+      $("add-form").classList.remove("open");
+      render();
+      VOW.toast("Added to the day ✦");
+    }
+  };
+
+  let checking = false;
+  $("check-btn").onclick = async () => {
+    if (checking) return;
+    checking = true;
+    $("check-btn").disabled = true;
+    $("check-btn").textContent = "✦ Walking through the day…";
+    try {
+      const res = await fetch("/api/timeline/check", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Couldn't check the flow.");
+      view = data;
+      render();
+      const n = (view.flags || []).length + view.events.filter((e) => e.flag).length;
+      VOW.toast(n ? `Vow flagged ${n} thing${n === 1 ? "" : "s"} to smooth out` : "The day flows beautifully ✦");
+    } catch (e) {
+      VOW.toast(e.message || "Something went wrong — try again.");
+    }
+    checking = false;
+    $("check-btn").disabled = false;
+    $("check-btn").textContent = "✦ Check the flow";
+  };
+
+  render();
+})();
+</script>
+</body>
+</html>

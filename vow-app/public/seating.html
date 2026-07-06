@@ -1,380 +1,244 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vow — Seating</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
-<script src="app.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vow ✦ — Seating</title>
+<link rel="stylesheet" href="/vow.css">
+<script src="/vow-shell.js"></script>
 <style>
-  .layout { display: grid; grid-template-columns: 260px 1fr; gap: 1.5rem; align-items: start; }
-  @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } }
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin: 1.2rem 0; }
-  .stat { background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.2rem; }
-  .stat .label { font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-soft); }
-  .stat .value { font-family: "Fraunces", serif; font-size: 1.5rem; color: var(--ink); }
-  .stat.accent .value { color: var(--rose-deep); }
-  .stat .sub { font-size: .78rem; color: var(--ink-soft); }
+  main { width: 100%; max-width: 1080px; margin: 0 auto; padding: 3rem 1.5rem 4rem; flex: 1; }
+  .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .conflicts { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1.4rem; }
 
-  /* The floor: tables drawn as round tops with seats around them */
-  .floor { display: flex; flex-wrap: wrap; gap: 2.2rem 2.6rem; padding: 1.6rem 1rem;
-           background: linear-gradient(var(--bg-soft), transparent); border-radius: var(--radius); }
-  .table-spot { width: 190px; text-align: center; }
-  .table-top { position: relative; width: 150px; height: 150px; margin: 14px auto 6px; border-radius: 50%;
-               background: radial-gradient(circle at 35% 30%, #fff, var(--bg-soft));
-               border: 2px solid var(--line); cursor: pointer;
-               display: flex; flex-direction: column; align-items: center; justify-content: center;
-               transition: border-color .15s, box-shadow .15s; }
-  .table-top:hover { border-color: var(--rose-deep); box-shadow: 0 4px 14px rgba(0,0,0,.08); }
-  .table-top.droppable { border-style: dashed; border-color: var(--rose-deep); }
-  .table-top.over { border-color: #c0392b; }
-  .table-top h3 { font-family: "Fraunces", serif; margin: 0; font-size: 1.05rem; max-width: 110px;
-                  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .table-top .cap { font-size: .78rem; color: var(--ink-soft); }
-  .table-top .cap b.overn { color: #c0392b; }
-  .seat { position: absolute; width: 16px; height: 16px; border-radius: 50%;
-          background: #fff; border: 2px solid var(--line); top: 50%; left: 50%;
-          margin: -8px 0 0 -8px; }
-  .seat.used { background: var(--rose-deep); border-color: var(--rose-deep); }
-  .seat.extra { background: #c0392b; border-color: #c0392b; }
-  .table-del { position: absolute; top: 2px; right: 2px; width: 24px; height: 24px;
-               border-radius: 50%; background: #fff; border: 1px solid var(--line);
-               color: var(--ink-soft); cursor: pointer; font-size: .8rem; line-height: 1;
-               display: none; z-index: 5; }
-  .table-spot:hover .table-del { display: block; }
-  .table-del:hover { background: #c0392b; border-color: #c0392b; color: #fff; }
-  .table-guests { margin-top: .3rem; min-height: 1.2rem; }
-  .guest-chip { display: inline-flex; align-items: center; gap: .3rem; background: #fff;
-                border: 1px solid var(--line); border-radius: 999px; padding: .12rem .55rem;
-                margin: .12rem; font-size: .74rem; }
-  .guest-chip button { background: none; border: none; color: var(--ink-soft); cursor: pointer;
-                       font-size: .74rem; padding: 0; line-height: 1; }
-  .guest-chip button:hover { color: #c0392b; }
+  .layout { display: grid; grid-template-columns: 280px 1fr; gap: 1.6rem; align-items: start; margin-top: 1.6rem; }
+  aside .card { padding: 1.3rem 1.4rem; }
+  aside h2 { font-family: var(--serif); font-weight: 500; font-size: 1.05rem; margin: 0 0 0.2rem; }
+  .toseat-list { display: flex; flex-direction: column; gap: 0.4rem; }
+  .hh-btn {
+    display: flex; justify-content: space-between; align-items: center; gap: 0.6rem;
+    background: var(--card); border: 1px solid var(--hairline); border-radius: 10px;
+    padding: 0.55rem 0.9rem; font: inherit; font-size: 0.88rem; cursor: pointer; text-align: left; color: var(--ink);
+  }
+  .hh-btn.picked { background: var(--rose-tint); border-color: var(--rose); }
+  .hh-btn .seats { color: var(--ink-soft); font-size: 0.8rem; }
+  .waiting-chip { border: 1px solid var(--hairline); border-radius: 999px; padding: 0.2rem 0.7rem; font-size: 0.78rem; color: var(--ink-faint); }
+  .add-input { width: 100%; box-sizing: border-box; padding: 0.55rem 0.9rem; border: 1px solid var(--hairline); border-radius: 10px; font: inherit; font-size: 0.88rem; background: #fff; margin-bottom: 0.5rem; outline: none; }
+  .add-input:focus { border-color: var(--rose); }
 
-  .cap { font-size: .78rem; color: var(--ink-soft); }
-  .hh { display: flex; justify-content: space-between; align-items: center; padding: .3rem 0; border-bottom: 1px dashed var(--line); font-size: .9rem; }
-  .pill { display: inline-block; background: var(--bg-soft); border: 1px solid var(--line); border-radius: 999px; padding: .35rem .8rem; margin: .2rem; font-size: .85rem; cursor: pointer; }
-  .pill:hover { border-color: var(--rose-deep); }
-  .pill.picked { border-color: var(--rose-deep); background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
-  .pill.pending { opacity: .55; }
-  .ugroup { margin-bottom: .7rem; }
-  .ugroup-head { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem;
-                 font-size: .8rem; text-transform: uppercase; letter-spacing: .06em;
-                 color: var(--ink-soft); margin: .4rem 0 .1rem; }
-  .seat-group { background: none; border: none; color: var(--rose-deep); cursor: pointer;
-                font-size: .78rem; padding: 0; white-space: nowrap; }
-  .seat-group:hover { text-decoration: underline; }
-  .ugroup.picked { outline: 1px dashed var(--rose-deep); outline-offset: 4px; border-radius: 8px; }
-  .conflicts { margin: 1rem 0; }
-  .conflicts summary { list-style: none; cursor: pointer; display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
-  .conflicts summary::-webkit-details-marker { display: none; }
-  .cchip { display: inline-flex; align-items: center; gap: .35rem; border-radius: 999px;
-           padding: .3rem .85rem; font-size: .82rem; background: #fbe9e9; color: #c0392b;
-           border: 1px solid #c0392b33; }
-  .cchip.ok { background: #eaf5ec; color: #2e7d43; border-color: #2e7d4333; }
-  .conflicts .detail { margin: .6rem 0 0 .2rem; font-size: .85rem; color: var(--ink-soft);
-                       max-height: 9rem; overflow: auto; }
-  .unassigned-box { max-height: 40vh; overflow: auto; }
-  .proposal { border: 2px solid var(--rose-deep); border-radius: var(--radius); padding: 1.2rem; margin-top: 1.5rem; }
-  .hint { font-size: .8rem; color: var(--ink-soft); margin: .3rem 0 0; }
+  .floor { background: var(--card); border: 1px solid var(--hairline); border-radius: 16px; padding: 1.6rem; box-shadow: var(--card-shadow); }
+  .floor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1.2rem; }
+  .table-card { border: 1px solid var(--hairline); border-radius: 14px; padding: 1rem; text-align: center; background: var(--card); cursor: pointer; position: relative; }
+  .table-card:hover { border-color: var(--rose); }
+  .table-card.over { border-color: var(--red-border); background: var(--red-tint); }
+  .table-card .tname { font-family: var(--serif); font-size: 1.05rem; }
+  .table-card .tbar { height: 5px; border-radius: 999px; background: var(--divider); overflow: hidden; margin: 0.55rem 0 0.4rem; }
+  .table-card .cap { font-size: 0.8rem; color: var(--ink-soft); }
+  .table-card.over .cap { color: var(--red); }
+  .table-card .who { font-size: 0.76rem; color: var(--ink-soft); margin-top: 0.35rem; line-height: 1.45; }
+  .table-pop { margin-top: 0.5rem; border-top: 1px solid var(--divider); padding-top: 0.5rem; text-align: left; }
+  .table-pop .prow { display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--ink-soft); padding: 0.15rem 0; }
+  .table-pop .prow button { background: none; border: none; color: var(--ink-faint); cursor: pointer; font-size: 0.75rem; padding: 0; }
+  .table-pop .prow button:hover { color: var(--red); }
+  .tdel { background: none; border: none; color: var(--ink-faint); cursor: pointer; font-size: 0.75rem; padding: 0.2rem 0; }
+  .tdel:hover { color: var(--red); }
+  @media (max-width: 820px) { .layout { grid-template-columns: 1fr; } }
 </style>
 </head>
-<body>
-  <header class="site-header">
-    <a class="logo" href="/">Vow <span class="logo-mark">✦</span></a>
-    <nav class="nav">
-      <a href="/">Home</a>
-      <a href="/contracts">Contracts</a>
-      <a href="/budget">Budget</a>
-      <a href="/guests">Guests</a>
-      <a href="/seating" class="active">Seating</a>
-    </nav>
-  </header>
-
-  <main class="page">
-    <p class="eyebrow">Seating chart</p>
-    <h1>Who sits where.</h1>
-    <p class="lede">Assign confirmed households to tables — or let Vow seat everyone and fine-tune from there. RSVPs update the picture automatically.</p>
-
-    <div class="stats">
-      <div class="stat"><div class="label">Total seats</div><div class="value" id="s-total">—</div><div class="sub" id="s-tables"></div></div>
-      <div class="stat"><div class="label">Seats taken</div><div class="value" id="s-taken">—</div><div class="sub" id="s-free"></div></div>
-      <div class="stat"><div class="label">Households seated</div><div class="value" id="s-hh">—</div></div>
-      <div class="stat accent"><div class="label">Still to seat</div><div class="value" id="s-left">—</div><div class="sub" id="s-left-sub"></div></div>
+<body data-page="seating">
+<main>
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">Seating</h1>
+      <p class="page-sub" style="margin-top:0.3rem" id="sub"></p>
     </div>
+    <button class="btn primary" id="auto-btn">✦ Seat everyone for me</button>
+  </div>
 
-    <div id="conflicts"></div>
+  <div class="conflicts" id="conflicts"></div>
 
-    <div class="layout">
-      <div>
-        <h2 class="section-title">Unassigned <span class="cap" id="un-count"></span></h2>
-        <p class="cap">Click a household, then a table — or use auto-seat.</p>
-        <div id="unassigned" class="unassigned-box"></div>
+  <div class="layout">
+    <aside>
+      <section class="card" id="toseat-card">
+        <h2>Still to seat</h2>
+        <p style="color:var(--ink-soft);font-size:0.8rem;margin:0 0 0.8rem">Tap a household, then a table.</p>
+        <div class="toseat-list" id="toseat"></div>
+        <details class="fold" style="margin-top:0.9rem" id="waiting-fold">
+          <summary id="waiting-summary"></summary>
+          <div style="display:flex;flex-wrap:wrap;gap:0.3rem;margin-top:0.5rem" id="waiting"></div>
+        </details>
+      </section>
 
-        <h2 class="section-title" style="margin-top:1.5rem;">Add a table</h2>
-        <input class="field" id="t-name" placeholder="Table name" style="margin-bottom:.5rem;">
-        <input class="field" id="t-cap" type="number" min="1" placeholder="Seats (e.g. 10)" style="margin-bottom:.5rem;">
-        <button class="btn-ghost" id="add-table" style="width:100%;">Add table</button>
+      <section class="card" style="margin-top:1rem">
+        <h2 style="margin-bottom:0.7rem">Add a table</h2>
+        <input class="add-input" id="t-name" placeholder="Name">
+        <input class="add-input" id="t-seats" placeholder="Seats" type="number" min="1" style="margin-bottom:0.7rem">
+        <button class="btn secondary" id="t-add" style="width:100%">Add</button>
+      </section>
+    </aside>
 
-        <div style="margin-top:1.5rem;">
-          <button class="btn-primary" id="auto" style="width:100%;">✦ Ask Vow to seat everyone</button>
-        </div>
-      </div>
-
-      <div>
-        <h2 class="section-title">The room</h2>
-        <p class="hint" id="hint">Pick a household on the left, then click a table to seat them.</p>
-        <div class="floor" id="tables"></div>
-        <div id="status"></div>
-        <div id="proposal"></div>
-      </div>
-    </div>
-  </main>
+    <section class="floor">
+      <div class="floor-grid" id="floor"></div>
+    </section>
+  </div>
+</main>
 
 <script>
-const $ = (id) => document.getElementById(id);
-const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-let view = null, selected = null;
+(async function () {
+  const $ = (id) => document.getElementById(id);
+  const esc = VOW.esc;
 
-async function refresh() {
-  const res = await fetch("/api/seating");
-  view = await res.json();
-  render();
-}
+  let view, guests, picked = null, openTable = null, seating = false;
 
-function render() {
-  // Headline numbers: capacity vs occupancy at a glance.
-  const totalSeats = view.tables.reduce((s, t) => s + (t.capacity || 0), 0);
-  const taken = view.tables.reduce((s, t) => s + (t.seats_used || 0), 0);
-  const seatedHH = view.tables.reduce((s, t) => s + (t.households || []).length, 0);
-  const toSeatHH = view.unassigned.filter(h => h.rsvp === "confirmed");
-  const toSeatPeople = toSeatHH.reduce((s, h) => s + (h.attending_count || 0), 0);
-  $("s-total").textContent = totalSeats || "—";
-  $("s-tables").textContent = view.tables.length ? `across ${view.tables.length} table${view.tables.length === 1 ? "" : "s"}` : "no tables yet";
-  $("s-taken").textContent = taken;
-  $("s-free").textContent = totalSeats ? `${Math.max(0, totalSeats - taken)} free` : "";
-  $("s-hh").textContent = seatedHH;
-  $("s-left").textContent = toSeatPeople;
-  $("s-left-sub").textContent = toSeatHH.length ? `in ${toSeatHH.length} household${toSeatHH.length === 1 ? "" : "s"}` : "everyone confirmed is seated";
-
-  // Conflicts as a compact chip row — grouped by kind, details only on demand.
-  const groups = [
-    ["over capacity", "over capacity"],
-    ["no table yet", "need a table"],
-    ["declined but", "declined, still seated"],
-    ["", "other"],
-  ];
-  const bucketed = {};
-  view.conflicts.forEach(c => {
-    const g = groups.find(([needle]) => needle && c.includes(needle)) || groups[groups.length - 1];
-    (bucketed[g[1]] = bucketed[g[1]] || []).push(c);
-  });
-  const chips = Object.entries(bucketed)
-    .map(([label, items]) => `<span class="cchip">${items.length} ${esc(label)}</span>`).join("");
-  $("conflicts").innerHTML = view.conflicts.length ? `
-    <details class="conflicts">
-      <summary>${chips}<span class="cap" style="margin-left:.3rem;">details ▾</span></summary>
-      <div class="detail">${view.conflicts.map(esc).join("<br>")}</div>
-    </details>` : `
-    <div class="conflicts"><span class="cchip ok">✓ no seating conflicts</span></div>`;
-
-  $("un-count").textContent = view.unassigned.length ? `(${view.unassigned.length})` : "";
-  // Group the unassigned households by their guest-list group.
-  const byGroup = {};
-  view.unassigned.forEach(h => {
-    const g = h.group || "";
-    (byGroup[g] = byGroup[g] || []).push(h);
-  });
-  const pill = (h) => `
-    <span class="pill ${h.rsvp !== "confirmed" ? "pending" : ""}" data-hid="${esc(h.id)}"
-          title="${h.rsvp !== "confirmed" ? "Not confirmed yet" : "Click, then click a table"}">
-      ${esc(h.household)} · ${h.rsvp === "confirmed" ? h.attending_count : esc(h.rsvp)}
-    </span>`;
-  const groupNames = Object.keys(byGroup).filter(Boolean).sort();
-  const blocks = groupNames.map(g => {
-    const members = byGroup[g];
-    const seats = members.filter(h => h.rsvp === "confirmed")
-                         .reduce((s, h) => s + (h.attending_count || 0), 0);
-    return `
-      <div class="ugroup" data-g="${esc(g)}">
-        <div class="ugroup-head"><span>${esc(g)} (${seats} seats)</span>
-          <button class="seat-group" data-gsel="${esc(g)}">seat group ↦</button></div>
-        ${members.map(pill).join("")}
-      </div>`;
-  });
-  if (byGroup[""]) {
-    blocks.push(`
-      <div class="ugroup">
-        ${groupNames.length ? `<div class="ugroup-head"><span>No group</span></div>` : ""}
-        ${byGroup[""].map(pill).join("")}
-      </div>`);
+  async function load() {
+    [view, guests] = await Promise.all([
+      fetch("/api/seating").then((r) => r.json()),
+      fetch("/api/guests").then((r) => r.json()),
+    ]);
   }
-  $("unassigned").innerHTML = blocks.join("") || "<p class='cap'>Everyone confirmed has a seat.</p>";
 
-  $("tables").innerHTML = view.tables.map(t => {
-    const over = t.seats_used > t.capacity;
-    // Seat dots around the rim: one per seat; filled = taken, red = overflow.
-    const dots = Math.max(t.capacity, t.seats_used);
-    const R = 84; // dot orbit radius (px) around the 150px table top
-    const seats = Array.from({ length: dots }, (_, i) => {
-      const angle = (i / dots) * 2 * Math.PI - Math.PI / 2;
-      const x = Math.cos(angle) * R, y = Math.sin(angle) * R;
-      const cls = i < t.seats_used ? (i < t.capacity ? "used" : "extra") : "";
-      return `<span class="seat ${cls}" style="transform:translate(${x.toFixed(1)}px,${y.toFixed(1)}px)"></span>`;
+  const surname = (name) => name.replace(/\s*Family\s*$/i, "");
+  const seatsOf = (h) => (h.attending_count || 0) +
+    (h.plus_one_allowed && h.plus_one_name ? 1 : 0);
+  const tableLabel = (t) => /^\d+$/.test(t.name) ? `Table ${t.name}` : t.name;
+
+  function render() {
+    const byId = Object.fromEntries(guests.households.map((h) => [h.id, h]));
+    const confirmed = guests.households.reduce((s, h) => s + (h.rsvp === "confirmed" ? (h.attending_count || 0) : 0), 0);
+    const seated = view.tables.reduce((s, t) => s + (t.seats_used || 0), 0);
+    const seats = view.tables.reduce((s, t) => s + (t.capacity || 0), 0);
+    $("sub").textContent = `${seated} of ${confirmed} confirmed guests have a seat · ${view.tables.length} tables, ${seats} seats.`;
+
+    /* conflict chips (condensed) */
+    const chips = [];
+    view.tables.forEach((t) => {
+      const over = (t.seats_used || 0) - (t.capacity || 0);
+      if (over > 0) chips.push(`${tableLabel(t)} is ${over} over capacity`);
+    });
+    const unseatedConfirmed = view.unassigned.filter((u) => u.rsvp === "confirmed");
+    if (unseatedConfirmed.length) chips.push(`${unseatedConfirmed.length} household${unseatedConfirmed.length === 1 ? "" : "s"} still need a table`);
+    const seatedIds = new Set(view.tables.flatMap((t) => t.households || []));
+    guests.households.forEach((h) => {
+      if (h.rsvp === "declined" && seatedIds.has(h.id)) chips.push(`${surname(h.household)} declined but is still seated`);
+    });
+    $("conflicts").innerHTML = chips.map((c) => `<span class="chip-alert">${esc(c)}</span>`).join("");
+
+    /* sidebar: still to seat (confirmed) */
+    unseatedConfirmed.sort((a, b) => seatsOf(byId[b.id] || b) - seatsOf(byId[a.id] || a));
+    $("toseat").innerHTML = unseatedConfirmed.map((u) => `
+      <button class="hh-btn ${picked === u.id ? "picked" : ""}" data-id="${u.id}">
+        <span style="font-weight:500">${esc(u.household)}</span>
+        <span class="seats">${seatsOf(byId[u.id] || u)} seat${seatsOf(byId[u.id] || u) === 1 ? "" : "s"}</span>
+      </button>`).join("") ||
+      `<p style="color:var(--ink-faint);font-size:0.85rem;margin:0">Everyone confirmed has a seat ✓</p>`;
+    document.querySelectorAll(".hh-btn").forEach((btn) => {
+      btn.onclick = () => { picked = picked === btn.dataset.id ? null : btn.dataset.id; render(); };
+    });
+
+    /* waiting on RSVP fold */
+    const waiting = view.unassigned.filter((u) => u.rsvp !== "confirmed");
+    const declined = guests.households.filter((h) => h.rsvp === "declined" && !seatedIds.has(h.id));
+    const fold = [...waiting.map((u) => `${surname(u.household)} · ${(byId[u.id] || {}).party_size || "?"}`),
+                  ...declined.map((h) => `${surname(h.household)} · declined`)];
+    $("waiting-fold").style.display = fold.length ? "" : "none";
+    $("waiting-summary").textContent = `${waiting.length + declined.length} waiting on RSVP ▾`;
+    $("waiting").innerHTML = fold.map((w) => `<span class="waiting-chip">${esc(w)}</span>`).join("");
+
+    /* floor grid */
+    $("floor").innerHTML = view.tables.map((t) => {
+      const used = t.seats_used || 0, cap = t.capacity || 0;
+      const over = used > cap;
+      const names = (t.households || []).map((hid) => surname((byId[hid] || {}).household || "")).filter(Boolean);
+      const isOpen = openTable === t.id;
+      return `
+      <div class="table-card ${over ? "over" : ""}" data-id="${t.id}">
+        <div class="tname">${esc(tableLabel(t))}</div>
+        <div class="tbar"><div style="width:${cap ? Math.min(100, Math.round((used / cap) * 100)) : 0}%;height:100%;background:${over ? "var(--red)" : "#b98b96"}"></div></div>
+        <div class="cap">${used} of ${cap}</div>
+        <div class="who">${names.length ? esc(names.join(" · ")) + (over ? ` · ${used - cap} over` : "") : `<span style="color:var(--ink-faint)">empty</span>`}</div>
+        ${isOpen ? `
+        <div class="table-pop">
+          ${(t.households || []).map((hid) => `
+            <div class="prow"><span>${esc((byId[hid] || {}).household || hid)}</span><button data-un="${hid}" title="Remove from table">✕</button></div>`).join("") ||
+            `<div class="prow" style="color:var(--ink-faint)">no one yet</div>`}
+          <button class="tdel" data-del="${t.id}">Remove table</button>
+        </div>` : ""}
+      </div>`;
     }).join("");
-    const chips = (t.households || []).map(hid => `
-      <span class="guest-chip">${esc(nameOf(hid))}
-        <button data-un="${esc(hid)}" title="Remove from this table">✕</button>
-      </span>`).join("");
-    return `
-      <div class="table-spot">
-        <div class="table-top ${over ? "over" : ""} ${selected ? "droppable" : ""}" data-tid="${esc(t.id)}">
-          ${seats}
-          <button class="table-del" data-del="${esc(t.id)}" title="Remove this table">✕</button>
-          <h3>${esc(t.name)}</h3>
-          <div class="cap"><b class="${over ? "overn" : ""}">${t.seats_used}</b>/${t.capacity} seats</div>
-        </div>
-        <div class="table-guests">${chips || "<span class='cap'>empty</span>"}</div>
-      </div>`;
-  }).join("") || "<p class='cap' style='padding:1rem;'>No tables yet — add one on the left, or ask Vow to seat everyone.</p>";
 
-  updateHint();
-
-  document.querySelectorAll("[data-hid]").forEach(el => el.addEventListener("click", () => {
-    const hid = el.dataset.hid;
-    selected = (selected && selected.ids.length === 1 && selected.ids[0] === hid)
-      ? null
-      : { ids: [hid], label: nameOf(hid).replace(/ \(\d+\)$/, "") };
-    markSelection();
-  }));
-  document.querySelectorAll("[data-gsel]").forEach(el => el.addEventListener("click", () => {
-    const g = el.dataset.gsel;
-    const members = view.unassigned.filter(h => (h.group || "") === g);
-    selected = (selected && selected.group === g)
-      ? null
-      : { ids: members.map(h => h.id), label: `the "${g}" group`, group: g };
-    markSelection();
-  }));
-  document.querySelectorAll("[data-tid]").forEach(el => el.addEventListener("click", async (e) => {
-    if (e.target.dataset.del || e.target.dataset.un || !selected) return;
-    const ids = selected.ids;
-    selected = null;
-    for (const hid of ids) {
-      await fetch("/api/seating/assign", {
-        method: "PUT", headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ household_id: hid, table_id: el.dataset.tid }),
-      });
-    }
-    if (ids.length > 1) toast(`Seated ${ids.length} households together.`);
-    refresh();
-  }));
-}
-
-function markSelection() {
-  const one = selected && !selected.group ? selected.ids[0] : null;
-  document.querySelectorAll("[data-hid]").forEach(p =>
-    p.classList.toggle("picked", one === p.dataset.hid ||
-      (selected && !!selected.group && selected.ids.includes(p.dataset.hid))));
-  document.querySelectorAll(".ugroup").forEach(u =>
-    u.classList.toggle("picked", !!(selected && selected.group && u.dataset.g === selected.group)));
-  document.querySelectorAll(".table-top").forEach(t => t.classList.toggle("droppable", !!selected));
-  updateHint();
-}
-
-function updateHint() {
-  $("hint").textContent = selected
-    ? `Seating ${selected.label} — click a table.`
-    : "Pick a household or a whole group on the left, then click a table to seat them.";
-  document.querySelectorAll("[data-un]").forEach(el => el.addEventListener("click", () => assign(el.dataset.un, null)));
-  document.querySelectorAll("[data-del]").forEach(el => el.addEventListener("click", async () => {
-    const t = view.tables.find(x => x.id === el.dataset.del);
-    const n = t ? (t.households || []).length : 0;
-    if (n && !confirm(`Remove ${t.name}? ${n} household${n === 1 ? "" : "s"} will go back to Unassigned.`)) return;
-    await fetch("/api/seating/tables/" + el.dataset.del, { method: "DELETE" });
-    toast(t ? `Removed ${t.name}.` : "Table removed.");
-    refresh();
-  }));
-}
-
-// Names arrive via the tables' household ids -> look up from unassigned + a cache.
-const nameCache = {};
-function nameOf(hid) {
-  if (nameCache[hid]) return nameCache[hid];
-  const u = (view.unassigned || []).find(h => h.id === hid);
-  return u ? u.household : hid;
-}
-async function primeNames() {
-  const res = await fetch("/api/guests");
-  const g = await res.json();
-  g.households.forEach(h => nameCache[h.id] = `${h.household} (${h.attending_count || h.party_size})`);
-}
-
-async function assign(hid, tid) {
-  const res = await fetch("/api/seating/assign", {
-    method: "PUT", headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ household_id: hid, table_id: tid }),
-  });
-  view = await res.json();
-  render();
-}
-
-$("add-table").addEventListener("click", async () => {
-  const name = $("t-name").value.trim();
-  if (!name) return toast("Give the table a name first.");
-  const res = await fetch("/api/seating/tables", {
-    method: "POST", headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ name, capacity: $("t-cap").value }),
-  });
-  view = await res.json();
-  $("t-name").value = ""; $("t-cap").value = "";
-  render();
-});
-
-$("auto").addEventListener("click", async () => {
-  $("auto").disabled = true;
-  $("proposal").innerHTML = "";
-  try {
-    const res = await fetch("/api/seating/auto", { method: "POST" });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error || "Could not start the seating run.");
-    const result = await pollJob(json.job_id, $("status"), "Vow is arranging the tables… usually 20–60 seconds.");
-    $("status").innerHTML = "";
-    if (result.applied) {
-      await primeNames();     // new confirmed names may now be seated
-      await refresh();        // the chart itself IS the result
-      toast("Vow seated everyone — move anyone you like.");
-    }
-    showOutcome(result);
-  } catch (err) {
-    $("status").innerHTML = `<p class="status">⚠ ${esc(err.message)}</p>`;
-  } finally {
-    $("auto").disabled = false;
+    document.querySelectorAll(".table-card").forEach((card) => {
+      card.onclick = async (e) => {
+        const tid = card.dataset.id;
+        const un = e.target.dataset && e.target.dataset.un;
+        const del = e.target.dataset && e.target.dataset.del;
+        if (un) {
+          view = await fetch("/api/seating/assign", { method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ household_id: un, table_id: null }) }).then((r) => r.json());
+          render(); return;
+        }
+        if (del) {
+          if (!confirm("Remove this table? Its households go back to the unseated list.")) return;
+          view = await fetch("/api/seating/tables/" + del, { method: "DELETE" }).then((r) => r.json());
+          openTable = null; render(); return;
+        }
+        if (picked) {
+          const res = await fetch("/api/seating/assign", { method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ household_id: picked, table_id: tid }) });
+          if (res.ok) {
+            view = await res.json();
+            const name = (byId[picked] || {}).household || "";
+            picked = null; render();
+            VOW.toast(`${surname(name)} seated ✦`);
+          }
+          return;
+        }
+        openTable = openTable === tid ? null : tid;
+        render();
+      };
+    });
   }
-});
 
-/* A small, dismissible note about how Vow arranged things — the chart above
-   is the real output. If the plan was invalid, explain why nothing changed. */
-function showOutcome({ proposal: p, validation, applied, cost_usd }) {
-  const warnings = (p && p.warnings || []).map(w => `<li>${esc(w)}</li>`).join("");
-  const issues = (validation || []).map(v => `<li>${esc(v)}</li>`).join("");
-  $("proposal").innerHTML = `
-    <div class="proposal">
-      <p class="eyebrow">${applied ? "Vow's arrangement — applied" : "⚠ Not applied"}</p>
-      ${p && p.rationale ? `<p>${esc(p.rationale)}</p>` : ""}
-      ${warnings ? `<p class="cap"><b>Vow's warnings:</b></p><ul class="nice-list">${warnings}</ul>` : ""}
-      ${issues ? `<p class="cap"><b>${applied ? "Worth checking:" : "Why it was rejected:"}</b></p><ul class="nice-list">${issues}</ul>` : ""}
-      <div style="margin-top:.8rem;">
-        <button class="btn-ghost" id="dismiss">Dismiss</button>
-        <span class="cap" style="margin-left:.6rem;">run cost $${cost_usd}</span>
-      </div>
-    </div>`;
-  $("dismiss").addEventListener("click", () => $("proposal").innerHTML = "");
-}
+  /* add a table */
+  $("t-add").onclick = async () => {
+    const name = $("t-name").value.trim();
+    const capacity = +$("t-seats").value || 8;
+    if (!name) { VOW.toast("Give the table a name"); return; }
+    const res = await fetch("/api/seating/tables", { method: "POST",
+      headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, capacity }) });
+    if (res.ok) {
+      view = await res.json();
+      $("t-name").value = ""; $("t-seats").value = "";
+      render();
+    }
+  };
 
-primeNames().then(refresh);
+  /* auto-seat */
+  $("auto-btn").onclick = async () => {
+    if (seating) return;
+    seating = true;
+    $("auto-btn").disabled = true;
+    $("auto-btn").textContent = "✦ Working on the room…";
+    try {
+      const res = await fetch("/api/seating/auto", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Couldn't start the seating run.");
+      const result = await VOW.pollJob(data.job_id);
+      await load();
+      render();
+      VOW.toast(result.applied ? "Everyone has a seat — take a look ✦" : "Vow's plan needs a human touch — try once more");
+    } catch (e) {
+      VOW.toast(e.message || "Something went wrong — try again.");
+    }
+    seating = false;
+    $("auto-btn").disabled = false;
+    $("auto-btn").textContent = "✦ Seat everyone for me";
+  };
+
+  await load();
+  render();
+})();
 </script>
 </body>
 </html>

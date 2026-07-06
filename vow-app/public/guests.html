@@ -1,610 +1,366 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vow — Guests</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
-<script src="app.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vow ✦ — Guests</title>
+<link rel="stylesheet" href="/vow.css">
+<script src="/vow-shell.js"></script>
 <style>
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-  .stat { background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.2rem; }
-  .stat .label { font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-soft); }
-  .stat .value { font-family: "Fraunces", serif; font-size: 1.5rem; color: var(--ink); }
-  .stat.accent .value { color: var(--rose-deep); }
-  table { width: 100%; border-collapse: collapse; font-size: .92rem; }
-  th { text-align: left; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); padding: .5rem .6rem; border-bottom: 1px solid var(--line); }
-  td { padding: .55rem .6rem; border-bottom: 1px solid var(--line); }
-  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
-  .del { background: none; border: 0; color: var(--ink-soft); cursor: pointer; font-size: 1rem; }
-  .del:hover { color: var(--sev-red); }
-  .edit { background: none; border: 0; color: var(--ink-soft); cursor: pointer; font-size: .95rem; }
-  .edit:hover { color: var(--rose-deep); }
-  .erow .field { padding: .35rem .5rem; border-radius: 8px; font-size: .85rem; width: 100%; box-sizing: border-box; }
-  .add-row .field { padding: .45rem .6rem; border-radius: 8px; font-size: .9rem; width: 100%; box-sizing: border-box; }
-  .settings-input { display: flex; gap: .8rem; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; }
-  .settings-input .field { max-width: 150px; }
-  .settings-input label { color: var(--ink-soft); font-size: .9rem; }
-  .rsvp { font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; padding: .15rem .5rem; border-radius: 999px; font-weight: 600; }
-  .rsvp.confirmed { background: var(--sev-green-bg, #e7f3ea); color: var(--sev-green); }
-  .rsvp.pending { background: var(--sev-yellow-bg, #fbf3e0); color: #9a7b1a; }
-  .rsvp.no_response { background: var(--sev-red-bg, #fbe9e9); color: var(--sev-red); }
-  .rsvp.declined { background: var(--bg-soft); color: var(--ink-soft); }
-  .diet-tag { display: inline-block; font-size: .78rem; color: var(--ink-soft); }
-  .headroom-pos { color: var(--sev-green); } .headroom-neg { color: var(--sev-red); }
-  .filters { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin: 0 0 .8rem; }
-  .fchip { border: 1px solid var(--line); background: var(--bg-soft); border-radius: 999px;
-           padding: .3rem .85rem; font-size: .82rem; cursor: pointer; }
-  .fchip.on { border-color: var(--rose-deep); color: var(--rose-deep); font-weight: 600; background: #fff; }
-  .fchip .n { opacity: .6; margin-left: .25rem; }
-  .filters input { margin-left: auto; max-width: 220px; }
-  .table-wrap { max-height: 55vh; overflow: auto; }
-  .table-wrap thead th { position: sticky; top: 0; background: #fff; z-index: 1; }
-  .copy-link { background: none; border: 1px solid var(--line); border-radius: 6px;
-               padding: .2rem .5rem; cursor: pointer; font-size: .78rem; color: var(--ink-soft); }
-  .copy-link:hover { border-color: var(--rose-deep); color: var(--rose-deep); }
-  .wa-btn { background: #25d366; color: #fff; border: none; border-radius: 6px;
-            padding: .2rem .55rem; cursor: pointer; font-size: .78rem; font-weight: 600;
-            display: inline-flex; align-items: center; gap: .3rem; }
-  .wa-btn:hover { background: #1eb658; }
-  .invite-cell { white-space: nowrap; display: flex; gap: .3rem; align-items: center; }
-  .sent-tag { font-size: .72rem; color: var(--sev-green); white-space: nowrap; }
-  .qpanel { position: fixed; right: 1.2rem; bottom: 1.2rem; z-index: 60; width: 300px;
-            background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
-            box-shadow: var(--shadow); padding: 1rem 1.2rem; }
-  .qpanel .who { font-family: "Fraunces", serif; font-size: 1.1rem; margin: .15rem 0 .5rem; }
-  .qpanel .prog { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); }
-  .qpanel .row { display: flex; gap: .4rem; margin-top: .6rem; }
-  .group-tag { display: inline-block; border-radius: 999px; padding: .15rem .6rem; font-size: .76rem;
-               background: var(--bg-soft); border: 1px solid var(--line); cursor: pointer; }
-  .group-tag.empty { color: var(--ink-soft); border-style: dashed; }
-  .group-tag:hover { border-color: var(--rose-deep); }
-  .group-cell { position: relative; display: inline-block; }
-  .group-cell input { max-width: 110px; font-size: .8rem; }
-  .gmenu { position: absolute; top: 100%; left: 0; z-index: 30; min-width: 140px; max-height: 10rem;
-           overflow: auto; background: #fff; border: 1px solid var(--line); border-radius: 8px;
-           box-shadow: 0 6px 18px rgba(0,0,0,.1); margin-top: 2px; }
-  .gmenu button { display: block; width: 100%; text-align: left; background: none; border: none;
-                  padding: .4rem .65rem; font-size: .82rem; cursor: pointer; }
-  .gmenu button:hover { background: var(--bg-soft); }
+  main { width: 100%; max-width: 960px; margin: 0 auto; padding: 3rem 1.5rem 4rem; flex: 1; }
+  .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+
+  .summary-card { background: var(--card); border: 1px solid var(--hairline); border-radius: 16px; padding: 1.5rem 1.8rem; margin-top: 1.8rem; box-shadow: var(--card-shadow); }
+  .summary-row { display: flex; gap: 2.5rem; flex-wrap: wrap; align-items: baseline; }
+  .summary-stat { font-family: var(--serif); font-size: 1.9rem; }
+  .vows-read { margin-left: auto; text-align: right; }
+  .vows-read .label { text-transform: uppercase; letter-spacing: 0.14em; font-size: 0.66rem; font-weight: 600; color: var(--rose); }
+  .vows-read .text { font-size: 0.88rem; max-width: 26ch; }
+  .capacity-bar { height: 6px; border-radius: 999px; background: var(--divider); overflow: hidden; display: flex; margin-top: 1.2rem; }
+  .bar-legend { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--ink-soft); margin-top: 0.4rem; }
+
+  .filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 1.6rem 0 0.8rem; }
+  .filter-chip { border: 1px solid var(--hairline); background: var(--card); color: var(--ink); border-radius: 999px; padding: 0.3rem 0.9rem; font-size: 0.82rem; cursor: pointer; font-family: inherit; }
+  .filter-chip .n { opacity: 0.55; }
+  .filter-chip.on { border-color: var(--rose); background: var(--rose-tint); color: var(--rose); font-weight: 600; }
+  .search { margin-left: auto; max-width: 200px; padding: 0.45rem 0.9rem; border: 1px solid var(--hairline); border-radius: 999px; font: inherit; font-size: 0.85rem; color: var(--ink); background: var(--card); outline: none; }
+  .search:focus { border-color: var(--rose); }
+
+  .table-card { background: var(--card); border: 1px solid var(--hairline); border-radius: 16px; box-shadow: var(--card-shadow); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  th { text-align: left; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-soft); font-weight: 600; padding: 0.9rem 1rem 0.6rem; border-bottom: 1px solid var(--hairline); }
+  th:first-child { padding-left: 1.8rem; }
+  th:last-child { padding-right: 1.8rem; }
+  td { padding: 0.65rem 1rem; border-bottom: 1px solid var(--divider); }
+  td:first-child { padding-left: 1.8rem; }
+  td:last-child { padding-right: 1.8rem; }
+  tbody tr:hover { background: var(--bg); }
+  .hh-name { font-weight: 600; }
+  .hh-note { color: var(--amber); font-size: 0.78rem; }
+  .group-cell { color: var(--ink-soft); font-size: 0.85rem; }
+  .coming-cell { text-align: right; font-variant-numeric: tabular-nums; }
+  .rsvp-cell { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; }
+  .invite-cell { text-align: right; }
+  .nudge-btn { background: none; border: 1px solid var(--rose-tint-border); color: var(--rose); border-radius: 999px; padding: 0.2rem 0.8rem; font: inherit; font-size: 0.78rem; font-weight: 500; cursor: pointer; white-space: nowrap; }
+  .nudge-btn:hover { background: var(--rose-tint); }
+  .sent-mark { font-size: 0.78rem; color: var(--ink-faint); }
+  .row-del { background: none; border: none; color: var(--ink-faint); font-size: 0.8rem; cursor: pointer; opacity: 0; padding: 0 0 0 0.5rem; }
+  tbody tr:hover .row-del { opacity: 1; }
+  .add-line { background: none; border: none; color: var(--rose); font: inherit; font-size: 0.88rem; font-weight: 500; cursor: pointer; padding: 0; }
+  .add-form input, .add-form select { padding: 0.45rem 0.7rem; border: 1px solid var(--hairline); border-radius: 10px; font: inherit; font-size: 0.85rem; width: 100%; background: #fff; outline: none; }
+  .add-form input:focus { border-color: var(--rose); }
+
+  .headcount-card { border: 1px solid var(--rose-tint-border); background: var(--rose-tint); border-radius: 16px; padding: 1.4rem 1.8rem; margin-top: 1.4rem; }
+  .hc-eyebrow { color: var(--rose); font-size: 0.8rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; }
+  .hc-total { font-family: var(--serif); font-size: 1.6rem; margin-top: 0.4rem; }
+  .hc-sub { font-size: 0.95rem; font-family: var(--sans); color: var(--ink-soft); }
+  .rec-row { display: flex; gap: 0.7rem; align-items: baseline; font-size: 0.9rem; }
+  .rec-row .dot { position: relative; top: -2px; }
+  .thinking-line { color: var(--rose); font-size: 0.88rem; animation: vow-pulse 1.2s ease-in-out infinite; margin-top: 0.6rem; }
+  /* mobile: rows collapse to name + status + nudge (per the mobile reference) */
+  @media (max-width: 640px) {
+    th:nth-child(2), td:nth-child(2), th:nth-child(3), td:nth-child(3) { display: none; }
+    .summary-row { gap: 1.4rem; }
+  }
 </style>
 </head>
-<body>
-  <header class="site-header">
-    <a class="logo" href="/">Vow <span class="logo-mark">✦</span></a>
-    <nav class="nav">
-      <a href="/">Home</a>
-      <a href="/contracts">Contracts</a>
-      <a href="/budget">Budget</a>
-      <a href="/guests" class="active">Guests</a>
-      <a href="/seating">Seating</a>
-    </nav>
-  </header>
-
-  <main class="page">
-    <p class="eyebrow">Guests</p>
-    <h1>Who's actually coming.</h1>
-    <p class="lede">Track RSVPs, then ask Vow to project the real headcount and tell you who to chase.</p>
-
-    <details class="settings">
-      <summary>⚙ Venue &amp; catering settings</summary>
-      <div class="settings-input">
-        <label for="venue-capacity">Venue capacity</label>
-        <input type="number" id="venue-capacity" class="field" min="0" step="1" placeholder="e.g. 40">
-        <label for="per-head">Catering / head</label>
-        <input type="number" id="per-head" class="field" min="0" step="5" placeholder="e.g. 145">
-        <button id="save-settings" class="btn-ghost">Save</button>
-      </div>
-    </details>
-
-    <div class="stats">
-      <div class="stat"><div class="label">Invited</div><div class="value" id="stat-invited">—</div></div>
-      <div class="stat"><div class="label">Confirmed</div><div class="value" id="stat-confirmed">—</div></div>
-      <div class="stat"><div class="label">Awaiting reply</div><div class="value" id="stat-pending">—</div></div>
-      <div class="stat accent"><div class="label">Vow's projection</div><div class="value" id="stat-projection">ask ↓</div></div>
+<body data-page="guests">
+<main>
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">Guests</h1>
+      <p class="page-sub" style="margin-top:0.3rem">RSVPs, invites and the real headcount.</p>
     </div>
-
-    <div class="filters" id="filters">
-      <input class="field" id="search" placeholder="Search households…">
+    <div style="display:flex;gap:0.6rem">
+      <a class="btn secondary" href="/invitations">Invites &amp; reminders →</a>
+      <button class="btn primary" id="project-btn">✦ Project headcount</button>
     </div>
+  </div>
 
-    <div class="card table-wrap">
-      <table>
-        <thead>
-          <tr><th>Household</th><th>Group</th><th>Side</th><th class="num">Party</th><th>RSVP</th><th class="num">Attending</th><th>+1</th><th>Notes</th><th>Invite</th><th></th></tr>
-        </thead>
-        <tbody id="rows"></tbody>
-        <tbody>
-          <tr class="add-row">
-            <td><input class="field" id="f-household" placeholder="Household"></td>
-            <td style="position:relative;"><input class="field" id="f-group" placeholder="Group" autocomplete="off"></td>
-            <td>
-              <select class="field" id="f-side">
-                <option value="partner_a">Partner A</option>
-                <option value="partner_b">Partner B</option>
-              </select>
-            </td>
-            <td><input class="field" id="f-party" type="number" min="1" placeholder="1"></td>
-            <td>
-              <select class="field" id="f-rsvp">
-                <option value="pending">pending</option>
-                <option value="confirmed">confirmed</option>
-                <option value="declined">declined</option>
-                <option value="no_response">no_response</option>
-              </select>
-            </td>
-            <td><input class="field" id="f-attending" type="number" min="0" placeholder="0"></td>
-            <td style="text-align:center;"><input type="checkbox" id="f-plusone" title="Plus-one offered"></td>
-            <td><input class="field" id="f-notes" placeholder="Notes"></td>
-            <td></td>
-            <td><button class="btn-ghost" id="add" style="padding:.45rem 1rem;">Add</button></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div style="text-align:center; margin: 2rem 0 0;">
-      <button id="analyze" class="btn-primary">✦ Ask Vow to check the headcount</button>
-      <button id="send-invites" class="btn-ghost">📲 Send invites</button>
-    </div>
-    <div id="qpanel"></div>
-
-    <div id="status"></div>
-    <div id="result"></div>
-  </main>
+  <section class="summary-card" id="summary"></section>
+  <div class="filter-row" id="filters"></div>
+  <section class="table-card"><table id="guest-table"></table></section>
+  <section class="headcount-card" id="headcount" hidden></section>
+</main>
 
 <script>
-const $ = (id) => document.getElementById(id);
-const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-let CUR = "USD";
-const money = (n) => new Intl.NumberFormat(undefined, { style: "currency", currency: CUR, maximumFractionDigits: 0 }).format(n || 0);
-const SIDE = { partner_a: "Partner A", partner_b: "Partner B" };
+(async function () {
+  const $ = (id) => document.getElementById(id);
+  const esc = VOW.esc, money = VOW.money;
 
-let HH = [];                 // all households (unfiltered)
-let EDITING = null;          // household id currently being edited inline
-let SETTINGS = {};           // wedding date / rsvp deadline, for the invite message
-let FILTER = "all";          // all | confirmed | pending | no_response | declined
-let LINKS = null;            // household id -> rsvp url (fetched on first use)
+  let guests, headcount, links = {};
+  let filter = "All", q = "", adding = false;
 
-async function ensureLinks() {
-  if (LINKS) return LINKS;
-  const res = await fetch("/api/guests/rsvp-links", { method: "POST" });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error || "Could not get RSVP links.");
-  LINKS = Object.fromEntries(json.links.map(l => [l.id, l.url]));
-  return LINKS;
-}
+  const RSVP_LABEL = { confirmed: "confirmed", pending: "pending", no_response: "no reply", declined: "declined" };
+  const RSVP_COLOR = { confirmed: "var(--green)", pending: "var(--amber)", no_response: "var(--red)", declined: "var(--ink-faint)" };
+  const CHASE = (h) => ["pending", "no_response"].includes(h.rsvp);
 
-/* Single line on purpose: the WhatsApp desktop app truncates the pre-filled
-   text at the first newline, leaving only the link. One line survives both
-   WhatsApp Web and the desktop app. */
-function inviteMessage(h) {
-  const bits = [`Hi ${h.household}! 💍 You're invited to our wedding`];
-  if (SETTINGS.wedding_date) bits.push(` on ${SETTINGS.wedding_date}`);
-  bits.push(`. Please RSVP here (it takes a minute): ${location.origin}${LINKS[h.id]}`);
-  if (SETTINGS.rsvp_deadline) bits.push(` — kindly reply by ${SETTINGS.rsvp_deadline} 🤍`);
-  return bits.join("");
-}
+  async function load() {
+    const [g, hc, lk, profile] = await Promise.all([
+      fetch("/api/guests").then((r) => r.json()),
+      fetch("/api/guests/headcount/latest").then((r) => r.json()).catch(() => ({ exists: false })),
+      fetch("/api/guests/rsvp-links", { method: "POST" }).then((r) => r.json()).catch(() => ({ links: [] })),
+      VOW.loadProfile(),
+    ]);
+    guests = g; headcount = hc;
+    links = Object.fromEntries((lk.links || []).map((l) => [l.id, l.url]));
+    window._profile = profile;
+  }
 
-/* Open WhatsApp with the full invite pre-filled (same reused tab), and mark
-   the household as invited. One tap here + one send tap in WhatsApp. */
-async function openWhatsApp(h) {
-  await ensureLinks();
-  const msg = inviteMessage(h);
-  // Belt and braces: the desktop app sometimes mangles the pre-fill entirely,
-  // so the full message is also on the clipboard, ready to paste.
-  try { await navigator.clipboard.writeText(msg); } catch (e) { /* clipboard optional */ }
+  const households = () => guests.households || [];
+  const stats = () => {
+    const hs = households();
+    const confirmed = hs.reduce((s, h) => s + (h.rsvp === "confirmed" ? (h.attending_count || 0) : 0), 0);
+    const invited = hs.reduce((s, h) => s + (h.party_size || 0), 0);
+    const awaiting = hs.filter(CHASE).length;
+    const outstanding = hs.reduce((s, h) => s + (CHASE(h) ? (h.party_size || 0) : 0), 0);
+    const likelyExtra = Math.round(outstanding * 0.75);
+    return { confirmed, invited, awaiting, outstanding, likelyExtra, likely: confirmed + likelyExtra };
+  };
 
-  // Without a phone number WhatsApp opens its contact picker, and the desktop
-  // app's picker shares ONLY the link, dropping the text. A phone-targeted
-  // link opens the chat directly with the full message pre-filled — so ask
-  // once and remember it.
-  let phone = (h.phone || "").replace(/[^\d]/g, "");
-  if (!phone) {
-    const entered = window.prompt(
-      `WhatsApp number for ${h.household} (with country code, e.g. +972501234567).\n\n` +
-      `With a number, the full invite lands in their chat, ready to send. ` +
-      `Leave empty to pick the chat manually — the message is on your clipboard (⌘V).`);
-    if (entered && entered.trim()) {
-      h.phone = entered.trim().slice(0, 25);
-      phone = h.phone.replace(/[^\d]/g, "");
-      fetch("/api/guests/households/" + h.id, {
-        method: "PUT", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: h.phone }),
-      });
+  /* ---------- summary ---------- */
+  function renderSummary() {
+    const s = stats();
+    const cap = guests.settings.venue_capacity || 0;
+    const denom = Math.max(cap, s.likely, 1);
+    const read = !cap
+      ? `Likely <b>${s.likely} guests</b> — set your venue capacity to check the fit.`
+      : s.likely <= cap
+        ? `Likely <b>${s.likely} guests</b> — comfortably inside the venue's ${cap}.`
+        : `Likely <b>${s.likely} guests</b> — over the venue's ${cap}. Time to trim or talk to the venue.`;
+    $("summary").innerHTML = `
+      <div class="summary-row">
+        <div>
+          <div class="eyebrow">Confirmed</div>
+          <div class="summary-stat">${s.confirmed}</div>
+        </div>
+        <div>
+          <div class="eyebrow">Invited</div>
+          <div class="summary-stat" style="color:var(--ink-soft)">${s.invited}</div>
+        </div>
+        <div>
+          <div class="eyebrow">Awaiting reply</div>
+          <div class="summary-stat" style="color:var(--amber)">${s.awaiting} <span style="font-size:0.95rem;color:var(--ink-soft);font-family:var(--sans)">households</span></div>
+        </div>
+        <div class="vows-read">
+          <div class="label">Vow's read</div>
+          <div class="text">${read}</div>
+        </div>
+      </div>
+      <div>
+        <div class="capacity-bar">
+          <div style="width:${(s.confirmed / denom) * 100}%;background:var(--rose-deep)"></div>
+          <div style="width:${(s.likelyExtra / denom) * 100}%;background:var(--rose-tint-border)"></div>
+        </div>
+        <div class="bar-legend">
+          <span>${s.confirmed} confirmed + ${s.likelyExtra} likely from pending replies</span>
+          <span>${cap ? `venue holds ${cap}` : "venue capacity not set"}</span>
+        </div>
+      </div>`;
+  }
+
+  /* ---------- filters ---------- */
+  const FILTERS = ["All", "Confirmed", "Pending", "No reply", "Declined"];
+  const KEY = { Confirmed: "confirmed", Pending: "pending", "No reply": "no_response", Declined: "declined" };
+
+  function renderFilters() {
+    const hs = households();
+    const count = (label) => label === "All" ? hs.length : hs.filter((h) => h.rsvp === KEY[label]).length;
+    $("filters").innerHTML = FILTERS.map((label) => `
+      <button class="filter-chip ${filter === label ? "on" : ""}" data-f="${label}">${label} <span class="n">${count(label)}</span></button>`).join("") +
+      `<input class="search" id="search" placeholder="Search…" value="${esc(q)}">`;
+    document.querySelectorAll(".filter-chip").forEach((btn) => {
+      btn.onclick = () => { filter = btn.dataset.f; renderFilters(); renderTable(); };
+    });
+    const search = $("search");
+    search.oninput = (e) => { q = e.target.value.toLowerCase(); renderTable(); };
+  }
+
+  /* ---------- table ---------- */
+  const noteFor = (h) => {
+    const deadline = guests.settings.rsvp_deadline;
+    const past = deadline && new Date() > new Date(deadline + "T23:59:59");
+    if (h.rsvp === "no_response" && past) return "past the RSVP deadline";
+    if (h.rsvp === "confirmed" && h.plus_one_allowed && !h.plus_one_name) return "plus-one still unnamed";
+    return "";
+  };
+  const groupFor = (h) => {
+    if (h.group) return h.group;
+    const p = window._profile || {};
+    const name = h.side === "partner_b" ? (p.partner_b || "partner") : (p.partner_a || "partner");
+    return `Family — ${name}`;
+  };
+  const orderKey = (h) => h.rsvp === "no_response" ? 0 : h.rsvp === "pending" ? 1 : h.rsvp === "confirmed" ? 2 : 3;
+
+  function renderTable() {
+    const rows = households()
+      .filter((h) => (filter === "All" || h.rsvp === KEY[filter]) &&
+        (!q || h.household.toLowerCase().includes(q) || groupFor(h).toLowerCase().includes(q)))
+      .sort((a, b) => orderKey(a) - orderKey(b) ||
+        (b.rsvp === "confirmed" ? (b.attending_count || 0) - (a.attending_count || 0)
+                                : (b.party_size || 0) - (a.party_size || 0)));
+    $("guest-table").innerHTML = `
+      <thead>
+        <tr>
+          <th>Household</th><th>Group</th><th style="text-align:right">Coming</th><th>RSVP</th><th style="text-align:right">Invite</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map((h) => {
+          const note = noteFor(h);
+          const coming = h.rsvp === "declined" ? "—" : (h.rsvp === "confirmed" ? (h.attending_count || 0) : (h.party_size || 0));
+          return `
+          <tr data-id="${h.id}">
+            <td>
+              <div class="hh-name">${esc(h.household)}</div>
+              ${note ? `<div class="hh-note">${esc(note)}</div>` : ""}
+            </td>
+            <td class="group-cell">${esc(groupFor(h))}</td>
+            <td class="coming-cell">${coming}</td>
+            <td>
+              <span class="rsvp-cell" style="color:${RSVP_COLOR[h.rsvp]}">
+                <span class="dot" style="background:${RSVP_COLOR[h.rsvp]}"></span>${RSVP_LABEL[h.rsvp] || h.rsvp}
+              </span>
+            </td>
+            <td class="invite-cell">
+              ${CHASE(h) ? `<button class="nudge-btn">Nudge on WhatsApp</button>`
+                         : h.invite_sent ? `<span class="sent-mark">sent ✓</span>` : ""}
+              <button class="row-del" title="Remove household">✕</button>
+            </td>
+          </tr>`;
+        }).join("")}
+        ${adding ? `
+        <tr class="add-form">
+          <td><input id="nh-name" placeholder="Household name"></td>
+          <td><input id="nh-group" placeholder="Group (optional)"></td>
+          <td><input id="nh-size" type="number" min="1" value="2" style="max-width:70px;text-align:right"></td>
+          <td><input id="nh-phone" placeholder="Phone (for WhatsApp)"></td>
+          <td style="white-space:nowrap;text-align:right">
+            <button class="btn tertiary" id="nh-save">Save</button>
+            <button class="btn tertiary" id="nh-cancel" style="margin-left:0.4rem;color:var(--ink-faint)">✕</button>
+          </td>
+        </tr>` : `
+        <tr><td colspan="5" style="padding:0.8rem 1.8rem"><button class="add-line" id="add-hh">+ Add a household</button></td></tr>`}
+      </tbody>`;
+
+    document.querySelectorAll(".nudge-btn").forEach((btn) => {
+      btn.onclick = () => nudge(btn.closest("tr").dataset.id);
+    });
+    document.querySelectorAll(".row-del").forEach((btn) => {
+      btn.onclick = async () => {
+        const tr = btn.closest("tr");
+        const name = tr.querySelector(".hh-name").textContent;
+        if (!confirm(`Remove ${name} from the guest list?`)) return;
+        await fetch("/api/guests/households/" + tr.dataset.id, { method: "DELETE" });
+        await load(); renderAll();
+      };
+    });
+    if (adding) {
+      $("nh-save").onclick = async () => {
+        const body = {
+          household: $("nh-name").value.trim(),
+          group: $("nh-group").value.trim(),
+          party_size: +$("nh-size").value || 1,
+          phone: $("nh-phone").value.trim(),
+        };
+        if (!body.household) { VOW.toast("Give the household a name"); return; }
+        const res = await fetch("/api/guests/households", { method: "POST",
+          headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        if (res.ok) { adding = false; await load(); renderAll(); VOW.toast("Added to the list ✦"); }
+      };
+      $("nh-cancel").onclick = () => { adding = false; renderTable(); };
+      $("nh-name").focus();
+    } else {
+      $("add-hh").onclick = () => { adding = true; renderTable(); };
     }
   }
-  const url = "https://api.whatsapp.com/send?" +
-    (phone ? `phone=${phone}&` : "") +
-    "text=" + encodeURIComponent(msg);
-  window.open(url, "vow-whatsapp");
-  toast(phone ? "Chat opening with the invite pre-filled — just hit send."
-              : "Pick the chat, then paste the invite (⌘V).");
-  fetch("/api/guests/households/" + h.id, {
-    method: "PUT", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ invite_sent: true }),
-  }).then(() => { h.invite_sent = true; renderRows(); });
-}
 
-/* ---- one-tap invite queue: walk every household that hasn't been invited ---- */
-let QUEUE = [], QIDX = 0;
-
-$("send-invites").addEventListener("click", () => {
-  QUEUE = HH.filter(h => !h.invite_sent && h.rsvp !== "declined");
-  QIDX = 0;
-  if (!QUEUE.length) { toast("Everyone has been invited already."); return; }
-  renderQueue();
-});
-
-function renderQueue() {
-  if (QIDX >= QUEUE.length) {
-    $("qpanel").innerHTML = "";
-    toast(`Done — ${QUEUE.length} invite${QUEUE.length === 1 ? "" : "s"} sent.`);
-    load();
-    return;
+  /* ---------- WhatsApp nudge ---------- */
+  async function nudge(id) {
+    const h = households().find((x) => x.id === id);
+    if (!h) return;
+    const p = window._profile || {};
+    const names = VOW.coupleNames() || "us";
+    const date = guests.settings.wedding_date
+      ? new Date(guests.settings.wedding_date + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric" }) : "";
+    const link = location.origin + (links[id] || "");
+    const msg = `Hi! Just a gentle reminder about ${names}'s wedding${date ? ` on ${date}` : ""} — we'd love to know if you can make it. You can reply here: ${link}`;
+    const phone = (h.phone || "").replace(/[^\d]/g, "");
+    const url = phone
+      ? `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`
+      : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+    window.open(url, "_blank");
+    fetch("/api/activity", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ actor: p.partner_a || "You", text: `nudged the ${h.household} on WhatsApp` }) });
+    VOW.toast("Nudge ready in WhatsApp ✦");
   }
-  const h = QUEUE[QIDX];
-  $("qpanel").innerHTML = `
-    <div class="qpanel">
-      <div class="prog">Invite ${QIDX + 1} of ${QUEUE.length}</div>
-      <div class="who">${esc(h.household)}</div>
-      <div class="row">
-        <button class="wa-btn" id="q-open" style="padding:.45rem .9rem;">Open chat & mark sent</button>
+
+  /* ---------- headcount card ---------- */
+  let projecting = false;
+  const SEV_COLOR = { red: "var(--red)", yellow: "var(--amber)", green: "var(--green)" };
+
+  function renderHeadcount() {
+    const card = $("headcount");
+    if (projecting) {
+      card.hidden = false;
+      card.innerHTML = `
+        <span class="hc-eyebrow">✦ Vow's headcount check</span>
+        <div class="thinking-line">✦ Reconciling RSVPs against the venue and catering budget — usually 20–60 seconds.</div>`;
+      return;
+    }
+    if (!headcount || !headcount.exists) { card.hidden = true; return; }
+    const a = headcount.analysis || {};
+    const hc = a.headcount || {}, cat = a.catering_cost || {};
+    const when = headcount.generated_at
+      ? new Date(headcount.generated_at).toLocaleDateString("en-US", { month: "long", day: "numeric" }) : "";
+    card.hidden = false;
+    card.innerHTML = `
+      <div style="display:flex;align-items:baseline;gap:0.6rem;flex-wrap:wrap">
+        <span class="hc-eyebrow">✦ Vow's headcount check</span>
+        <span style="color:var(--ink-faint);font-size:0.75rem">${when}</span>
       </div>
-      <div class="row">
-        <button class="btn-ghost" id="q-skip" style="padding:.35rem .9rem;">Skip</button>
-        <button class="btn-ghost" id="q-stop" style="padding:.35rem .9rem;">Stop</button>
+      <div class="hc-total">Plan for ${hc.likely_projection || "—"}
+        <span class="hc-sub">floor ${hc.confirmed_floor || 0} · ceiling ${hc.worst_case_ceiling || 0} · catering ≈ ${money(cat.at_likely || 0)}</span>
       </div>
-    </div>`;
-  $("q-open").addEventListener("click", async () => {
-    try { await openWhatsApp(h); } catch (e) { toast(e.message); return; }
-    QIDX += 1;
-    renderQueue();
-  });
-  $("q-skip").addEventListener("click", () => { QIDX += 1; renderQueue(); });
-  $("q-stop").addEventListener("click", () => { $("qpanel").innerHTML = ""; load(); });
-}
+      <div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.9rem">
+        ${(a.warnings || []).slice(0, 3).map((w) => `
+          <div class="rec-row">
+            <span class="dot" style="background:${SEV_COLOR[w.severity] || "var(--amber)"}"></span>
+            <span><b>${esc(w.recommendation || w.issue || "")}</b> — ${esc(w.detail || "")}</span>
+          </div>`).join("")}
+      </div>
+      <details class="fold" style="margin-top:0.8rem">
+        <summary>How Vow got here ▾</summary>
+        <p style="color:var(--ink-soft);font-size:0.85rem;margin:0.5rem 0 0;max-width:64ch">${esc(hc.assumptions || "")} ${esc(cat.note || "")}</p>
+      </details>`;
+  }
 
-const FILTERS = [
-  ["all", "All"], ["confirmed", "Confirmed"], ["pending", "Pending"],
-  ["no_response", "No reply"], ["declined", "Declined"],
-];
-
-async function load() {
-  const g = await (await fetch("/api/guests")).json();
-  SETTINGS = g.settings || {};
-  CUR = (g.settings && g.settings.currency) || "USD";
-  $("venue-capacity").value = g.settings.venue_capacity || "";
-  $("per-head").value = g.settings.catering_per_head || "";
-
-  HH = g.households || [];
-  const invited = HH.reduce((s, h) => s + (h.party_size || 0), 0);
-  const confirmed = HH.filter(h => h.rsvp === "confirmed").reduce((s, h) => s + (h.attending_count || 0), 0);
-  const pending = HH.filter(h => h.rsvp === "pending" || h.rsvp === "no_response").length;
-  $("stat-invited").textContent = invited || "—";
-  $("stat-confirmed").textContent = confirmed || "—";
-  $("stat-pending").textContent = pending ? `${pending} household${pending === 1 ? "" : "s"}` : "—";
-
-  renderFilters();
-  renderRows();
-}
-
-/* Custom autocomplete for group inputs — the native datalist popup anchors
-   wrong inside the scrolling table, so we draw our own under the input. */
-function groupMenu(input) {
-  let menu = null;
-  const close = () => { if (menu) { menu.remove(); menu = null; } };
-  const open = () => {
-    close();
-    const q = (input.value || "").toLowerCase();
-    const groups = [...new Set(HH.map(h => h.group).filter(Boolean))].sort()
-      .filter(g => g.toLowerCase().includes(q) && g !== input.value);
-    if (!groups.length) return;
-    menu = document.createElement("div");
-    menu.className = "gmenu";
-    groups.forEach(g => {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.textContent = g;
-      // mousedown (not click) so it fires before the input's blur.
-      b.addEventListener("mousedown", (e) => {
-        e.preventDefault();
-        input.value = g;
-        close();
-        input.blur();   // inline editor saves on blur; harmless on the add row
-      });
-      menu.appendChild(b);
-    });
-    input.parentElement.appendChild(menu);
+  $("project-btn").onclick = async () => {
+    if (projecting) return;
+    projecting = true;
+    $("project-btn").disabled = true;
+    $("project-btn").textContent = "✦ Projecting…";
+    renderHeadcount();
+    $("headcount").scrollIntoView({ behavior: "smooth", block: "center" });
+    try {
+      const res = await fetch("/api/guests/analyze", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Couldn't start the projection.");
+      await VOW.pollJob(data.job_id);
+      headcount = await fetch("/api/guests/headcount/latest").then((r) => r.json());
+    } catch (e) {
+      VOW.toast(e.message || "Something went wrong — try again.");
+    }
+    projecting = false;
+    $("project-btn").disabled = false;
+    $("project-btn").textContent = "✦ Project headcount";
+    renderHeadcount();
   };
-  input.addEventListener("focus", open);
-  input.addEventListener("input", open);
-  input.addEventListener("blur", () => setTimeout(close, 120));
-}
 
-function renderFilters() {
-  const counts = { all: HH.length };
-  HH.forEach(h => counts[h.rsvp] = (counts[h.rsvp] || 0) + 1);
-  const chips = FILTERS.map(([key, label]) => `
-    <button class="fchip ${FILTER === key ? "on" : ""}" data-f="${key}">
-      ${label}<span class="n">${counts[key] || 0}</span>
-    </button>`).join("");
-  const search = $("search");
-  search.insertAdjacentHTML("beforebegin", "");
-  $("filters").querySelectorAll(".fchip").forEach(el => el.remove());
-  search.insertAdjacentHTML("beforebegin", chips);
-  $("filters").querySelectorAll(".fchip").forEach(el => el.addEventListener("click", () => {
-    FILTER = el.dataset.f;
-    renderFilters();
-    renderRows();
-  }));
-}
-
-function viewRow(h) {
-  const plus = h.plus_one_allowed ? (h.plus_one_name ? esc(h.plus_one_name) : "⚠ unnamed") : "—";
-  return `
-  <tr>
-    <td><b>${esc(h.household)}</b></td>
-    <td><span class="group-cell" data-gid="${h.id}" title="Click to edit group">${h.group ? `<span class="group-tag">${esc(h.group)}</span>` : `<span class="group-tag empty">+ group</span>`}</span></td>
-    <td style="color:var(--ink-soft); font-size:.85rem;">${esc(SIDE[h.side] || h.side)}</td>
-    <td class="num">${h.party_size || 0}</td>
-    <td><span class="rsvp ${esc(h.rsvp)}">${esc((h.rsvp || "").replace("_", " "))}</span></td>
-    <td class="num">${h.rsvp === "confirmed" ? (h.attending_count || 0) : "—"}</td>
-    <td>${plus}</td>
-    <td style="color:var(--ink-soft); font-size:.85rem;">${esc(h.notes)}</td>
-    <td><span class="invite-cell">
-      ${h.invite_sent ? `<span class="sent-tag" title="Invite opened in WhatsApp">✓ sent</span>` : ""}
-      <button class="wa-btn" data-wa="${h.id}" title="Send the invite + RSVP link on WhatsApp">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.2 14.1c-.2.6-1.2 1.2-1.7 1.2-.4.1-1 .1-1.6-.1-.4-.1-.9-.3-1.5-.5-2.6-1.1-4.3-3.8-4.4-4-.1-.2-1-1.4-1-2.6 0-1.2.6-1.8.9-2 .2-.3.5-.3.7-.3h.5c.2 0 .4-.1.6.4l.8 2c.1.1.1.3 0 .4l-.3.5-.4.5c-.1.1-.3.3-.1.5.1.3.6 1 1.3 1.6.9.8 1.6 1 1.9 1.2.2.1.4.1.5-.1l.7-.9c.2-.2.3-.2.6-.1l1.9.9c.3.1.4.2.5.3 0 .2 0 .7-.2 1.1z"/></svg>
-        Send
-      </button>
-      <button class="copy-link" data-link="${h.id}" title="Copy this household's private RSVP link">🔗</button>
-    </span></td>
-    <td style="white-space:nowrap;">
-      <button class="edit" data-id="${h.id}" title="Edit household">✎</button>
-      <button class="del" data-id="${h.id}" title="Remove">✕</button>
-    </td>
-  </tr>`;
-}
-
-function editRow(h) {
-  const opt = (v, label, cur) => `<option value="${v}" ${cur === v ? "selected" : ""}>${label}</option>`;
-  return `
-  <tr class="erow">
-    <td><input class="field" id="e-household" value="${esc(h.household)}"></td>
-    <td style="position:relative;"><input class="field" id="e-group" value="${esc(h.group || "")}" autocomplete="off"></td>
-    <td><select class="field" id="e-side">
-      ${opt("partner_a", "Partner A", h.side)}${opt("partner_b", "Partner B", h.side)}
-    </select></td>
-    <td><input class="field" id="e-party" type="number" min="1" value="${h.party_size || 1}"></td>
-    <td><select class="field" id="e-rsvp">
-      ${["pending", "confirmed", "declined", "no_response"].map(s => opt(s, s.replace("_", " "), h.rsvp)).join("")}
-    </select></td>
-    <td><input class="field" id="e-attending" type="number" min="0" value="${h.attending_count || 0}"></td>
-    <td style="white-space:nowrap;">
-      <input type="checkbox" id="e-plusone" ${h.plus_one_allowed ? "checked" : ""} title="Plus-one offered">
-      <input class="field" id="e-plusname" value="${esc(h.plus_one_name || "")}" placeholder="+1 name" style="max-width:90px;">
-    </td>
-    <td><input class="field" id="e-notes" value="${esc(h.notes || "")}"></td>
-    <td><input class="field" id="e-phone" value="${esc(h.phone || "")}" placeholder="+972 50…" title="WhatsApp number"></td>
-    <td style="white-space:nowrap;">
-      <button class="btn-ghost e-save" data-id="${h.id}" style="padding:.3rem .7rem;">Save</button>
-      <button class="del e-cancel" title="Cancel">✕</button>
-    </td>
-  </tr>`;
-}
-
-function renderRows() {
-  const q = ($("search").value || "").toLowerCase();
-  const rows = HH.filter(h =>
-    (FILTER === "all" || h.rsvp === FILTER) &&
-    (!q || (h.household || "").toLowerCase().includes(q)
-        || (h.group || "").toLowerCase().includes(q)));
-
-  if (!HH.length) {
-    $("rows").innerHTML = `<tr><td colspan="10" style="text-align:center; padding:1.4rem; color:var(--ink-soft);">
-      No guests yet — add your first household below.
-    </td></tr>`;
-    return;
-  }
-  if (!rows.length) {
-    $("rows").innerHTML = `<tr><td colspan="10" style="text-align:center; padding:1.4rem; color:var(--ink-soft);">
-      No households match.
-    </td></tr>`;
-    return;
-  }
-  $("rows").innerHTML = rows.map(h => EDITING === h.id ? editRow(h) : viewRow(h)).join("");
-
-  const eg = document.getElementById("e-group");
-  if (eg) groupMenu(eg);   // group autocomplete inside the edit row too
-
-  document.querySelectorAll(".edit").forEach(el => el.addEventListener("click", () => {
-    EDITING = el.dataset.id;
-    renderRows();
-    const first = document.querySelector(".erow input");
-    if (first) first.focus();
-  }));
-  document.querySelectorAll(".e-cancel").forEach(el => el.addEventListener("click", () => {
-    EDITING = null;
-    renderRows();
-  }));
-  document.querySelectorAll(".e-save").forEach(el => el.addEventListener("click", async () => {
-    const e = (id) => document.getElementById(id);
-    const body = {
-      household: e("e-household").value, group: e("e-group").value,
-      side: e("e-side").value, party_size: e("e-party").value,
-      rsvp: e("e-rsvp").value, attending_count: e("e-attending").value,
-      plus_one_allowed: e("e-plusone").checked, plus_one_name: e("e-plusname").value,
-      notes: e("e-notes").value, phone: e("e-phone").value,
-    };
-    const res = await fetch("/api/guests/households/" + el.dataset.id, {
-      method: "PUT", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) { toast((await res.json()).error || "Could not save."); return; }
-    EDITING = null;
-    toast("Household updated.");
-    load();
-  }));
-
-  // Click a group tag -> inline input -> PUT on Enter/blur.
-  document.querySelectorAll(".group-cell").forEach(el => el.addEventListener("click", () => {
-    if (el.querySelector("input")) return;
-    const h = HH.find(x => x.id === el.dataset.gid);
-    el.innerHTML = `<input class="field" value="${esc(h.group || "")}" placeholder="Group" autocomplete="off">`;
-    const inp = el.querySelector("input");
-    groupMenu(inp);
-    inp.focus();
-    const save = async () => {
-      await fetch("/api/guests/households/" + el.dataset.gid, {
-        method: "PUT", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ group: inp.value }),
-      });
-      load();
-    };
-    inp.addEventListener("keydown", (e) => { if (e.key === "Enter") inp.blur(); });
-    inp.addEventListener("blur", save, { once: true });
-  }));
-
-  document.querySelectorAll(".copy-link").forEach(el => el.addEventListener("click", async () => {
-    try { await ensureLinks(); } catch (e) { toast(e.message); return; }
-    await navigator.clipboard.writeText(location.origin + LINKS[el.dataset.link]);
-    toast("RSVP link copied — paste it into a message.");
-  }));
-
-  // WhatsApp click-to-chat: opens WhatsApp with the invite pre-filled — the
-  // couple picks the chat and presses send themselves. If the household has a
-  // phone on file it opens that chat directly.
-  document.querySelectorAll("[data-wa]").forEach(el => el.addEventListener("click", async () => {
-    const h = HH.find(x => x.id === el.dataset.wa);
-    try { await openWhatsApp(h); } catch (e) { toast(e.message); }
-  }));
-
-  document.querySelectorAll(".del").forEach(el => el.addEventListener("click", async () => {
-    const item = HH.find(h => h.id === el.dataset.id);
-    await fetch("/api/guests/households/" + el.dataset.id, { method: "DELETE" });
-    load();
-    toast(`Removed ${item ? item.household : "household"}`, { undo: async () => {
-      await fetch("/api/guests/households", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(item),
-      });
-      load();
-    }});
-  }));
-}
-
-$("search").addEventListener("input", renderRows);
-groupMenu($("f-group"));
-
-/* enter-to-add */
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && e.target.id && e.target.id.startsWith("f-")) {
-    e.preventDefault();
-    $("add").click();
-  }
-});
-
-$("save-settings").addEventListener("click", async () => {
-  await fetch("/api/guests/settings", {
-    method: "PUT", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      venue_capacity: $("venue-capacity").value || 0,
-      catering_per_head: $("per-head").value || 0,
-    }),
-  });
-  toast("Settings saved");
-  load();
-});
-
-$("add").addEventListener("click", async () => {
-  const body = {
-    household: $("f-household").value, side: $("f-side").value,
-    group: $("f-group").value,
-    party_size: $("f-party").value, rsvp: $("f-rsvp").value,
-    attending_count: $("f-attending").value, plus_one_allowed: $("f-plusone").checked,
-    notes: $("f-notes").value,
-  };
-  if (!body.household.trim()) return;
-  await fetch("/api/guests/households", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  ["f-household","f-group","f-party","f-attending","f-notes"].forEach(id => $(id).value = "");
-  $("f-plusone").checked = false;
-  load();
-});
-
-$("analyze").addEventListener("click", async () => {
-  $("analyze").disabled = true;
-  $("result").innerHTML = "";
-  try {
-    const res = await fetch("/api/guests/analyze", { method: "POST" });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error || "Analysis failed.");
-    const result = await pollJob(json.job_id, $("status"), "Vow is reconciling your guest list… usually 20–60 seconds.");
-    $("status").innerHTML = "";
-    render(result);
-  } catch (err) {
-    $("status").innerHTML = `<p class="status">⚠ ${esc(err.message)}</p>`;
-  } finally {
-    $("analyze").disabled = false;
-  }
-});
-
-function render({ analysis: a }) {
-  // Format drift: the agent answered in prose, not the schema — show it readably.
-  if (!a.headcount && !a.capacity && !a.warnings) {
-    $("result").innerHTML = proseFallback("Guest list review", a.summary);
-    return;
-  }
-  const hc = a.headcount || {}, cap = a.capacity || {}, cat = a.catering_cost || {};
-  $("stat-projection").textContent = (hc.likely_projection ?? "—");
-
-  const headroom = cap.headroom_at_likely;
-  const headroomStr = (headroom === undefined || headroom === null) ? "" :
-    `<span class="${headroom >= 0 ? "headroom-neg" : "headroom-neg"}" style="font-size:1rem;color:${headroom >= 0 ? "var(--sev-green)" : "var(--sev-red)"}">${headroom >= 0 ? headroom + " seats to spare" : Math.abs(headroom) + " over capacity"}</span>`;
-
-  const wcard = (w) => `
-    <div class="flag ${esc(w.severity)}">
-      <span class="chip ${esc(w.severity)}">${esc(w.severity)}</span>
-      <div><b>${esc(w.issue)}</b>${w.detail ? " — " + esc(w.detail) : ""}</div>
-      <div class="rec"><b>Do:</b> ${esc(w.recommendation)}</div>
-    </div>`;
-  const { hotHtml, foldHtml } = foldBySeverity(a.warnings, wcard,
-    "✓ Guest list looks healthy — nothing urgent.");
-
-  const followUps = (a.follow_ups || []).map(f => `<li>${esc(f)}</li>`).join("") || "<li>No one — every reply is in.</li>";
-
-  $("result").innerHTML = `
-    <div class="card report" style="margin-top:1.5rem;">
-      <div class="report-head">
-        <p class="eyebrow" style="margin-bottom:.3rem">Headcount projection</p>
-        <h2>${hc.likely_projection ?? "—"} likely ${headroomStr}</h2>
-        <p style="margin-top:.4rem;color:var(--ink-soft);">
-          Floor <b>${hc.confirmed_floor ?? "—"}</b> confirmed ·
-          ceiling <b>${hc.worst_case_ceiling ?? "—"}</b> if everyone says yes${cap.venue_capacity ? ` · venue holds <b>${cap.venue_capacity}</b>` : ""}
-        </p>
-        ${cat.at_likely ? `<p style="margin-top:.6rem">Catering at the likely headcount: <b>${money(cat.at_likely)}</b> <span style="color:var(--ink-soft)">(${money(cat.at_floor)}–${money(cat.at_ceiling)} across the range)</span></p>` : ""}
-        <p style="margin-top:.6rem">${esc(a.summary)}</p>
-        ${verdictChips(a.warnings)}
-      </div>
-      <div class="report-section">
-        <h3>Sort these out</h3>
-        <div class="flag-list">${hotHtml}</div>
-        ${foldHtml}
-      </div>
-      <div class="report-section">
-        <h3>Who to follow up with</h3><ul class="nice-list">${followUps}</ul>
-      </div>
-      ${hc.assumptions ? `<div class="report-section"><p style="margin:0;font-size:.85rem;color:var(--ink-soft);"><em>How Vow got here: ${esc(hc.assumptions)}</em></p></div>` : ""}
-    </div>`;
-}
-
-load();
+  function renderAll() { renderSummary(); renderFilters(); renderTable(); renderHeadcount(); }
+  await load();
+  renderAll();
+})();
 </script>
 </body>
 </html>

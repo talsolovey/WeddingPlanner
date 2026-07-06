@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Day-of handoff sheet — prepared by Vow ✦</title>
+<link rel="stylesheet" href="/vow.css">
+<script src="/vow-shell.js"></script>
+<style>
+  @page { size: letter; margin: 0.7in; }
+  body { background: #faf7f3; display: block; }
+  .toolbar { max-width: 8.5in; margin: 1.2rem auto 0; padding: 0 1rem; display: flex; justify-content: space-between; align-items: center; }
+  .sheet {
+    background: #fff; max-width: 8.5in; min-height: 11in; margin: 1rem auto 3rem;
+    padding: 0.7in; box-shadow: 0 10px 40px -18px rgba(38,34,42,0.25);
+    color: #26222a; font-size: 10pt; line-height: 1.55; box-sizing: border-box;
+    display: flex; flex-direction: column;
+  }
+  .sheet-head { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #85495a; padding-bottom: 10px; }
+  .sheet-names { font-family: var(--serif); font-size: 24pt; font-weight: 400; color: #26222a; }
+  .sheet-sub { font-size: 10pt; color: #7d7380; }
+  .sheet h2 { font-family: var(--serif); font-weight: 500; font-size: 13pt; color: #85495a; margin: 18pt 0 6pt; }
+  .sheet table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+  .sheet td { padding: 4pt 8pt 4pt 0; border-bottom: 1px solid #eee6de; vertical-align: top; }
+  .sheet tr:last-child td { border-bottom: none; }
+  .sheet .t-time { width: 60pt; font-weight: 600; color: #85495a; }
+  .sheet th { text-align: left; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.08em; color: #7d7380; padding: 0 8pt 3pt 0; border-bottom: 1px solid #ddd3ca; font-weight: 600; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24pt; }
+  .sheet ul { margin: 0; padding-left: 14pt; font-size: 10pt; line-height: 1.7; }
+  .sideways { margin-top: 18pt; border: 1px solid #e4c9cf; background: #fdf9f8; border-radius: 8pt; padding: 10pt 14pt; font-size: 10pt; color: #26222a; }
+  .sheet-footer { margin-top: auto; padding-top: 24pt; display: flex; justify-content: space-between; font-size: 8pt; color: #b3a8ad; }
+  .avoid-break { break-inside: avoid; }
+  @media print {
+    .toolbar, .vow-chat-fab, .vow-chat-panel { display: none !important; }
+    body { background: #fff; }
+    .sheet { box-shadow: none; margin: 0; padding: 0; max-width: none; min-height: auto; }
+  }
+</style>
+</head>
+<body data-chrome="none">
+<div class="toolbar">
+  <a href="/timeline" class="btn tertiary">← Back to the timeline</a>
+  <button class="btn primary" onclick="window.print()">Print</button>
+</div>
+
+<div class="sheet" id="sheet"></div>
+
+<script>
+(async function () {
+  const esc = VOW.esc;
+  const [profile, tl, guests, seating] = await Promise.all([
+    fetch("/api/profile").then((r) => r.json()),
+    fetch("/api/timeline").then((r) => r.json()),
+    fetch("/api/guests").then((r) => r.json()),
+    fetch("/api/seating").then((r) => r.json()),
+  ]);
+
+  const names = [profile.partner_a, profile.partner_b].filter(Boolean).join(" & ") || "The couple";
+  const dateStr = guests.settings.wedding_date;
+  const dateLong = dateStr
+    ? new Date(dateStr + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" }) : "";
+  const dateShort = dateStr
+    ? new Date(dateStr + "T00:00:00").toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "";
+
+  const confirmed = guests.households.reduce((s, h) => s + (h.rsvp === "confirmed" ? (h.attending_count || 0) : 0), 0);
+  const outstanding = guests.households.reduce((s, h) =>
+    s + (["pending", "no_response"].includes(h.rsvp) ? (h.party_size || 0) : 0), 0);
+  const likely = confirmed + Math.round(outstanding * 0.75);
+  const seats = seating.tables.reduce((s, t) => s + (t.capacity || 0), 0);
+
+  document.getElementById("sheet").innerHTML = `
+    <div class="sheet-head">
+      <div>
+        <div class="sheet-names">${esc(names)}</div>
+        <div class="sheet-sub">Day-of handoff sheet — for the coordinator &amp; family</div>
+      </div>
+      <div style="text-align:right;font-size:10pt">
+        <b>${esc(dateLong)}</b><br>
+        <span style="color:#7d7380">${esc(profile.venue || "")}${tl.sunset ? " · sunset " + esc(tl.sunset) : ""}</span>
+      </div>
+    </div>
+
+    <div class="avoid-break">
+      <h2>The schedule</h2>
+      <table>
+        <tbody>
+          ${(tl.events || []).map((e) => `
+            <tr>
+              <td class="t-time">${esc(e.time)}</td>
+              <td>${e.title.toLowerCase().includes("ceremony") ? `<b>${esc(e.title)}</b>` : esc(e.title)}${e.detail ? ` — ${esc(e.detail)}` : ""}</td>
+            </tr>`).join("")}
+        </tbody>
+      </table>
+    </div>
+
+    ${(tl.contacts || []).length ? `
+    <div class="avoid-break">
+      <h2>Vendors — who to call</h2>
+      <table>
+        <thead>
+          <tr><th>Vendor</th><th>Contact</th><th style="padding-right:0">Arrives</th></tr>
+        </thead>
+        <tbody>
+          ${tl.contacts.map((c) => `
+            <tr>
+              <td><b>${esc(c.vendor)}</b> — ${esc(c.role)}</td>
+              <td>${esc(c.contact)}</td>
+              <td style="padding-right:0">${esc(c.arrives)}</td>
+            </tr>`).join("")}
+        </tbody>
+      </table>
+    </div>` : ""}
+
+    <div class="two-col avoid-break">
+      <div>
+        <h2>Key people</h2>
+        <ul>
+          ${(tl.key_people || []).map((p) => `
+            <li><b>${esc(p.name)}</b> (${esc(p.role)}) — ${esc(p.note)}${p.phone ? " · " + esc(p.phone) : ""}</li>`).join("")}
+        </ul>
+      </div>
+      <div>
+        <h2>The room</h2>
+        <p style="font-size:10pt;margin:0;line-height:1.7">${seating.tables.length} tables · ${seats} seats · ~${likely} guests expected.<br>${esc(tl.room_notes || "").replaceAll("\n", "<br>")}</p>
+      </div>
+    </div>
+
+    ${tl.sideways ? `
+    <div class="sideways avoid-break">
+      <b style="color:#85495a">If anything goes sideways:</b> ${esc(tl.sideways)}
+    </div>` : ""}
+
+    <div class="sheet-footer">
+      <span>${esc(names)} · ${esc(dateShort)}</span>
+      <span>prepared by Vow ✦</span>
+    </div>`;
+})();
+</script>
+</body>
+</html>

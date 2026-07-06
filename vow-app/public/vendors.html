@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vow ✦ — Vendors</title>
+<link rel="stylesheet" href="/vow.css">
+<script src="/vow-shell.js"></script>
+<style>
+  main { width: 100%; max-width: 960px; margin: 0 auto; padding: 3rem 1.5rem 4rem; flex: 1; }
+  .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .status-chips { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1.4rem; }
+  .chip-plain { display: inline-flex; align-items: center; gap: 0.45rem; border: 1px solid var(--hairline); background: var(--card); color: var(--ink-soft); border-radius: 999px; padding: 0.3rem 0.9rem; font-size: 0.82rem; }
+
+  .vendor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 1rem; margin-top: 1.6rem; }
+  .vendor-card { background: var(--card); border: 1px solid var(--hairline); border-radius: 16px; padding: 1.3rem 1.4rem; box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: 0.6rem; }
+  .vendor-role { text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.62rem; font-weight: 600; color: var(--ink-soft); }
+  .vendor-name { font-family: var(--serif); font-size: 1.15rem; margin-top: 0.1rem; }
+  .vendor-status { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; white-space: nowrap; margin-top: 0.2rem; }
+  .vendor-money { font-size: 0.85rem; color: var(--ink); }
+  .vendor-next { font-size: 0.82rem; color: var(--ink-soft); }
+  .vendor-next.amber { color: var(--amber); }
+  .vendor-actions { display: flex; gap: 0.5rem; margin-top: auto; padding-top: 0.5rem; border-top: 1px solid var(--divider); }
+  .act-btn { background: none; border: 1px solid var(--hairline); color: var(--ink-soft); border-radius: 999px; padding: 0.3rem 0.85rem; font: inherit; font-size: 0.76rem; font-weight: 500; cursor: pointer; text-decoration: none; }
+  .act-btn:hover { border-color: var(--rose); color: var(--rose); }
+  .draft-btn { background: none; border: none; color: var(--rose); font: inherit; font-size: 0.76rem; font-weight: 500; cursor: pointer; padding: 0.3rem 0.4rem; }
+
+  .tofind-card { border: 1.5px dashed #ddd3ca; border-radius: 16px; padding: 1.3rem 1.4rem; display: flex; flex-direction: column; justify-content: center; gap: 0.3rem; color: var(--ink-soft); cursor: pointer; }
+  .tofind-card:hover { border-color: var(--rose); }
+</style>
+</head>
+<body data-page="vendors">
+<main>
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">Vendors</h1>
+      <p class="page-sub" style="margin-top:0.3rem">Everyone building your day — contracts, payments and next steps in one place.</p>
+    </div>
+    <a class="btn secondary" href="/budget">+ Add a vendor</a>
+  </div>
+
+  <div class="status-chips" id="chips"></div>
+  <div class="vendor-grid" id="grid"></div>
+</main>
+
+<script>
+(async function () {
+  const $ = (id) => document.getElementById(id);
+  const esc = VOW.esc, money = VOW.money;
+
+  const [budget, contracts, guests] = await Promise.all([
+    fetch("/api/budget").then((r) => r.json()),
+    fetch("/api/contracts").then((r) => r.json()),
+    fetch("/api/guests").then((r) => r.json()),
+  ]);
+
+  const PRETTY = {
+    "venue": "Venue & catering", "photography": "Photography & video",
+    "flowers/decor": "Flowers & decor", "music/DJ": "Music — DJ",
+    "music/ceremony": "Music — ceremony", "cake": "Cake & desserts",
+    "hair/makeup": "Hair & makeup", "attire": "Attire", "rings": "Rings",
+    "stationery": "Stationery", "transport": "Transport",
+  };
+  const pretty = (c) => PRETTY[c] || (c.charAt(0).toUpperCase() + c.slice(1));
+  const cost = (i) => i.contracted || i.estimated || 0;
+  const statusOf = (i) => i.contracted > 0 ? "signed" : (i.vendor && i.estimated > 0 ? "quote" : "estimate");
+  const COLOR = { signed: "var(--green)", quote: "var(--amber)", estimate: "var(--ink-faint)" };
+
+  const withVendor = budget.items.filter((i) => i.vendor).sort((a, b) => cost(b) - cost(a));
+  const toFind = budget.items.filter((i) => !i.vendor).sort((a, b) => cost(b) - cost(a));
+  const weddingLabel = guests.settings.wedding_date
+    ? new Date(guests.settings.wedding_date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "";
+
+  const contractFor = (i) => contracts.find((c) =>
+    c.vendor.toLowerCase().includes(i.vendor.toLowerCase()) ||
+    i.vendor.toLowerCase().includes(c.vendor.split(" - ")[0].trim().toLowerCase()));
+
+  /* status chips */
+  const nSigned = withVendor.filter((i) => statusOf(i) === "signed").length;
+  const nQuotes = withVendor.filter((i) => statusOf(i) === "quote").length;
+  $("chips").innerHTML = `
+    ${nSigned ? `<span class="chip-ok">${nSigned} signed</span>` : ""}
+    ${nQuotes ? `<span class="chip-warn">${nQuotes} quote${nQuotes === 1 ? "" : "s"} waiting on your signature</span>` : ""}
+    ${toFind.length ? `<span class="chip-plain">${toFind.length} still to find</span>` : ""}`;
+
+  /* vendor cards */
+  function nextFor(i, st) {
+    const remaining = cost(i) - (i.paid || 0);
+    if (st === "signed") {
+      return remaining > 0
+        ? { text: `Next: ${money(remaining)} balance due ${weddingLabel ? weddingLabel : "before the day"}`, cls: "" }
+        : { text: "Fully paid — nothing left to do ✓", cls: "" };
+    }
+    if (st === "quote") return { text: "Waiting on your signature", cls: "amber" };
+    return { text: "Still an estimate — pin down the real price", cls: "" };
+  }
+
+  function actionFor(i, st) {
+    if (st === "signed") return contractFor(i)
+      ? { label: "Open contract", href: "/contracts" }
+      : { label: "Upload the contract", href: "/contracts" };
+    if (st === "quote") return { label: "Review quote", href: "/budget" };
+    return { label: "Add details", href: "/budget" };
+  }
+
+  $("grid").innerHTML = withVendor.map((i) => {
+    const st = statusOf(i);
+    const next = nextFor(i, st);
+    const act = actionFor(i, st);
+    const moneyLine = st === "signed"
+      ? `${money(cost(i))} · ${i.paid ? money(i.paid) + " paid" : "nothing paid"}`
+      : st === "quote"
+        ? `${money(cost(i))} quoted · ${i.paid ? money(i.paid) + " paid" : "nothing paid"}`
+        : `${money(cost(i))} estimated`;
+    return `
+    <div class="vendor-card" data-id="${i.id}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.6rem">
+        <div>
+          <div class="vendor-role">${esc(pretty(i.category))}</div>
+          <div class="vendor-name">${esc(i.vendor)}</div>
+        </div>
+        <span class="vendor-status" style="color:${COLOR[st]}">
+          <span class="dot" style="background:${COLOR[st]}"></span>${st}
+        </span>
+      </div>
+      <div class="vendor-money">${moneyLine}</div>
+      <div class="vendor-next ${next.cls}">${esc(next.text)}</div>
+      <div class="vendor-actions">
+        <a class="act-btn" href="${act.href}">${act.label}</a>
+        <button class="draft-btn">✦ Draft a message</button>
+      </div>
+    </div>`;
+  }).join("") + (toFind.length ? `
+    <div class="tofind-card" id="tofind">
+      <div style="font-weight:600;font-size:0.92rem;color:var(--ink)">Still to find</div>
+      <div style="font-size:0.82rem">${toFind.map((i) => pretty(i.category)).join(" · ")}</div>
+      <div style="font-size:0.8rem;color:var(--rose);font-weight:500;margin-top:0.3rem">✦ Ask Vow for suggestions →</div>
+    </div>` : "");
+
+  document.querySelectorAll(".draft-btn").forEach((btn) => {
+    btn.onclick = () => {
+      const card = btn.closest(".vendor-card");
+      const i = withVendor.find((x) => x.id === card.dataset.id);
+      const st = statusOf(i);
+      VOW.askVow(`Draft a short, friendly WhatsApp message to ${i.vendor} (our ${pretty(i.category).toLowerCase()}) about the next step: ${nextFor(i, st).text.toLowerCase()}.`);
+    };
+  });
+  const tofind = document.getElementById("tofind");
+  if (tofind) tofind.onclick = () => {
+    VOW.askVow(`We still need to find: ${toFind.map((i) => pretty(i.category).toLowerCase()).join(", ")}. Which should we lock in first, and how do we choose well?`);
+  };
+})();
+</script>
+</body>
+</html>

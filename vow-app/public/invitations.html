@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vow ✦ — Invitations</title>
+<link rel="stylesheet" href="/vow.css">
+<script src="/vow-shell.js"></script>
+<style>
+  main { width: 100%; max-width: 880px; margin: 0 auto; padding: 3rem 1.5rem 4rem; flex: 1; }
+  .rule-line { color: var(--ink-faint); font-size: 0.82rem; margin: 0; }
+
+  .stats-card { display: flex; gap: 2.2rem; flex-wrap: wrap; align-items: baseline; background: var(--card); border: 1px solid var(--hairline); border-radius: 16px; padding: 1.3rem 1.8rem; margin-top: 1.6rem; box-shadow: var(--card-shadow); }
+  .stats-card .stat { font-family: var(--serif); font-size: 1.6rem; }
+  .next-send { margin-left: auto; text-align: right; max-width: 26ch; }
+  .next-send .label { text-transform: uppercase; letter-spacing: 0.14em; font-size: 0.66rem; font-weight: 600; color: var(--rose); }
+
+  .waves { margin-top: 2rem; display: flex; flex-direction: column; }
+  .wave-row { display: grid; grid-template-columns: 20px 1fr; gap: 0 1.2rem; }
+  .dot-col { display: flex; flex-direction: column; align-items: center; }
+  .wave-dot { flex: none; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--amber); background: transparent; margin-top: 0.35rem; }
+  .wave-dot.sent { border-color: var(--green); background: var(--green); }
+  .wave-dot.rose { border-color: var(--rose); }
+  .dot-line { flex: 1; width: 1.5px; background: var(--hairline); margin-top: 2px; }
+  .wave-body { padding-bottom: 1.6rem; }
+  .wave-card { background: var(--card); border: 1px solid var(--hairline); border-radius: 16px; padding: 1.2rem 1.5rem; box-shadow: var(--card-shadow); }
+  .wave-card.editing { border-color: var(--rose-tint-border); }
+  .wave-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+  .wave-title { font-family: var(--serif); font-size: 1.1rem; }
+  .wave-status { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; }
+  .wave-detail { color: var(--ink-soft); font-size: 0.86rem; margin-top: 0.2rem; }
+
+  .wave-controls { display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap; margin-top: 0.9rem; }
+  .ctl-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-soft); font-weight: 600; }
+  .date-input { padding: 0.45rem 0.8rem; border: 1px solid var(--hairline); border-radius: 10px; font: inherit; font-size: 0.85rem; background: #fff; outline: none; color: var(--ink); }
+  .date-input:focus { border-color: var(--rose); }
+  .send-now { background: none; border: none; color: var(--rose); font: inherit; font-size: 0.8rem; font-weight: 500; cursor: pointer; padding: 0; }
+
+  .editor { margin-top: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; align-items: start; }
+  .editor textarea { width: 100%; box-sizing: border-box; padding: 0.8rem 1rem; border: 1px solid var(--hairline); border-radius: 12px; font: inherit; font-size: 0.86rem; line-height: 1.5; background: #fff; outline: none; resize: vertical; }
+  .editor textarea:focus { border-color: var(--rose); }
+  .gen-btn { background: var(--rose-tint); border: 1px solid var(--rose-tint-border); color: var(--rose); border-radius: 999px; padding: 0.4rem 1.1rem; font: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+  .gen-btn:hover { background: #fbf1f0; }
+  .gen-btn.busy { animation: vow-pulse 1.2s ease-in-out infinite; }
+  .wa-preview { background: #e7f8ee; border-radius: 14px 14px 14px 4px; padding: 0.7rem 1rem; font-size: 0.84rem; line-height: 1.5; color: #1f3326; box-shadow: 0 1px 2px rgba(38,34,42,0.08); white-space: pre-wrap; }
+  .wa-meta { text-align: right; font-size: 0.66rem; color: #7ba18a; margin-top: 0.3rem; }
+
+  .recips { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-top: 0.8rem; }
+  .recips .lead { font-size: 0.75rem; color: var(--ink-soft); margin-right: 0.2rem; padding-top: 0.15rem; }
+  .recip-chip { border: 1px solid var(--amber-border); background: var(--amber-tint); color: var(--amber); border-radius: 999px; padding: 0.15rem 0.7rem; font-size: 0.76rem; }
+  @media (max-width: 720px) { .editor { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body data-page="invitations">
+<main>
+  <div>
+    <h1 class="page-title">Invitations</h1>
+    <p class="page-sub" style="margin:0.3rem 0 0.4rem">From save-the-date to the thank-you note the morning after — write it once, schedule it, and Vow sends it.</p>
+    <p class="rule-line">✦ Vow stops nudging a household the moment they reply. No one gets more than three reminders.</p>
+  </div>
+
+  <div class="stats-card" id="stats"></div>
+  <section class="waves" id="waves"></section>
+</main>
+
+<script>
+(async function () {
+  const $ = (id) => document.getElementById(id);
+  const esc = VOW.esc;
+
+  let view, editing = null, generating = null, firstRender = true;
+  let rsvpLinks = {};
+
+  const fmt = (iso, opts = { month: "short", day: "numeric" }) => {
+    try { return new Date(iso + "T00:00:00").toLocaleDateString("en-US", opts); } catch (e) { return iso; }
+  };
+
+  async function load() {
+    view = await fetch("/api/invitations").then((r) => r.json());
+    try {
+      const lk = await fetch("/api/guests/rsvp-links", { method: "POST" }).then((r) => r.json());
+      rsvpLinks = Object.fromEntries((lk.links || []).map((l) => [l.id, l.url]));
+    } catch (e) { /* preview link stays generic */ }
+    if (firstRender) {
+      const firstScheduled = (view.waves || []).find((w) => w.status === "scheduled" && w.kind === "reminder");
+      editing = firstScheduled ? firstScheduled.id : null;
+      firstRender = false;
+    }
+  }
+
+  function detailFor(w) {
+    const s = view.stats;
+    if (w.id === "save_the_date" && w.status === "sent")
+      return `Sent ${fmt(w.sent_on, { month: "long", day: "numeric" })} · reached all ${w.sent_count} households on WhatsApp`;
+    if (w.id === "invitation" && w.status === "sent")
+      return `Sent ${fmt(w.sent_on, { month: "long", day: "numeric" })} with each household's private RSVP link · ${w.replied_of_sent} of ${w.sent_count} replied`;
+    if (w.status === "sent")
+      return `Sent ${fmt(w.sent_on, { month: "long", day: "numeric" })} · to ${w.sent_count} household${w.sent_count === 1 ? "" : "s"}`;
+    if (w.id === "reminder_1")
+      return "Only to households who haven't replied — anyone who answers first is skipped automatically.";
+    if (w.id === "final_reminder")
+      return `Two weeks before your ${view.settings.rsvp_deadline ? fmt(view.settings.rsvp_deadline, { month: "long", day: "numeric" }) : ""} RSVP deadline. This is the last one — after this, Vow suggests a personal call.`;
+    if (w.id === "day_of")
+      return "The morning of the wedding, to everyone who said yes — time, directions, parking and the shuttle.";
+    if (w.id === "thank_you")
+      return "A warm thank-you to everyone who celebrated with you. Vow can attach a favorite photo when you have one.";
+    return "";
+  }
+
+  function chipsFor(w) {
+    if (w.kind === "day_of") return [`All ${w.recipients.length} confirmed households`];
+    if (w.kind === "thank_you") return ["Everyone who attended"];
+    return w.recipients.map((r) => r.household);
+  }
+
+  function previewFor(w) {
+    const first = w.recipients[0];
+    const name = first ? first.household : "Cohen Family";
+    const link = first && rsvpLinks[first.id]
+      ? location.host + rsvpLinks[first.id].slice(0, 12) + "…"
+      : location.host + "/rsvp/44101a";
+    const venueSlug = "maps.app/" + ((VOW.profile && VOW.profile.venue) || "the-venue")
+      .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    return (w.message || "")
+      .replaceAll("[name]", name)
+      .replaceAll("[rsvp link]", link)
+      .replaceAll("[directions link]", venueSlug);
+  }
+
+  function render() {
+    const s = view.stats;
+    $("stats").innerHTML = `
+      <div><div class="eyebrow">Households</div><div class="stat">${s.households}</div></div>
+      <div><div class="eyebrow">Replied</div><div class="stat" style="color:var(--green)">${s.replied}</div></div>
+      <div><div class="eyebrow">Still quiet</div><div class="stat" style="color:var(--amber)">${s.quiet}</div></div>
+      <div class="next-send">
+        <div class="label">Next send</div>
+        <div style="font-size:0.88rem">${s.next_send
+          ? `${esc(s.next_send.title)} · <b>${fmt(s.next_send.date)}</b> · to ${s.next_send.count} household${s.next_send.count === 1 ? "" : "s"}`
+          : "nothing scheduled"}</div>
+      </div>`;
+
+    const waves = view.waves || [];
+    $("waves").innerHTML = waves.map((w, i) => {
+      const sent = w.status === "sent";
+      const roseDot = ["day_of", "thank_you"].includes(w.kind) && !sent;
+      const statusColor = sent ? "var(--green)" : roseDot ? "var(--rose)" : "var(--amber)";
+      const isEditing = editing === w.id;
+      const showChips = !sent && (w.kind !== "broadcast" && w.kind !== "invite");
+      return `
+      <div class="wave-row" data-id="${w.id}">
+        <div class="dot-col">
+          <span class="wave-dot ${sent ? "sent" : roseDot ? "rose" : ""}"></span>
+          ${i < waves.length - 1 ? `<span class="dot-line"></span>` : ""}
+        </div>
+        <div class="wave-body">
+          <div class="wave-card ${isEditing ? "editing" : ""}">
+            <div class="wave-head">
+              <div class="wave-title">${esc(w.title)}</div>
+              <span class="wave-status" style="color:${statusColor}">
+                <span class="dot" style="background:${statusColor}"></span>${sent ? "sent" : "scheduled " + fmt(w.send_on)}
+              </span>
+            </div>
+            <div class="wave-detail">${detailFor(w)}</div>
+            ${!sent ? `
+            <div class="wave-controls">
+              <label class="ctl-label">Send on</label>
+              <input type="date" class="date-input" value="${esc(w.send_on || "")}">
+              <button class="btn secondary small edit-toggle">${isEditing ? "Close editor" : "Edit message"}</button>
+              <button class="send-now">Send now instead</button>
+            </div>
+            ${isEditing ? `
+            <div class="editor">
+              <div>
+                <label class="ctl-label" style="display:block;margin-bottom:0.4rem">Your message · [name] and [${w.kind === "day_of" ? "directions link" : "rsvp link"}] fill in automatically</label>
+                <textarea rows="5" class="msg-input">${esc(w.message || "")}</textarea>
+                <div style="display:flex;gap:0.5rem;margin-top:0.6rem">
+                  <button class="gen-btn ${generating === w.id ? "busy" : ""}">${generating === w.id ? "✦ Vow is writing…" : "✦ Let Vow write it"}</button>
+                  <span style="font-size:0.78rem;color:var(--ink-faint);align-self:center">or write it yourself above — it's from you, after all</span>
+                </div>
+              </div>
+              <div>
+                <label class="ctl-label" style="display:block;margin-bottom:0.4rem">How the ${esc((w.recipients[0] || {}).household || "Cohen family")} will see it</label>
+                <div class="wa-preview"><span class="wa-text">${esc(previewFor(w))}</span><div class="wa-meta">via WhatsApp · 14:00</div></div>
+              </div>
+            </div>` : ""}
+            ${showChips ? `
+            <div class="recips">
+              <span class="lead">Goes to:</span>
+              ${chipsFor(w).map((n) => `<span class="recip-chip">${esc(n)}</span>`).join("")}
+            </div>` : ""}` : ""}
+          </div>
+        </div>
+      </div>`;
+    }).join("");
+
+    /* wire events */
+    document.querySelectorAll(".wave-row").forEach((row) => {
+      const id = row.dataset.id;
+      const dateInput = row.querySelector(".date-input");
+      if (dateInput) dateInput.onchange = async (e) => {
+        const res = await fetch("/api/invitations/waves/" + id, { method: "PUT",
+          headers: { "Content-Type": "application/json" }, body: JSON.stringify({ send_on: e.target.value }) });
+        if (res.ok) { view = await res.json(); render(); VOW.toast("Rescheduled ✦"); }
+      };
+      const toggle = row.querySelector(".edit-toggle");
+      if (toggle) toggle.onclick = () => { editing = editing === id ? null : id; render(); };
+      const sendNow = row.querySelector(".send-now");
+      if (sendNow) sendNow.onclick = async () => {
+        const w = view.waves.find((x) => x.id === id);
+        const n = w.recipients.length;
+        if (!confirm(`Send “${w.title}” now to ${n} household${n === 1 ? "" : "s"}?`)) return;
+        const res = await fetch(`/api/invitations/waves/${id}/send`, { method: "POST" });
+        const data = await res.json();
+        if (res.ok) {
+          view = data;
+          if (editing === id) editing = null;
+          render();
+          VOW.toast(`Sent to ${data.sent.count} households ✦`);
+          const p = VOW.profile || {};
+          fetch("/api/activity", { method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ actor: p.partner_a || "You", text: `sent “${w.title}” to ${data.sent.count} households` }) });
+        } else {
+          VOW.toast(data.error || "Couldn't send — try again.");
+        }
+      };
+      const msg = row.querySelector(".msg-input");
+      if (msg) {
+        let timer;
+        msg.oninput = () => {
+          const w = view.waves.find((x) => x.id === id);
+          w.message = msg.value;
+          const pv = row.querySelector(".wa-text");
+          if (pv) pv.textContent = previewFor(w);
+          clearTimeout(timer);
+          timer = setTimeout(() => {
+            fetch("/api/invitations/waves/" + id, { method: "PUT",
+              headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: msg.value }) });
+          }, 600);
+        };
+      }
+      const gen = row.querySelector(".gen-btn");
+      if (gen) gen.onclick = async () => {
+        if (generating) return;
+        generating = id; render();
+        try {
+          const res = await fetch("/api/invitations/generate", { method: "POST",
+            headers: { "Content-Type": "application/json" }, body: JSON.stringify({ wave_id: id }) });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Vow couldn't write just now.");
+          const w = view.waves.find((x) => x.id === id);
+          w.message = data.message;
+          await fetch("/api/invitations/waves/" + id, { method: "PUT",
+            headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: data.message }) });
+        } catch (e) {
+          VOW.toast(e.message || "Vow couldn't write just now — try again.");
+        }
+        generating = null; render();
+      };
+    });
+  }
+
+  await load();
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vow ✦ — Checklist</title>
+<link rel="stylesheet" href="/vow.css">
+<script src="/vow-shell.js"></script>
+<style>
+  main { width: 100%; max-width: 760px; margin: 0 auto; padding: 3rem 1.5rem 4rem; flex: 1; }
+  .cl-head { text-align: center; margin-bottom: 2.4rem; }
+  .cl-progress { max-width: 340px; margin: 1.4rem auto 0; }
+  .cl-progress p { color: var(--ink-faint); font-size: 0.78rem; margin: 0.5rem 0 0; }
+  .cl-progress b { color: var(--rose); font-weight: 600; }
+
+  .phase { background: var(--card); border: 1px solid var(--hairline); border-radius: 16px; margin-bottom: 1.1rem; box-shadow: var(--card-shadow); overflow: hidden; }
+  .phase.current { border-color: var(--rose-tint-border); }
+  .phase-head { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 1rem; background: none; border: none; padding: 1.1rem 1.5rem; cursor: pointer; font-family: inherit; text-align: left; }
+  .phase-title { font-family: var(--serif); font-size: 1.15rem; color: var(--ink); }
+  .phase-meta { font-size: 0.78rem; color: var(--ink-soft); }
+  .phase-meta.done { color: var(--green); }
+  .phase-chev { color: var(--ink-faint); font-size: 0.85rem; }
+  .phase-items { padding: 0 1.5rem 1rem; display: flex; flex-direction: column; }
+  .cl-row { display: flex; gap: 0.9rem; align-items: flex-start; padding: 0.7rem 0; border-top: 1px solid var(--divider); }
+  .cl-check {
+    flex: none; width: 20px; height: 20px; margin-top: 2px; border-radius: 50%;
+    border: 1.5px solid #ddd3ca; background: transparent; color: var(--card);
+    font-size: 0.62rem; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;
+  }
+  .cl-row.done .cl-check { background: var(--rose); border-color: var(--rose); }
+  .cl-label { font-size: 0.92rem; font-weight: 500; }
+  .cl-row.done .cl-label { text-decoration: line-through; opacity: 0.5; }
+  .auto-mark { font-size: 0.72rem; color: var(--ink-faint); margin-left: 0.5rem; }
+</style>
+</head>
+<body data-page="checklist">
+<main>
+  <div class="cl-head">
+    <h1 class="page-title">The whole journey</h1>
+    <p class="page-sub" style="margin-top:0.5rem" id="sub"></p>
+    <div class="cl-progress">
+      <div class="bar"><i class="gradient" id="cl-fill" style="width:0%"></i></div>
+      <p id="cl-caption"></p>
+    </div>
+  </div>
+  <div id="phases"></div>
+</main>
+
+<script>
+(async function () {
+  const $ = (id) => document.getElementById(id);
+  const esc = VOW.esc;
+
+  let view = await fetch("/api/checklist").then((r) => r.json());
+  let openState = null;
+
+  const weddingLabel = view.wedding_date
+    ? new Date(view.wedding_date + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric" }) : "your date";
+  $("sub").textContent = `Paced to ${weddingLabel}. Vow checks things off as you do them in the app.`;
+
+  function render() {
+    if (openState === null) {
+      openState = {};
+      view.phases.forEach((p) => { openState[p.key] = p.current; });
+    }
+    const pct = view.total ? Math.round((view.done_count / view.total) * 100) : 0;
+    $("cl-fill").style.width = pct + "%";
+    const current = view.phases[view.current_index];
+    $("cl-caption").innerHTML = `${view.done_count} of ${view.total} done` +
+      (current ? ` · next up is the <b>${esc(current.title.toLowerCase())}</b> list` : "");
+
+    $("phases").innerHTML = view.phases.map((p) => {
+      const open = !!openState[p.key];
+      const allDone = p.done === p.items.length && p.items.length > 0;
+      return `
+      <section class="phase ${p.current ? "current" : ""}" data-key="${p.key}">
+        <button class="phase-head">
+          <span style="display:flex;align-items:baseline;gap:0.8rem">
+            <span class="phase-title">${esc(p.title)}${p.current ? " — you are here" : ""}</span>
+            <span class="phase-meta ${allDone ? "done" : ""}">${allDone ? "all done ✓" : `${p.done} of ${p.items.length} done`}</span>
+          </span>
+          <span class="phase-chev">${open ? "▾" : "▸"}</span>
+        </button>
+        ${open ? `
+        <div class="phase-items">
+          ${p.items.map((it) => `
+            <div class="cl-row ${it.done ? "done" : ""}" data-id="${it.id}">
+              <button class="cl-check" title="${it.done ? "Mark not done" : "Mark done"}">${it.done ? "✓" : ""}</button>
+              <div style="flex:1;min-width:0">
+                <span class="cl-label">${esc(it.label)}</span>
+                ${it.auto ? `<span class="auto-mark" title="Vow checked this off automatically">✦ auto</span>` : ""}
+              </div>
+              ${it.href ? `<a class="area-link" style="font-size:0.78rem;margin-top:2px" href="${it.href}">${esc(it.area)} →</a>` : ""}
+            </div>`).join("")}
+        </div>` : ""}
+      </section>`;
+    }).join("");
+
+    document.querySelectorAll(".phase-head").forEach((btn) => {
+      btn.onclick = () => {
+        const key = btn.closest(".phase").dataset.key;
+        openState[key] = !openState[key];
+        render();
+      };
+    });
+    document.querySelectorAll(".cl-check").forEach((btn) => {
+      btn.onclick = async () => {
+        const row = btn.closest(".cl-row");
+        const wasDone = row.classList.contains("done");
+        const res = await fetch("/api/checklist/items/" + row.dataset.id, { method: "PUT",
+          headers: { "Content-Type": "application/json" }, body: JSON.stringify({ done: !wasDone }) });
+        if (res.ok) {
+          view = await res.json();
+          if (!wasDone) VOW.cheer();
+          render();
+        }
+      };
+    });
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
