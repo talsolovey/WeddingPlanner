@@ -1,15 +1,21 @@
 """Guest list + RSVP: the agent projects the headcount and reconciles it
-against venue capacity and the catering budget."""
+against venue capacity and the catering budget.
+
+The latest headcount check is cached to disk (data/headcount.json) so the
+guests page can show the projection card instantly."""
 
 import json
 import uuid
+from datetime import datetime
 
 from flask import Blueprint, jsonify, request, send_from_directory
 
 from agent.harness import AgentHarness
-from .core import GUESTS_PATH, PUBLIC_DIR, parse_agent_json, run_job
+from .core import DATA_DIR, GUESTS_PATH, PUBLIC_DIR, parse_agent_json, run_job
 
 guests_bp = Blueprint("guests", __name__)
+
+HEADCOUNT_PATH = DATA_DIR / "headcount.json"
 
 DEFAULT_GUEST_SETTINGS = {
     "currency": "USD", "venue_capacity": 0, "catering_per_head": 0,
@@ -170,6 +176,17 @@ def delete_household(household_id):
     return jsonify({"ok": True, "removed": before - len(guests["households"])})
 
 
+@guests_bp.get("/api/guests/headcount/latest")
+def latest_headcount():
+    if not HEADCOUNT_PATH.exists():
+        return jsonify({"exists": False})
+    try:
+        cached = json.loads(HEADCOUNT_PATH.read_text())
+    except (json.JSONDecodeError, OSError):
+        return jsonify({"exists": False})
+    return jsonify(dict(cached, exists=True))
+
+
 @guests_bp.post("/api/guests/analyze")
 def analyze_guests():
     guests = load_guests()
@@ -186,7 +203,11 @@ def analyze_guests():
             "Respond with ONLY the JSON object defined in the guest-list-manager skill "
             "— no prose, no markdown, no headings."
         )
-        return {"analysis": parse_agent_json(answer),
-                "cost_usd": round(harness.last_run_cost, 4)}
+        result = {"analysis": parse_agent_json(answer),
+                  "cost_usd": round(harness.last_run_cost, 4)}
+        HEADCOUNT_PATH.parent.mkdir(exist_ok=True)
+        HEADCOUNT_PATH.write_text(json.dumps(dict(
+            result, generated_at=datetime.now().isoformat(timespec="seconds")), indent=2))
+        return result
 
     return jsonify({"job_id": run_job(task)})

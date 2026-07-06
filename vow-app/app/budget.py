@@ -1,14 +1,20 @@
-"""Budget tracker + the agent's realistic final-cost forecast."""
+"""Budget tracker + the agent's realistic final-cost forecast.
+
+The latest forecast is cached to disk (data/forecast.json) so the budget page
+can show the forecast card instantly without an agent run on every visit."""
 
 import json
 import uuid
+from datetime import datetime
 
 from flask import Blueprint, jsonify, request, send_from_directory
 
 from agent.harness import AgentHarness
-from .core import BUDGET_PATH, PUBLIC_DIR, parse_agent_json, rate_limit, run_job
+from .core import BUDGET_PATH, DATA_DIR, PUBLIC_DIR, parse_agent_json, rate_limit, run_job
 
 budget_bp = Blueprint("budget", __name__)
+
+FORECAST_PATH = DATA_DIR / "forecast.json"
 
 
 def load_budget():
@@ -83,6 +89,17 @@ def delete_budget_item(item_id):
     return jsonify({"ok": True, "removed": before - len(budget["items"])})
 
 
+@budget_bp.get("/api/budget/forecast/latest")
+def latest_forecast():
+    if not FORECAST_PATH.exists():
+        return jsonify({"exists": False})
+    try:
+        cached = json.loads(FORECAST_PATH.read_text())
+    except (json.JSONDecodeError, OSError):
+        return jsonify({"exists": False})
+    return jsonify(dict(cached, exists=True))
+
+
 @budget_bp.post("/api/budget/analyze")
 @rate_limit()
 def analyze_budget():
@@ -99,7 +116,11 @@ def analyze_budget():
             "Respond with ONLY the JSON object defined in the budget-forecaster skill "
             "— no prose, no markdown, no headings."
         )
-        return {"analysis": parse_agent_json(answer),
-                "cost_usd": round(harness.last_run_cost, 4)}
+        result = {"analysis": parse_agent_json(answer),
+                  "cost_usd": round(harness.last_run_cost, 4)}
+        FORECAST_PATH.parent.mkdir(exist_ok=True)
+        FORECAST_PATH.write_text(json.dumps(dict(
+            result, generated_at=datetime.now().isoformat(timespec="seconds")), indent=2))
+        return result
 
     return jsonify({"job_id": run_job(task)})
