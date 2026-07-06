@@ -1,7 +1,7 @@
 # PROJECT_STATE — WeddingOS / Vow
 
 > A plain-language summary of where the project stands, updated after every step.
-> Last updated: 2026-07-06 (Step 18: Supabase-ready storage — all data goes through one document store; Postgres when configured, local files otherwise).
+> Last updated: 2026-07-06 (Step 19: scheduled autonomous brief — the weekly brief now runs unattended on the WS4 pattern, via a Vow MCP server + launchd).
 
 ## What is this project
 
@@ -17,8 +17,15 @@ WeddingOS/
 ├── cursor-landing-page/   # Week 1 landing page — the one we're keeping
 ├── web-landing-page/      # Week 1, built without tools (for comparison)
 ├── harness-landing-page/  # Week 1, built with my custom harness (for comparison)
+├── autonomous/            # WS4 kit: the weekly brief on a schedule, unattended
+│   ├── PROMPT.md          #   the headless agent's job (call tool → save draft → stop)
+│   ├── run-agent.sh       #   one capped run: claude -p → mcp__vow__* → outbox/ draft
+│   ├── guardrails/        #   deny hook + "draft must exist" stop hook (synced to .claude/)
+│   └── LaunchAgents/      #   launchd plist: fires daily at 08:00, runs on wake
 └── vow-app/               # ← the actual product, everything new happens here
     ├── server.py          # thin entry point — builds the app, starts the server
+    ├── mcp_server.py      # Vow as an MCP server: get_wedding_status (read-only) +
+    │                      #   run_weekly_brief (runs the orchestrator) — the WS4 agent's only door in
     ├── app/               # the web layer, one module per feature (Flask blueprints)
     │   ├── core.py        #   shared: file paths, background jobs, JSON parsing
     │   ├── contracts.py   #   /api/contracts routes + helpers
@@ -99,6 +106,7 @@ threat model + defenses in `vow-app/SECURITY.md`.
 | Step 15b | Iteration round from live use: full inline row editing in the guest list (PUT now covers all fields with add-rules validation; meals then dietary removed end-to-end — form, API, skills, data); WhatsApp invites via click-to-chat with per-household magic links, phone capture, one-tap invite queue with ✓ sent tracking; visual seating room (round table-tops, seat dots, hover-✕ remove, seat-by-group); auto-seat applies directly with code validation as the gate; UI minimalism pass (ghost buttons, folded settings, single rose action per page); agent results unified into one sectioned report card with verdict chips + severity folding; JSON-only reinforcement on all agent endpoints + graceful prose fallback | ✅ 47 tests pass; all pages serve; JS syntax-checked |
 | Step 16 | Home = mission control: countdown hero (days/weeks from `wedding_date`), the weekly brief moved home as a checkable to-do list (latest brief cached to `data/brief.json`, served by `GET /api/weekly-brief/latest`, so home loads instantly; "✦ Ask Vow to refresh" re-runs the orchestrator), summary sidebar (budget/guests/seating/contracts/lessons). Weekly Brief dropped from the nav (page still serves at /weekly-brief) | ✅ 47 tests pass; all 6 pages serve; JS checked |
 | Step 18 | Supabase migration: new `storage.py` document layer — every dataset (budget, guests, seating, contracts, profile, waves, checklist, timeline, caches) is one JSON document read/written through a single module by both the web app and the agent's tools. With `SUPABASE_URL` + `SUPABASE_SERVICE_KEY` set it uses a Postgres `vow_documents` JSONB table (RLS on, no public policies, service key server-side only, short write-through read cache); without them it falls back to the local `data/*.json` files unchanged. `supabase_schema.sql` + `migrate_to_supabase.py` do the one-time setup; agent write backups + destructive-write guard preserved | ✅ 68 tests pass (6 new storage tests incl. a fake-client Supabase suite); live app verified on the file backend; Supabase push pending credentials |
+| Step 19 | Scheduled autonomous brief (WS4 + WS3): `vow-app/mcp_server.py` exposes Vow as an MCP server — `run_weekly_brief` (triggers the orchestrator, caches to the home dashboard = self-notification) + read-only `get_wedding_status` fallback; `autonomous/` kit runs it headless (`claude -p`, allow-list of just Read/Write + the 2 tools, `--max-turns 15` + `--max-budget-usd 1.00` stacked on the orchestrator's own $0.50 cap), deny hook logs blocked commands, a Stop hook refuses to finish without a dated draft in `outbox/`, launchd fires it daily at 08:00 | ✅ 72 tests pass (4 new, offline); both hooks exercised (block / force-continue / anti-loop); MCP server lists both tools; live scheduled run pending on the Mac |
 | Step 17 | Full UI redesign from the `design_handoff_vow_app/` package: shared design system (`public/vow.css` tokens + `vow-shell.js` header/nav/toasts/mobile tab bar), all pages rebuilt to the reference designs (Home with refresh progress + new-couple state, Budget with payments calendar + what-if sliders, Guests with filters + WhatsApp nudges, Seating, Contracts, guest RSVP invitation card), five new screens (Checklist, Invitations, Vendors, Timeline, Login + 6-step Onboarding), a print-ready day-of handoff sheet, and a floating "✦ Ask Vow" chat on every page. New backend: couple profile (photo, priorities; syncs date/budget), invitation wave scheduler (recipients recomputed at send time — repliers skipped, max 3 reminders per household, due waves auto-send), checklist with auto-check rules driven by live app data, day-of timeline + LLM "check the flow", chat + message-generation endpoints (couple's data snapshot injected server-side as the system prompt) | ✅ 62 tests pass (15 new, offline); every page screenshotted against the reference; live chat + message-generation calls verified |
 
 ## Decisions made (and why)
@@ -149,6 +157,17 @@ threat model + defenses in `vow-app/SECURITY.md`.
   code writes. First live run had justified this gate: the model broke capacity on 3 of
   13 tables.
 
+- **The unattended agent triggers Vow's orchestrator, it doesn't re-analyze** — the WS4
+  workshop template suggested a read-only status tool; we kept that only as a fallback.
+  `run_weekly_brief` runs the product's own sub-agents + verifier, so the scheduled brief
+  is the same quality as the button in the UI ("your product's agent runs on the loop").
+- **Credentials live in the MCP server, never the agent** — `OPENAI_API_KEY` is read from
+  `vow-app/.env` by the server process; deny rules block the agent from reading any `.env`.
+  The agent's whole world is: two Vow tools, Read, Write. No Bash on the allow-list.
+- **Guardrail files live in git (`autonomous/guardrails/`), synced to `.claude/` by
+  run-agent.sh** — this session couldn't write `.claude/` directly (protected path), and
+  the sync is idempotent + reviewable anyway.
+
 ## Next steps
 
 1. ~~Deploy to Render~~ — done; live instance running. Push redeploys it.
@@ -156,9 +175,12 @@ threat model + defenses in `vow-app/SECURITY.md`.
    (no MCP) vs GitHub MCP line-count, then compare.
 3. A scored eval harness (still deferred).
 
+3. ~~Scheduled autonomous brief (WS4)~~ — built; on the Mac: register the MCP server +
+   load the launchd plist (see `autonomous/README.md`), then collect a week of run records.
+
 Backlog: capstone demo video (due Wed Jul 8, 10:00) — the before/after verifier story is
-the centerpiece; vendor comparison with a reasoned recommendation; scheduled autonomous
-brief (WS4); measure the lessons-loop effect with the eval suite.
+the centerpiece; vendor comparison with a reasoned recommendation; measure the
+lessons-loop effect with the eval suite.
 
 ## How to run it
 
