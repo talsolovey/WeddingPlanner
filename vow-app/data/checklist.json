@@ -1,0 +1,57 @@
+{
+  "phases": [
+    {
+      "key": "p0",
+      "title": "A year out",
+      "items": [
+        {"id": "c001", "label": "Set the date & rough budget", "auto_rule": "date_and_budget_set", "manual": null, "href": "", "area": ""},
+        {"id": "c002", "label": "Book the venue", "auto_rule": "venue_booked", "manual": null, "href": "/vendors", "area": "Vendors"},
+        {"id": "c003", "label": "Draft the guest list", "auto_rule": "guest_list_drafted", "manual": null, "href": "/guests", "area": "Guests"},
+        {"id": "c004", "label": "Book the photographer", "auto_rule": "photographer_booked", "manual": null, "href": "/vendors", "area": "Vendors"}
+      ]
+    },
+    {
+      "key": "p1",
+      "title": "6 months out",
+      "items": [
+        {"id": "c101", "label": "Send save-the-dates", "auto_rule": "save_the_dates_sent", "manual": null, "href": "/invitations", "area": "Invites"},
+        {"id": "c102", "label": "Choose the dress & suit", "auto_rule": "", "manual": true, "href": "", "area": ""},
+        {"id": "c103", "label": "Book hair & makeup trial", "auto_rule": "", "manual": null, "href": "", "area": ""},
+        {"id": "c104", "label": "Start the seating plan", "auto_rule": "seating_started", "manual": null, "href": "/seating", "area": "Seating"}
+      ]
+    },
+    {
+      "key": "p2",
+      "title": "4 months out",
+      "items": [
+        {"id": "c201", "label": "Sign the DJ, florist and shuttle", "auto_rule": "music_flowers_transport_signed", "manual": null, "href": "/vendors", "area": "Vendors"},
+        {"id": "c202", "label": "Renegotiate the venue cancellation terms", "auto_rule": "", "manual": null, "href": "/contracts", "area": "Contracts"},
+        {"id": "c203", "label": "Chase the last RSVPs", "auto_rule": "rsvps_all_in", "manual": null, "href": "/invitations", "area": "Invites"},
+        {"id": "c204", "label": "Cake tasting at Sweet Layers (Jul 14)", "auto_rule": "", "manual": null, "href": "/vendors", "area": "Vendors"},
+        {"id": "c205", "label": "Set aside a contingency fund", "auto_rule": "contingency_set", "manual": null, "href": "/budget", "area": "Budget"}
+      ]
+    },
+    {
+      "key": "p3",
+      "title": "1 month out",
+      "items": [
+        {"id": "c301", "label": "Final headcount to the caterer", "auto_rule": "rsvps_all_in", "manual": null, "href": "/guests", "area": "Guests"},
+        {"id": "c302", "label": "Finish the seating chart", "auto_rule": "seating_finished", "manual": null, "href": "/seating", "area": "Seating"},
+        {"id": "c303", "label": "Confirm arrival times with every vendor", "auto_rule": "", "manual": null, "href": "/vendors", "area": "Vendors"},
+        {"id": "c304", "label": "Dress & suit final fittings", "auto_rule": "", "manual": null, "href": "", "area": ""},
+        {"id": "c305", "label": "Write your vows", "auto_rule": "", "manual": null, "href": "", "area": ""}
+      ]
+    },
+    {
+      "key": "p4",
+      "title": "The week of",
+      "items": [
+        {"id": "c401", "label": "Print the day-of handoff sheet", "auto_rule": "", "manual": null, "href": "/day-of", "area": "Sheet"},
+        {"id": "c402", "label": "Schedule the day-of directions message", "auto_rule": "day_of_message_scheduled", "manual": null, "href": "/invitations", "area": "Invites"},
+        {"id": "c403", "label": "Hand the rings to the best man", "auto_rule": "", "manual": null, "href": "", "area": ""},
+        {"id": "c404", "label": "Pack an emergency kit", "auto_rule": "", "manual": null, "href": "", "area": ""},
+        {"id": "c405", "label": "Breathe. Vow has the rest.", "auto_rule": "", "manual": null, "href": "", "area": ""}
+      ]
+    }
+  ]
+}

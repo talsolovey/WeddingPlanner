@@ -1,0 +1,15 @@
+{
+  "partner_a": "Tal",
+  "partner_b": "Omer",
+  "wedding_date": "2026-11-12",
+  "venue": "The Vineyard Pavilion",
+  "photo": "",
+  "guests_estimate": 180,
+  "budget_estimate": 200000,
+  "priorities": [
+    "Food & wine",
+    "Music & party",
+    "Staying on budget"
+  ],
+  "onboarded": true
+}

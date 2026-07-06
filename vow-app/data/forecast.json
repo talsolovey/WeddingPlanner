@@ -1,0 +1,37 @@
+{
+  "analysis": {
+    "forecast_total": 214000,
+    "budget_total": 200000,
+    "delta": 14000,
+    "confidence": "medium",
+    "summary": "The committed total already exceeds the $200,000 cap by $1,000. Three categories (music, flowers, transport) are still estimates, not contracts, and typically settle above quote. You haven't budgeted for gratuities or day-of extras.",
+    "warnings": [
+      {
+        "category": "music/DJ",
+        "issue": "unsigned quotes ($33,000) usually rise 10–15% this close to the date",
+        "severity": "red",
+        "recommendation": "Sign the DJ, florist and shuttle now"
+      },
+      {
+        "category": "contingency",
+        "issue": "set aside 5–10% for the surprises every wedding has",
+        "severity": "yellow",
+        "recommendation": "Add a contingency line"
+      },
+      {
+        "category": "payments",
+        "issue": "everything is due before the wedding day; push balances later where you can",
+        "severity": "yellow",
+        "recommendation": "Watch the prepayment"
+      }
+    ],
+    "missing_categories": [
+      "contingency",
+      "officiant",
+      "insurance"
+    ],
+    "payment_exposure": "About $158,500 of the $201,000 committed is due before the wedding day — a heavy prepayment concentration driven by the venue."
+  },
+  "cost_usd": 0.02,
+  "generated_at": "2026-07-05T19:20:00"
+}

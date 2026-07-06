@@ -1,0 +1,97 @@
+{
+  "sunset": "16:42",
+  "flags": [
+    "Sunset is 16:42 — golden-hour photos must happen before the ceremony",
+    "No buffer between photos and guests arriving"
+  ],
+  "events": [
+    {
+      "id": "t01",
+      "time": "12:00",
+      "title": "Hair & makeup begins",
+      "detail": "At the hotel suite — bride, plus mothers at 13:30",
+      "flag": "",
+      "vendor_category": ""
+    },
+    {
+      "id": "t02",
+      "time": "14:30",
+      "title": "First look & couple photos",
+      "detail": "Vineyard terrace with Lior Bloom",
+      "flag": "Sunset is 16:42 — this is your golden-hour window, don't let it slip",
+      "vendor_category": "photography"
+    },
+    {
+      "id": "t03",
+      "time": "16:30",
+      "title": "Guests begin to arrive",
+      "detail": "Shuttle drops at the pavilion entrance",
+      "flag": "Photos end 16:30 sharp with no buffer — move first look to 14:00 for breathing room",
+      "vendor_category": ""
+    },
+    {
+      "id": "t04",
+      "time": "17:00",
+      "title": "Ceremony under the chuppah",
+      "detail": "Processional music: ceremony musicians (not yet booked)",
+      "flag": "",
+      "vendor_category": "music/ceremony"
+    },
+    {
+      "id": "t05",
+      "time": "17:45",
+      "title": "Cocktail hour",
+      "detail": "Terrace — venue bar staff, family photos happen now",
+      "flag": "",
+      "vendor_category": ""
+    },
+    {
+      "id": "t06",
+      "time": "19:00",
+      "title": "Dinner is served",
+      "detail": "Catering for ~158 · toasts between courses",
+      "flag": "",
+      "vendor_category": ""
+    },
+    {
+      "id": "t07",
+      "time": "21:00",
+      "title": "First dance, then everyone",
+      "detail": "DJ Nova takes over (quote still unsigned)",
+      "flag": "",
+      "vendor_category": "music/DJ"
+    },
+    {
+      "id": "t08",
+      "time": "23:30",
+      "title": "Cake & late-night sweets",
+      "detail": "Sweet Layers dessert bar",
+      "flag": "",
+      "vendor_category": "cake"
+    },
+    {
+      "id": "t09",
+      "time": "01:00",
+      "title": "Last song & send-off",
+      "detail": "Shuttle runs until 01:30",
+      "flag": "",
+      "vendor_category": ""
+    }
+  ],
+  "contacts": [
+    {"vendor": "The Vineyard Pavilion", "role": "venue & catering", "contact": "Dana · 052-000-0001", "arrives": "on site"},
+    {"vendor": "Lior Bloom Studio", "role": "photo & video", "contact": "Lior · 052-000-0002", "arrives": "12:00 at the suite"},
+    {"vendor": "DJ Nova", "role": "music", "contact": "Noam · 052-000-0003", "arrives": "15:00 soundcheck"},
+    {"vendor": "Petals & Co", "role": "flowers & chuppah", "contact": "Maya · 052-000-0004", "arrives": "13:00 setup"},
+    {"vendor": "Sweet Layers", "role": "cake & desserts", "contact": "Adi · 052-000-0005", "arrives": "20:00 delivery"},
+    {"vendor": "Shuttle", "role": "guest transport", "contact": "dispatch · 052-000-0006", "arrives": "15:45 & 01:30 runs"}
+  ],
+  "key_people": [
+    {"name": "Ido", "role": "best man", "note": "has the rings", "phone": "052-000-0007"},
+    {"name": "Shira", "role": "maid of honor", "note": "emergency kit & vows", "phone": "052-000-0008"},
+    {"name": "Rina", "role": "Tal's mother", "note": "vendor payments envelope", "phone": ""},
+    {"name": "Avi", "role": "Omer's father", "note": "shuttle & guest questions", "phone": ""}
+  ],
+  "room_notes": "Seating chart printed separately — easel by the entrance.\nReserved: table 1 (immediate family), table 14 (grandparents near the exit, away from speakers).",
+  "sideways": "don't tell the couple unless you must. Call Dana (venue) first, then Shira. Dinner can flex 30 minutes; the ceremony cannot — sunset is 16:42 and photos depend on it."
+}

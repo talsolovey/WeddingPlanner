@@ -1,0 +1,113 @@
+{
+  "waves": [
+    {
+      "id": "save_the_date",
+      "title": "Save the date",
+      "kind": "broadcast",
+      "status": "sent",
+      "send_on": "2026-05-01",
+      "sent_on": "2026-05-01",
+      "message": "",
+      "sent_to": [
+        "g01",
+        "g02",
+        "g03",
+        "g04",
+        "g05",
+        "g06",
+        "g07",
+        "g08",
+        "g09",
+        "g10",
+        "g11",
+        "g12",
+        "g13",
+        "g14",
+        "g15",
+        "g16",
+        "g17",
+        "g18",
+        "g19",
+        "g20",
+        "g21",
+        "g22",
+        "g23",
+        "g24",
+        "b67fa9e9"
+      ]
+    },
+    {
+      "id": "invitation",
+      "title": "The invitation",
+      "kind": "invite",
+      "status": "sent",
+      "send_on": "2026-06-15",
+      "sent_on": "2026-06-15",
+      "message": "",
+      "sent_to": [
+        "g01",
+        "g02",
+        "g03",
+        "g04",
+        "g05",
+        "g06",
+        "g07",
+        "g08",
+        "g09",
+        "g10",
+        "g11",
+        "g12",
+        "g13",
+        "g14",
+        "g15",
+        "g16",
+        "g17",
+        "g18",
+        "g19",
+        "g20",
+        "g21",
+        "g22",
+        "g23",
+        "g24",
+        "b67fa9e9"
+      ]
+    },
+    {
+      "id": "reminder_1",
+      "title": "Reminder 1",
+      "kind": "reminder",
+      "status": "scheduled",
+      "send_on": "2026-07-20",
+      "message": "Hi [name]! 💍 Just a gentle nudge — we'd love to know if you can join us on November 12. It takes half a minute: [rsvp link] 🤍",
+      "sent_to": []
+    },
+    {
+      "id": "final_reminder",
+      "title": "Final reminder",
+      "kind": "reminder",
+      "status": "scheduled",
+      "send_on": "2026-09-17",
+      "message": "Hi [name], the caterer needs our final numbers this week — could you let us know either way? [rsvp link] With love, Tal & Omer 🤍",
+      "sent_to": []
+    },
+    {
+      "id": "day_of",
+      "title": "Day-of reminder & directions",
+      "kind": "day_of",
+      "status": "scheduled",
+      "send_on": "2026-11-12",
+      "message": "Today's the day, [name]! 🤍 Ceremony at 17:00, The Vineyard Pavilion — doors open 16:30. Directions & parking: [directions link]. The shuttle leaves Dizengoff Square at 15:45. See you under the chuppah!",
+      "sent_to": []
+    },
+    {
+      "id": "thank_you",
+      "title": "The day after — thank you",
+      "kind": "thank_you",
+      "status": "scheduled",
+      "send_on": "2026-11-13",
+      "message": "Dear [name], thank you for celebrating with us yesterday — having you there meant the world. We'll send photos soon. With all our love, Tal & Omer 🤍",
+      "sent_to": []
+    }
+  ],
+  "reminder_counts": {}
+}

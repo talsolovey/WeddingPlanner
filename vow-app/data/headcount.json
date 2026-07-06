@@ -1,0 +1,51 @@
+{
+  "analysis": {
+    "headcount": {
+      "confirmed_floor": 136,
+      "likely_projection": 158,
+      "worst_case_ceiling": 165,
+      "assumptions": "136 confirmed, plus roughly 75% of the 29 people in pending households based on typical reply patterns."
+    },
+    "capacity": {
+      "venue_capacity": 200,
+      "headroom_at_likely": 42,
+      "status": "green",
+      "note": "Comfortably inside the venue's 200 even if everyone pending says yes."
+    },
+    "catering_cost": {
+      "per_head": 350,
+      "at_floor": 47600,
+      "at_likely": 55300,
+      "at_ceiling": 57750,
+      "note": "Catering estimated at $350 per head at the likely count."
+    },
+    "warnings": [
+      {
+        "issue": "No reply past the deadline",
+        "detail": "past the deadline with no contact; 6 seats hang on their reply",
+        "severity": "red",
+        "recommendation": "Chase the Yosef family"
+      },
+      {
+        "issue": "Large pending households",
+        "detail": "21 invited between them; most are expected to come",
+        "severity": "yellow",
+        "recommendation": "Nudge Ovadia and Malka"
+      },
+      {
+        "issue": "Unnamed plus-one",
+        "detail": "confirmed, but the seat count needs the name",
+        "severity": "yellow",
+        "recommendation": "Ask Klein for their plus-one's name"
+      }
+    ],
+    "follow_ups": [
+      "Chase the Yosef family — past the RSVP deadline",
+      "Nudge the Ovadia and Malka families",
+      "Ask Klein for their plus-one's name"
+    ],
+    "summary": "On track: 158 likely guests against a 200-seat venue. The biggest risk is the 4 households still quiet — 29 seats swing on them."
+  },
+  "cost_usd": 0.022,
+  "generated_at": "2026-07-05T19:10:00"
+}
