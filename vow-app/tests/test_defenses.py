@@ -26,6 +26,7 @@ VOW_APP = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(VOW_APP))
 _TMP_DATA = tempfile.mkdtemp(prefix="vow-test-data-")
 os.environ["VOW_DATA_DIR"] = _TMP_DATA  # must be set before importing registry/app
+os.environ["VOW_STORAGE_BACKEND"] = "files"  # tests never touch Supabase
 
 from agent import guard                       # noqa: E402
 from agent.registry import ToolRegistry, BACKUP_DIR, DATA_DIR  # noqa: E402

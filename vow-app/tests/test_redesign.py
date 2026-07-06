@@ -26,6 +26,7 @@ from pathlib import Path
 VOW_APP = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(VOW_APP))
 os.environ.setdefault("VOW_DATA_DIR", tempfile.mkdtemp(prefix="vow-test-data-"))
+os.environ.setdefault("VOW_STORAGE_BACKEND", "files")  # tests never touch Supabase
 
 import app.core as core          # noqa: E402
 from app import create_app      # noqa: E402
