@@ -67,6 +67,17 @@ export CLAUDE_PROJECT_DIR="$PROJECT_DIR"
 # interactive sessions are never nagged.
 export VOW_ENFORCE_BRIEF=1
 
+# ── Observability (WS4 Task 4, step 2) ──
+# TELEMETRY=1 turns on OpenTelemetry console exporters: token/cost metrics and
+# events print to stderr, which this script already captures per-run in
+# agent-runs/run_<stamp>.err — so telemetry lands next to the run record.
+if [ "${TELEMETRY:-0}" = "1" ]; then
+  export CLAUDE_CODE_ENABLE_TELEMETRY=1
+  export OTEL_METRICS_EXPORTER=console
+  export OTEL_LOGS_EXPORTER=console
+  echo "  TELEMETRY=1 (OTEL console exporters → run_$STAMP.err)"
+fi
+
 echo "[$(date)] Starting Vow weekly-brief run (stamp=$STAMP)..."
 echo "  PROJECT_DIR=$PROJECT_DIR"
 echo "  TOOLS=$BRIEF_TOOL $STATUS_TOOL"
@@ -93,6 +104,12 @@ if command -v jq &>/dev/null; then
   jq '{cost: .total_cost_usd, turns: .num_turns, ok: (.is_error|not)}' \
     "$RUN_DIR/run_$STAMP.json" 2>/dev/null || true
 fi
+
+# ── Observability: save a human-readable trajectory next to the run record ──
+# What the agent ACTUALLY did (tool calls, in order) — read it off disk later.
+"$SCRIPT_DIR/trajectory.sh" > "$RUN_DIR/trajectory_$STAMP.txt" 2>/dev/null \
+  && echo "  trajectory → $RUN_DIR/trajectory_$STAMP.txt" \
+  || echo "  (trajectory summary unavailable — see ~/.claude/projects manually)"
 
 # ── Self-notification: push today's draft to the couple's own Telegram chat ──
 # Deterministic post-run code, NOT an agent tool — the model never holds a
