@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  LaunchAgent — schedules Vow's run-agent.sh daily at 08:00.
+
+  WHY launchd (not cron): StartCalendarInterval fires ON WAKE if the Mac was
+  asleep at 08:00. Cron would just skip it.
+
+  Daily (not weekly) during the observation week, so every day leaves a run
+  record + draft. To make it weekly, add <key>Weekday</key><integer>1</integer>
+  to the interval dict (1 = Monday).
+
+  SETUP:
+    cp autonomous/LaunchAgents/com.vow.weekly-brief.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.vow.weekly-brief.plist
+    launchctl list | grep com.vow
+
+  KILL SWITCH:
+    launchctl unload ~/Library/LaunchAgents/com.vow.weekly-brief.plist
+    rm ~/Library/LaunchAgents/com.vow.weekly-brief.plist
+
+  MDM CAVEAT: if launchctl load fails on a corporate Mac, use
+  run-loop-fallback.sh in a tmux session instead.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.vow.weekly-brief</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-c</string>
+    <string>/Users/talsolovey/Desktop/WeddingOS/autonomous/run-agent.sh</string>
+  </array>
+
+  <!-- Fire at 08:00 every day. launchd runs on wake if the Mac was asleep. -->
+  <key>StartCalendarInterval</key>
+  <array>
+    <dict>
+      <key>Hour</key>
+      <integer>8</integer>
+      <key>Minute</key>
+      <integer>0</integer>
+    </dict>
+  </array>
+
+  <key>StandardOutPath</key>
+  <string>/Users/talsolovey/Desktop/WeddingOS/autonomous/agent-runs/agent.out</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/talsolovey/Desktop/WeddingOS/autonomous/agent-runs/agent.err</string>
+</dict>
+</plist>

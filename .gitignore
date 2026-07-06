@@ -227,3 +227,8 @@ vow-app/data/.backups/
 
 # generated at runtime: cached latest weekly brief
 vow-app/data/brief.json
+
+# Vow autonomous run (WS4): drafts + run records + installed guardrails
+autonomous/outbox/
+autonomous/agent-runs/
+autonomous/.claude/
