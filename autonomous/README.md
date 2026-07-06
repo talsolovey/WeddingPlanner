@@ -19,6 +19,8 @@ launchd (daily 08:00)
 
 | File | Purpose |
 |---|---|
+| `setup.sh` | one-command setup: chmod, venv + deps, register the MCP server |
+| `smoke-test.sh` | one command that PROVES the stack is wired — hooks, server, tests ($0, no model call) |
 | `PROMPT.md` | the agent's job: trigger the brief, write the draft, stop |
 | `run-agent.sh` | one unattended run (installs guardrails, caps, run record) |
 | `guardrails/` | `.claude` settings + hooks, kept in git; synced to `.claude/` each run |
@@ -33,15 +35,11 @@ launchd (daily 08:00)
 
 The MCP server itself lives with the product: [`../vow-app/mcp_server.py`](../vow-app/mcp_server.py).
 
-## Setup (once)
+## Setup (once) — then prove it
 
 ```bash
-cd /Users/talsolovey/Desktop/WeddingOS
-vow-app/venv/bin/pip install mcp        # server dep (already in requirements.txt)
-
-claude mcp add --scope user --transport stdio vow -- \
-  "$(pwd)/vow-app/venv/bin/python3" "$(pwd)/vow-app/mcp_server.py"
-claude mcp list                          # expect: vow ✓ (tools mcp__vow__*)
+./autonomous/setup.sh        # chmod + venv deps + register the 'vow' MCP server
+./autonomous/smoke-test.sh   # 19 checks: hooks, settings, server tools, test suite
 ```
 
 `OPENAI_API_KEY` (and optional `SUPABASE_*`, `VOW_DATA_DIR`) are read from
@@ -89,6 +87,7 @@ launchctl list | grep com.vow
 
 ## Evidence this produces
 
+- `smoke-test.sh` — a runnable test the judge can execute (top evidence tier)
 - `agent-runs/run_*.json` — per-run cost/turns/ok from unattended fires
 - `outbox/wedding_actions_*.md` — the dated drafts themselves
 - `agent-runs/blocked.log` — anything the deny hook stopped
