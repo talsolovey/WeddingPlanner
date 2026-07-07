@@ -53,24 +53,21 @@
     <p id="signup-note" hidden style="color:var(--ink-soft);font-size:0.88rem;margin:0 0 1.4rem;text-align:center">One account for both of you — invite your partner after signup.</p>
 
     <label>Email</label>
-    <input type="email" class="auth-input" placeholder="you@example.com" style="margin-bottom:1.1rem">
+    <input type="email" id="email" class="auth-input" placeholder="you@example.com" style="margin-bottom:1.1rem" autocomplete="email">
     <label>Password</label>
-    <input type="password" class="auth-input" placeholder="••••••••">
+    <input type="password" id="password" class="auth-input" placeholder="••••••••" autocomplete="current-password">
 
-    <div id="forgot-row" style="text-align:right;margin-top:0.5rem">
-      <button class="btn tertiary" style="font-size:0.8rem">Forgot password?</button>
-    </div>
+    <p id="auth-msg" hidden style="font-size:0.85rem;margin:0.8rem 0 0"></p>
 
-    <a class="cta" id="cta" href="/">Sign in</a>
+    <button class="cta" id="cta">Sign in</button>
 
     <div class="divider"><span></span><span class="or">or</span><span></span></div>
 
     <div style="display:flex;flex-direction:column;gap:0.6rem">
-      <button class="oauth">
+      <button class="oauth" id="google-btn">
         <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.7 2.4 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.2C12.4 13.6 17.7 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.6 5.9c4.5-4.1 7-10.2 7-17.6z"></path><path fill="#FBBC05" d="M10.5 28.6c-.5-1.5-.8-3-.8-4.6s.3-3.1.8-4.6l-7.9-6.2C1 16.1 0 19.9 0 24s1 7.9 2.6 10.8l7.9-6.2z"></path><path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.6l-7.6-5.9c-2.1 1.4-4.7 2.2-7.6 2.2-6.3 0-11.6-4.1-13.5-9.9l-7.9 6.2C6.5 42.6 14.6 48 24 48z"></path></svg>
         Continue with Google
       </button>
-      <button class="oauth"> Continue with Apple</button>
     </div>
   </div>
 
@@ -82,17 +79,65 @@
   const segIn = document.getElementById("seg-in");
   const segUp = document.getElementById("seg-up");
   const cta = document.getElementById("cta");
+  const msg = document.getElementById("auth-msg");
+  let signin = true;
 
-  function mode(signin) {
+  function mode(isSignin) {
+    signin = isSignin;
     segIn.classList.toggle("on", signin);
     segUp.classList.toggle("on", !signin);
     document.getElementById("signup-note").hidden = signin;
-    document.getElementById("forgot-row").style.display = signin ? "" : "none";
+    document.getElementById("password").autocomplete = signin ? "current-password" : "new-password";
     cta.textContent = signin ? "Sign in" : "Start planning →";
-    cta.href = signin ? "/" : "/onboarding";
+    say("");
   }
   segIn.onclick = () => mode(true);
   segUp.onclick = () => mode(false);
+
+  function say(text, ok) {
+    msg.hidden = !text;
+    msg.textContent = text;
+    msg.style.color = ok ? "var(--ink-soft)" : "#a03c3c";
+  }
+
+  cta.onclick = async () => {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    if (!email || !password) return say("Enter your email and password.");
+    cta.disabled = true;
+    say(signin ? "Signing in…" : "Creating your account…", true);
+    try {
+      const res = await fetch(signin ? "/api/auth/login" : "/api/auth/signup", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || "Something went wrong.");
+      if (body.confirm_email) { say(body.message, true); return; }
+      // New accounts go to onboarding; returning couples straight home.
+      if (!signin) { location.href = "/onboarding"; return; }
+      const profile = await fetch("/api/profile").then((r) => r.json()).catch(() => ({}));
+      location.href = profile && profile.onboarded ? "/" : "/onboarding";
+    } catch (e) {
+      say(e.message);
+    } finally {
+      cta.disabled = false;
+    }
+  };
+  document.getElementById("password").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") cta.click();
+  });
+
+  document.getElementById("google-btn").onclick = async () => {
+    try {
+      const cfg = await fetch("/api/auth/config").then((r) => r.json());
+      if (!cfg.supabase_url) throw new Error("Google sign-in isn't configured yet.");
+      const back = encodeURIComponent(location.origin + "/auth/callback");
+      location.href = cfg.supabase_url + "/auth/v1/authorize?provider=google&redirect_to=" + back;
+    } catch (e) {
+      say(e.message || "Google sign-in isn't available right now.");
+    }
+  };
 })();
 </script>
 </body>

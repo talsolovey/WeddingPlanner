@@ -42,11 +42,6 @@ def save_profile(profile: dict):
     storage.save("profile", profile)
 
 
-@profile_bp.get("/login")
-def login_page():
-    return send_from_directory(str(PUBLIC_DIR), "login.html")
-
-
 @profile_bp.get("/onboarding")
 def onboarding_page():
     return send_from_directory(str(PUBLIC_DIR), "onboarding.html")

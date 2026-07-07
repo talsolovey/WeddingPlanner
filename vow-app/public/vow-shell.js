@@ -57,8 +57,14 @@ const VOW = (() => {
       <nav class="vow-nav">${NAV.map(([key, label, href]) =>
         `<a href="${href}"${key === active ? ' class="active"' : ""}>${label}</a>`).join("")}
       </nav>
-      <span class="vow-couple">${esc(coupleNames())}</span>`;
+      <span class="vow-couple">${esc(coupleNames())}</span>
+      <button class="vow-signout" title="Sign out" style="border:none;background:none;cursor:pointer;color:var(--ink-faint);font:inherit;font-size:0.78rem;padding:0.2rem 0.4rem">Sign out</button>`;
     document.body.prepend(header);
+    header.querySelector(".vow-signout").onclick = async () => {
+      try { await fetch("/api/auth/logout", { method: "POST" }); } catch (e) { /* ignore */ }
+      localStorage.removeItem("vow-profile");
+      location.href = "/login";
+    };
   }
 
   function mountFooter() {
