@@ -10,7 +10,8 @@
   main { width: 100%; max-width: 880px; margin: 0 auto; padding: 3.5rem 1.5rem 4rem; flex: 1; }
   .hero {
     text-align: center; margin-bottom: 3.2rem; padding-top: 0.5rem;
-    background: radial-gradient(ellipse 70% 55% at 50% 0%, rgba(160,92,109,0.08), transparent);
+    /* no local gradient — the app-wide blush in vow.css lights this section;
+       a second layer here read as a boxed halo around the hero */
     animation: vow-rise 0.7s ease both;
   }
   .hero-sparkles { position: relative; height: 0; max-width: 420px; margin: 0 auto; pointer-events: none; }
