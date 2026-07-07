@@ -165,6 +165,19 @@ def backend():
 
 # ---------- public API ----------
 
+# Save hooks: observers notified after every successful write (couple, name).
+# Used by agent.triggers so Vow can *notice* data changes (event-driven
+# wake-ups) without storage knowing anything about the agent. Hooks must
+# never break a save — they are isolated behind a bare except.
+_ON_SAVE_HOOKS = []
+
+
+def register_save_hook(fn):
+    """Idempotent: registering the same function twice keeps one copy."""
+    if fn not in _ON_SAVE_HOOKS:
+        _ON_SAVE_HOOKS.append(fn)
+
+
 def load(name: str, default=None):
     """Read a document for the current couple; `default` if missing/corrupt."""
     _check_name(name)
@@ -176,6 +189,11 @@ def save(name: str, data):
     """Write a document for the current couple (whole-document semantics)."""
     _check_name(name)
     backend().save(current_couple(), name, data)
+    for hook in list(_ON_SAVE_HOOKS):
+        try:
+            hook(current_couple(), name)
+        except Exception:
+            pass  # observers never break writes
 
 
 def exists(name: str) -> bool:

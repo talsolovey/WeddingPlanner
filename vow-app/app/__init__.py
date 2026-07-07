@@ -31,6 +31,7 @@ from .invitations import invitations_bp
 from .whatsapp import whatsapp_bp
 from .timeline import timeline_bp
 from .checklist import checklist_bp
+from .notices import notices_bp
 
 # Paths anyone may hit without a session.
 PUBLIC_PATHS = {"/login", "/auth/callback", "/favicon.ico"}
@@ -94,4 +95,11 @@ def create_app() -> Flask:
     app.register_blueprint(whatsapp_bp)
     app.register_blueprint(timeline_bp)
     app.register_blueprint(checklist_bp)
+    app.register_blueprint(notices_bp)
+
+    # Event-driven wake-ups: every data write is observed by agent.triggers,
+    # which debounces bursts and may leave a notice or (capped) refresh the
+    # brief. Registration is idempotent, so repeated create_app() is safe.
+    from agent.triggers import record_change
+    storage.register_save_hook(record_change)
     return app

@@ -112,6 +112,8 @@
     </div>
   </section>
 
+  <section id="notices" hidden></section>
+
   <section class="focus-card" id="focus-card"></section>
 
   <section class="glance" id="glance"></section>
@@ -377,6 +379,45 @@
   }
 
   renderFocus();
+
+  /* ---------- Vow noticed (agent-initiated notices) ---------- */
+  async function loadNotices() {
+    let items = [];
+    try { items = (await fetch("/api/notices").then((r) => r.json())).items || []; } catch (e) { return; }
+    const box = $("notices");
+    if (!items.length) { box.hidden = true; return; }
+    box.hidden = false;
+    box.innerHTML = items.slice(-3).reverse().map((n) => `
+      <div style="display:flex;align-items:baseline;gap:0.7rem;background:var(--rose-tint);border:1px solid var(--rose-tint-border);border-radius:12px;padding:0.7rem 1rem;margin-bottom:0.6rem">
+        <span style="color:var(--rose);flex:none">✦</span>
+        <div style="flex:1;min-width:0;font-size:0.86rem;color:var(--ink-soft)">
+          <b style="color:var(--ink);font-weight:600">Vow noticed</b> — ${esc(n.message)}
+          <span style="color:var(--ink-faint);font-size:0.74rem"> · ${esc((n.at || "").slice(0, 16).replace("T", " "))}</span>
+        </div>
+        ${n.kind === "proposal" ? `<button class="btn primary" style="flex:none;font-size:0.74rem;padding:0.3rem 0.8rem" data-approve="${esc(n.id)}">Approve</button>` : ""}
+        <button class="btn tertiary" style="flex:none;font-size:0.74rem;color:var(--ink-faint)" data-dismiss="${esc(n.id)}">${n.kind === "proposal" ? "Not now" : "Dismiss"}</button>
+      </div>`).join("");
+    box.querySelectorAll("[data-dismiss]").forEach((b) => {
+      b.onclick = async () => {
+        try { await fetch("/api/notices/" + b.dataset.dismiss + "/dismiss", { method: "POST" }); } catch (e) {}
+        loadNotices();
+      };
+    });
+    box.querySelectorAll("[data-approve]").forEach((b) => {
+      b.onclick = async () => {
+        b.disabled = true; b.textContent = "Sending…";
+        try {
+          const r = await fetch("/api/notices/" + b.dataset.approve + "/approve", { method: "POST" });
+          const data = await r.json();
+          if (!r.ok) throw new Error(data.error || "Couldn't do that.");
+          const res = data.result || {};
+          VOW.toast(res.sent ? `Done — ${res.sent} reminder${res.sent === 1 ? "" : "s"} sent ✦` : "Done ✦");
+        } catch (e) { VOW.toast(e.message || "Something went wrong."); }
+        loadNotices();
+      };
+    });
+  }
+  loadNotices();
 
   /* ---------- at a glance ---------- */
   function glanceCol(href, label, stat, statusText, statusCls, empty) {
