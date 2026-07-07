@@ -52,10 +52,22 @@ def parse_agent_json(answer: str):
 # NOTE: in-memory + threads — fine for a single local/long-running server,
 # revisit for serverless deployment.
 JOBS = {}
+MAX_JOBS = 200  # keep memory bounded on long-lived instances
+
+
+def _prune_jobs():
+    """Evict the oldest FINISHED jobs beyond the cap (dicts keep insertion
+    order, so iteration order == creation order). Running jobs are never
+    evicted — their worker threads still write into their entries."""
+    done = [jid for jid, j in JOBS.items() if j.get("done")]
+    excess = len(JOBS) - MAX_JOBS
+    for jid in done[:max(0, excess)]:
+        JOBS.pop(jid, None)
 
 
 def run_job(task_fn) -> str:
     import storage
+    _prune_jobs()
     job_id = uuid.uuid4().hex[:8]
     # Capture the requesting couple: the worker thread has no request context,
     # and contextvars don't cross threads on their own.
@@ -105,6 +117,11 @@ def rate_limit(max_calls: int = RATE_LIMIT_CALLS, window: int = RATE_LIMIT_WINDO
             ip = _client_ip()
             now = time.time()
             with _RATE_LOCK:
+                # Bound memory: drop IPs whose entries are all stale.
+                if len(_CALL_TIMES) > 1000:
+                    for stale_ip in [k for k, ts in _CALL_TIMES.items()
+                                     if not ts or now - ts[-1] > window]:
+                        _CALL_TIMES.pop(stale_ip, None)
                 recent = [t for t in _CALL_TIMES[ip] if now - t < window]
                 if len(recent) >= max_calls:
                     retry = int(window - (now - recent[0])) + 1

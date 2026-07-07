@@ -245,42 +245,65 @@ def nudge(hid):
 
 def deliver_wave(base_url: str, wave_id: str, emit=lambda e: None):
     """Send a just-sent wave's message to every frozen recipient, paced for
-    the sandbox. Runs inside a background job (couple context inherited);
-    records per-recipient results on the wave document as it goes."""
+    the sandbox. Runs inside a background job (couple context inherited).
+
+    Concurrency: the loop takes seconds per recipient, so it must NOT hold a
+    stale copy of the invitations document across iterations — every progress
+    write goes through storage.mutate(), which reloads the freshest document
+    under a per-document lock and touches only this wave's delivery entry.
+    Concurrent edits to other waves survive."""
     import time
-    from .invitations import load_invitations, save_invitations
+    from .invitations import load_invitations
 
     guests = load_guests()
     data = load_invitations(guests)
     wave = next((w for w in data["waves"] if w["id"] == wave_id), None)
     if wave is None or wave.get("status") != "sent":
         return {"error": "wave not found or not sent"}
-
+    recipients = list(wave.get("sent_to", []))
+    template = wave.get("message", "")
     by_id = {h["id"]: h for h in guests["households"]}
-    delivery = {"sent": [], "failed": [], "finished": False}
-    wave["delivery"] = delivery
 
-    for i, hid in enumerate(wave.get("sent_to", [])):
+    def record(update_fn):
+        def apply(doc):
+            if not isinstance(doc, dict):
+                return None
+            w = next((x for x in doc.get("waves", []) if x.get("id") == wave_id), None)
+            if w is None:
+                return None
+            delivery = w.setdefault("delivery",
+                                    {"sent": [], "failed": [], "finished": False})
+            update_fn(delivery)
+            return doc
+        storage.mutate("invitations", apply)
+
+    record(lambda d: None)  # materialize the delivery block up front
+    sent_count = failed_count = 0
+    for i, hid in enumerate(recipients):
         household = by_id.get(hid)
         if household is None:
-            delivery["failed"].append({"id": hid, "reason": "household_removed"})
+            record(lambda d: d["failed"].append({"id": hid, "reason": "household_removed"}))
+            failed_count += 1
             continue
         phone = normalize_phone(household.get("phone", ""))
         if not phone:
-            delivery["failed"].append({"id": hid, "reason": "no_valid_phone"})
+            record(lambda d: d["failed"].append({"id": hid, "reason": "no_valid_phone"}))
+            failed_count += 1
             continue
         if i and SEND_INTERVAL:
             time.sleep(SEND_INTERVAL)  # sandbox: 1 message / 3s
-        message = personalize(wave.get("message", ""), guests, household, base_url)
+        message = personalize(template, guests, household, base_url)
         ok, reason, _meta = send_whatsapp(phone, message)
         if ok:
-            delivery["sent"].append(hid)
+            record(lambda d: d["sent"].append(hid))
+            sent_count += 1
         else:
-            delivery["failed"].append({"id": hid, "reason": reason})
-        save_invitations(data)  # durable progress, one document write per send
+            record(lambda d: d["failed"].append({"id": hid, "reason": reason}))
+            failed_count += 1
         emit(f"{household['household']}: {'sent' if ok else reason}")
 
-    delivery["finished"] = True
-    delivery["finished_at"] = datetime.now().isoformat(timespec="seconds")
-    save_invitations(data)
-    return {"sent": len(delivery["sent"]), "failed": len(delivery["failed"])}
+    def finish(d):
+        d["finished"] = True
+        d["finished_at"] = datetime.now().isoformat(timespec="seconds")
+    record(finish)
+    return {"sent": sent_count, "failed": failed_count}

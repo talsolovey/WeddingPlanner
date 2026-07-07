@@ -196,6 +196,36 @@ def save(name: str, data):
             pass  # observers never break writes
 
 
+# Per-(couple, document) locks for atomic read-modify-write cycles. Plain
+# load()+save() is fine for request handlers (short windows, single worker),
+# but long-running writers (paced background jobs) must use mutate() so they
+# can't clobber concurrent edits with a stale copy of the document.
+_DOC_LOCKS = {}
+_DOC_LOCKS_GUARD = threading.Lock()
+
+
+def _doc_lock(couple: str, name: str) -> threading.Lock:
+    key = (couple, name)
+    with _DOC_LOCKS_GUARD:
+        if key not in _DOC_LOCKS:
+            _DOC_LOCKS[key] = threading.Lock()
+        return _DOC_LOCKS[key]
+
+
+def mutate(name: str, fn, default=None):
+    """Atomically load -> fn(data) -> save for the current couple. fn gets the
+    freshest copy and returns the document to store (or None to skip the
+    write). Returns whatever was stored (or the loaded data on skip)."""
+    _check_name(name)
+    with _doc_lock(current_couple(), name):
+        data = load(name, default)
+        updated = fn(data)
+        if updated is not None:
+            save(name, updated)
+            return updated
+        return data
+
+
 def exists(name: str) -> bool:
     _check_name(name)
     return backend().load(current_couple(), name) is not None
