@@ -275,24 +275,35 @@
     }
   }
 
-  /* ---------- WhatsApp nudge ---------- */
+  /* ---------- WhatsApp nudge ----------
+     Server-first: /api/guests/<id>/nudge sends the reminder through Twilio's
+     WhatsApp API (message + magic link are built server-side). When Twilio
+     isn't configured or the guest hasn't joined the sandbox, the server
+     returns a wa.me URL and we fall back to click-to-chat. */
   async function nudge(id) {
     const h = households().find((x) => x.id === id);
     if (!h) return;
     const p = window._profile || {};
-    const names = VOW.coupleNames() || "us";
-    const date = guests.settings.wedding_date
-      ? new Date(guests.settings.wedding_date + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric" }) : "";
-    const link = location.origin + (links[id] || "");
-    const msg = `Hi! Just a gentle reminder about ${names}'s wedding${date ? ` on ${date}` : ""} — we'd love to know if you can make it. You can reply here: ${link}`;
-    const phone = (h.phone || "").replace(/[^\d]/g, "");
-    const url = phone
-      ? `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`
-      : `https://wa.me/?text=${encodeURIComponent(msg)}`;
-    window.open(url, "_blank");
-    fetch("/api/activity", { method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ actor: p.partner_a || "You", text: `nudged the ${h.household} on WhatsApp` }) });
-    VOW.toast("Nudge ready in WhatsApp ✦");
+    try {
+      const res = await fetch(`/api/guests/${id}/nudge`, { method: "POST" });
+      const body = await res.json();
+      if (res.ok && body.sent) {
+        VOW.toast(`Sent to the ${h.household} on WhatsApp ✓`);
+        return;
+      }
+      if (body.wa_url) {
+        window.open(body.wa_url, "_blank");
+        fetch("/api/activity", { method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ actor: p.partner_a || "You", text: `nudged the ${h.household} on WhatsApp` }) });
+        VOW.toast(body.reason === "recipient_not_in_sandbox"
+          ? "They haven't joined the test sandbox — opening WhatsApp instead ✦"
+          : "Nudge ready in WhatsApp ✦");
+        return;
+      }
+      VOW.toast(body.error || "Couldn't send the nudge.");
+    } catch (e) {
+      VOW.toast("Couldn't send the nudge — check your connection.");
+    }
   }
 
   /* ---------- headcount card ---------- */

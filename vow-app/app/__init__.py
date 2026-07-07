@@ -28,6 +28,7 @@ from .overview import overview_bp
 from .profile import profile_bp
 from .chat import chat_bp
 from .invitations import invitations_bp
+from .whatsapp import whatsapp_bp
 from .timeline import timeline_bp
 from .checklist import checklist_bp
 
@@ -90,6 +91,7 @@ def create_app() -> Flask:
     app.register_blueprint(profile_bp)
     app.register_blueprint(chat_bp)
     app.register_blueprint(invitations_bp)
+    app.register_blueprint(whatsapp_bp)
     app.register_blueprint(timeline_bp)
     app.register_blueprint(checklist_bp)
     return app
