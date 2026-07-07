@@ -1,0 +1,54 @@
+{
+  "skill": "contract-analyzer",
+  "specialist": "contracts",
+  "datasets": {
+    "contracts": {
+      "contracts": [
+        {
+          "vendor": "Golden Hour Photography",
+          "service": "photography",
+          "signed": true,
+          "price": 4200,
+          "currency": "USD",
+          "terms": [
+            "A 22% service fee is added to the final invoice on top of the quoted price.",
+            "The deposit of $1,500 is non-refundable under all circumstances, including cancellation by the photographer.",
+            "Golden Hour may substitute the assigned photographer with any associate at its sole discretion, without notice.",
+            "Any dispute arising from this agreement shall be resolved exclusively in the courts of Anchorage, Alaska.",
+            "The full remaining balance is due 90 days BEFORE the event date."
+          ]
+        },
+        {
+          "vendor": "Bella Vista Hall",
+          "service": "venue",
+          "signed": true,
+          "price": 21000,
+          "currency": "USD",
+          "terms": [
+            "Client cancellation within 180 days of the event forfeits 100% of all payments made.",
+            "This agreement renews automatically for a rebooking fee of $2,000 if the event is postponed for any reason.",
+            "Bella Vista reserves the right to host a second event on the premises on the same day."
+          ]
+        }
+      ]
+    }
+  },
+  "traps": [
+    {"id": "service-fee", "desc": "22% service fee on top of quoted price",
+     "any_of": ["22%", "service fee", "service charge"]},
+    {"id": "nonrefundable-even-if-vendor-cancels", "desc": "deposit kept even if the PHOTOGRAPHER cancels",
+     "any_of": ["non-refundable", "nonrefundable", "photographer cancels", "vendor cancel"]},
+    {"id": "substitution", "desc": "photographer can be swapped without notice",
+     "any_of": ["substitut", "associate", "replace"]},
+    {"id": "alaska-jurisdiction", "desc": "disputes only in Anchorage, Alaska",
+     "any_of": ["alaska", "anchorage", "jurisdiction", "venue for disputes", "governing law"]},
+    {"id": "early-full-payment", "desc": "full balance due 90 days before the event",
+     "any_of": ["90 days", "before the event", "upfront", "in advance"]},
+    {"id": "180-day-forfeit", "desc": "cancellation within 180 days forfeits everything",
+     "any_of": ["180", "forfeit"]},
+    {"id": "rebooking-fee", "desc": "$2,000 automatic rebooking fee on postponement",
+     "any_of": ["2,000", "2000", "rebooking", "postpone"]},
+    {"id": "double-booking", "desc": "venue may host a second event the same day",
+     "any_of": ["second event", "same day", "double-book", "double book", "exclusiv"]}
+  ]
+}

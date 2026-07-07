@@ -1,0 +1,41 @@
+{
+  "recall": 0.6,
+  "hits": [
+    "ambiguous-plus-ones",
+    "capacity-breach",
+    "deadline-passed"
+  ],
+  "misses": [
+    "impossible-count",
+    "confirmed-zero"
+  ],
+  "findings_count": 3,
+  "noise_count": 0,
+  "skill": "guest-list-manager",
+  "cost_usd": 0.0289,
+  "timestamp": "2026-07-07T14:19:04",
+  "findings": [
+    {
+      "priority": "high",
+      "area": "guests",
+      "title": "Venue Over Capacity",
+      "why": "The worst-case headcount projection exceeds venue capacity, risking logistical issues on the wedding day.",
+      "do": "Consider restricting unconfirmed plus-ones or move some invitations to a virtual option."
+    },
+    {
+      "priority": "medium",
+      "area": "guests",
+      "title": "Overdue RSVPs",
+      "why": "Multiple households have pending or no response statuses beyond the RSVP deadline, affecting headcount accuracy.",
+      "do": "Chase large overdue households for a quick update on their attendance plans."
+    },
+    {
+      "priority": "medium",
+      "area": "guests",
+      "title": "Ambiguous Plus-Ones",
+      "why": "Guests with allowed but unnamed plus-ones introduce uncertainty in final numbers.",
+      "do": "Contact the Friedman and Goldstein households to confirm their plus-one details."
+    }
+  ],
+  "lessons_enabled": true
+}

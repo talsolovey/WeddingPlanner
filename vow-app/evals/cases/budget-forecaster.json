@@ -1,0 +1,33 @@
+{
+  "skill": "budget-forecaster",
+  "specialist": "budget",
+  "datasets": {
+    "budget": {
+      "total_budget": 50000,
+      "currency": "USD",
+      "items": [
+        {"category": "venue", "vendor": "Bella Vista Hall", "budgeted": 20000, "committed": 21000, "paid": 5000, "due": "2026-06-01"},
+        {"category": "photography", "vendor": "Golden Hour Photography", "budgeted": 4000, "committed": 4200, "paid": 0, "due": "2026-06-15"},
+        {"category": "catering", "vendor": "Fig & Vine Catering", "budgeted": 18000, "committed": 0, "paid": 0, "due": ""},
+        {"category": "music", "vendor": "DJ Amir", "budgeted": 3000, "committed": 3000, "paid": 3000, "due": ""},
+        {"category": "music", "vendor": "DJ Amir", "budgeted": 3000, "committed": 3000, "paid": 0, "due": "2026-08-01"},
+        {"category": "attire", "vendor": "", "budgeted": 4000, "committed": 0, "paid": 0, "due": ""},
+        {"category": "stationery", "vendor": "", "budgeted": 1200, "committed": 0, "paid": 0, "due": ""}
+      ]
+    }
+  },
+  "traps": [
+    {"id": "no-contingency", "desc": "no contingency line anywhere in a $50k budget",
+     "any_of": ["contingency", "buffer", "reserve"]},
+    {"id": "venue-overrun", "desc": "venue committed above budgeted (21000 vs 20000)",
+     "any_of": ["21,000", "21000", "over budget", "overrun", "exceeds"]},
+    {"id": "overdue-payment", "desc": "venue balance due 2026-06-01 is already past",
+     "any_of": ["overdue", "past due", "june", "2026-06"]},
+    {"id": "duplicate-dj", "desc": "DJ Amir appears twice — double-counted",
+     "any_of": ["twice", "duplicate", "double", "two entries", "appears again"]},
+    {"id": "missing-flowers", "desc": "no flowers/decor category at all",
+     "any_of": ["flower", "florist", "decor"]},
+    {"id": "totals-exceed", "desc": "budgeted lines sum over the total budget",
+     "any_of": ["53,200", "53200", "exceed the total", "sum", "over the overall", "over the total"]}
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "recall": 0.333,
+  "hits": [
+    "no-contingency",
+    "venue-overrun"
+  ],
+  "misses": [
+    "overdue-payment",
+    "duplicate-dj",
+    "missing-flowers",
+    "totals-exceed"
+  ],
+  "findings_count": 3,
+  "noise_count": 1,
+  "skill": "budget-forecaster",
+  "cost_usd": 0.0115,
+  "timestamp": "2026-07-07T14:18:18",
+  "findings": [
+    {
+      "priority": "high",
+      "area": "budget",
+      "title": "Catering Commitment Missing",
+      "why": "Catering is crucial and uncontracted estimates are generally 10-20% lower than actual costs, potentially leading to a significant budget overrun.",
+      "do": "Secure a catering contract as soon as possible and update the committed costs."
+    },
+    {
+      "priority": "medium",
+      "area": "budget",
+      "title": "Contingency Fund Missing",
+      "why": "No contingency fund is set aside, making the budget vulnerable to any unforeseen expenses.",
+      "do": "Set aside 5-10% of the total budget as a contingency fund to cover unexpected costs."
+    },
+    {
+      "priority": "medium",
+      "area": "budget",
+      "title": "High Payment Concentration Pre-Wedding",
+      "why": "High concentration of payments are required before the wedding day for photography, venue, and music.",
+      "do": "Review vendor contracts and negotiate payment terms if possible to reduce pre-wedding financial concentration."
+    }
+  ],
+  "lessons_enabled": true
+}

@@ -1,0 +1,48 @@
+{
+  "skill": "guest-logistics",
+  "specialist": "logistics",
+  "datasets": {
+    "guests": {
+      "settings": {"venue_capacity": 60, "catering_per_head": 150, "currency": "USD",
+                   "rsvp_deadline": "2026-08-15", "wedding_date": "2026-09-10"},
+      "households": [
+        {"id": "L1", "household": "Cohen Family", "party_size": 4, "rsvp": "confirmed", "attending_count": 4, "phone": "0501112222"},
+        {"id": "L2", "household": "Levi Family", "party_size": 2, "rsvp": "pending", "attending_count": 0, "phone": "0502223333"},
+        {"id": "L3", "household": "Mizrahi Family", "party_size": 3, "rsvp": "declined", "attending_count": 0, "phone": "0503334444"},
+        {"id": "L4", "household": "Peretz", "party_size": 1, "rsvp": "pending", "attending_count": 0, "phone": ""},
+        {"id": "L5", "household": "Friedman", "party_size": 2, "rsvp": "confirmed", "attending_count": 2, "phone": "0505556666"}
+      ]
+    },
+    "invitations": {
+      "waves": [
+        {"id": "invitation", "title": "The invitation", "kind": "invite", "status": "sent",
+         "send_on": "2026-05-01", "sent_on": "2026-05-01",
+         "sent_to": ["L1", "L2", "L3", "L4", "L5"],
+         "delivery": {"sent": ["L1", "L2", "L3", "L5"],
+                      "failed": [{"id": "L4", "reason": "no_valid_phone"}],
+                      "finished": true}},
+        {"id": "reminder_1", "title": "Reminder 1", "kind": "reminder", "status": "scheduled",
+         "send_on": "2026-06-01", "sent_to": []}
+      ],
+      "reminder_counts": {"L2": 3}
+    },
+    "seating": {
+      "tables": [
+        {"id": "t1", "name": "1", "capacity": 4, "households": ["L1", "L5"]},
+        {"id": "t2", "name": "2", "capacity": 8, "households": ["L3"]}
+      ]
+    }
+  },
+  "traps": [
+    {"id": "stalled-wave", "desc": "Reminder 1 scheduled for 2026-06-01 is long past and never fired",
+     "any_of": ["reminder 1", "stalled", "overdue", "2026-06", "still scheduled", "did not send", "didn't send", "never sent"]},
+    {"id": "delivery-failure", "desc": "Peretz never received the invitation (no valid phone)",
+     "any_of": ["peretz", "no_valid_phone", "no valid phone", "delivery fail"]},
+    {"id": "cap-exhausted", "desc": "Levi hit the 3-reminder cap and is still pending -> personal call",
+     "any_of": ["levi"]},
+    {"id": "declined-still-seated", "desc": "Mizrahi declined but still holds seats at table 2",
+     "any_of": ["mizrahi"]},
+    {"id": "over-capacity-table", "desc": "table 1 seats 6 attending against capacity 4",
+     "any_of": ["table 1", "capacity", "over"]}
+  ]
+}

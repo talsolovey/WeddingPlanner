@@ -1,0 +1,36 @@
+{
+  "skill": "guest-list-manager",
+  "specialist": "guests",
+  "datasets": {
+    "guests": {
+      "settings": {"venue_capacity": 60, "catering_per_head": 150, "currency": "USD",
+                   "rsvp_deadline": "2026-06-15", "wedding_date": "2026-09-10"},
+      "households": [
+        {"id": "e1", "household": "Cohen Family", "party_size": 4, "rsvp": "confirmed", "attending_count": 4, "plus_one_allowed": false, "notes": ""},
+        {"id": "e2", "household": "Levi Family", "party_size": 2, "rsvp": "confirmed", "attending_count": 6, "plus_one_allowed": false, "notes": ""},
+        {"id": "e3", "household": "Mizrahi Family", "party_size": 3, "rsvp": "pending", "attending_count": 0, "plus_one_allowed": false, "notes": ""},
+        {"id": "e4", "household": "Peretz", "party_size": 1, "rsvp": "confirmed", "attending_count": 0, "plus_one_allowed": false, "notes": ""},
+        {"id": "e5", "household": "Friedman", "party_size": 2, "rsvp": "pending", "attending_count": 0, "plus_one_allowed": true, "plus_one_name": "", "notes": ""},
+        {"id": "e6", "household": "Azoulay Family", "party_size": 5, "rsvp": "no_response", "attending_count": 0, "plus_one_allowed": false, "notes": ""},
+        {"id": "e7", "household": "Goldstein", "party_size": 2, "rsvp": "pending", "attending_count": 0, "plus_one_allowed": true, "plus_one_name": "", "notes": ""},
+        {"id": "e8", "household": "Sharabi Family", "party_size": 6, "rsvp": "pending", "attending_count": 0, "plus_one_allowed": false, "notes": ""},
+        {"id": "e9", "household": "Dahan Family", "party_size": 8, "rsvp": "pending", "attending_count": 0, "plus_one_allowed": false, "notes": ""},
+        {"id": "e10", "household": "Malka Family", "party_size": 7, "rsvp": "pending", "attending_count": 0, "plus_one_allowed": false, "notes": ""},
+        {"id": "e11", "household": "Biton Family", "party_size": 9, "rsvp": "pending", "attending_count": 0, "plus_one_allowed": false, "notes": ""},
+        {"id": "e12", "household": "Ohana Family", "party_size": 12, "rsvp": "pending", "attending_count": 0, "plus_one_allowed": false, "notes": ""}
+      ]
+    }
+  },
+  "traps": [
+    {"id": "impossible-count", "desc": "Levi confirmed 6 attending with party_size 2",
+     "any_of": ["levi"]},
+    {"id": "confirmed-zero", "desc": "Peretz is confirmed but attending_count is 0",
+     "any_of": ["peretz"]},
+    {"id": "ambiguous-plus-ones", "desc": "Friedman and Goldstein have unnamed plus-ones",
+     "any_of": ["plus-one", "plus one", "friedman", "goldstein"]},
+    {"id": "capacity-breach", "desc": "worst case (~63+) exceeds venue capacity 60",
+     "any_of": ["capacity", "60"]},
+    {"id": "deadline-passed", "desc": "RSVP deadline 2026-06-15 already passed with most households pending",
+     "any_of": ["deadline", "june", "2026-06-15", "passed", "overdue"]}
+  ]
+}
