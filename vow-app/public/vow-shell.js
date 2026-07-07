@@ -102,7 +102,57 @@ const VOW = (() => {
   }
 
   const CHEERS = ["One less thing on your mind ✦", "Beautifully handled ✦", "That's the hard part done ✦"];
-  const cheer = () => toast(CHEERS[Math.floor(Math.random() * CHEERS.length)]);
+  /* Celebration: rose petals drift down the screen (plus the toast).
+     Canvas, ~2.5s, removed after; reduced-motion users get the toast only. */
+  function petals() {
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (document.getElementById("vow-petals")) return;
+    const canvas = document.createElement("canvas");
+    canvas.id = "vow-petals";
+    canvas.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:9999";
+    canvas.width = innerWidth; canvas.height = innerHeight;
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext("2d");
+    const COLORS = ["#e4c9cf", "#d8a7b1", "#a05c6d", "#f3e2e0", "#c98d9b"];
+    const petalsArr = Array.from({ length: 26 }, () => ({
+      x: Math.random() * canvas.width,
+      y: -20 - Math.random() * canvas.height * 0.4,
+      r: 5 + Math.random() * 6,
+      vy: 1.4 + Math.random() * 1.8,
+      sway: 0.6 + Math.random() * 1.4,
+      phase: Math.random() * Math.PI * 2,
+      rot: Math.random() * Math.PI,
+      vr: (Math.random() - 0.5) * 0.06,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+    }));
+    const t0 = performance.now();
+    (function frame(t) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const age = (t - t0) / 1000;
+      const fade = age > 2 ? Math.max(0, 1 - (age - 2) / 0.6) : 1;
+      for (const p of petalsArr) {
+        p.y += p.vy; p.rot += p.vr;
+        p.x += Math.sin(t / 600 + p.phase) * p.sway;
+        ctx.save();
+        ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+        ctx.globalAlpha = 0.85 * fade;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();  // petal = two joined arcs
+        ctx.moveTo(0, -p.r);
+        ctx.quadraticCurveTo(p.r, -p.r * 0.2, 0, p.r);
+        ctx.quadraticCurveTo(-p.r, -p.r * 0.2, 0, -p.r);
+        ctx.fill();
+        ctx.restore();
+      }
+      if (age < 2.6) requestAnimationFrame(frame);
+      else canvas.remove();
+    })(t0);
+  }
+
+  const cheer = () => {
+    petals();
+    toast(CHEERS[Math.floor(Math.random() * CHEERS.length)]);
+  };
 
   /* ---------- live agent plan panel (plan -> act -> observe) ----------
      The harness streams `plan::{json}` events while it works. When pollJob is

@@ -33,6 +33,19 @@
 
 * { box-sizing: border-box; }
 
+/* Paper grain: the whole app sits on cotton stationery, not a flat #faf7f3.
+   Inline SVG turbulence — no asset, ~0 cost, sits under everything. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.55 0 0 0 0 0.5 0 0 0 0 0.45 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E");
+}
+body > * { position: relative; z-index: 1; }
+
 body {
   margin: 0;
   background: var(--bg);
@@ -114,6 +127,34 @@ h1.page-title { font-family: var(--serif); font-weight: 400; font-size: 2.3rem; 
 /* The stationery voice: Fraunces with its soft + wonk axes turned on.
    For hero numerals and other oversized set pieces. */
 .display-serif, .hero h1 { font-variation-settings: "opsz" 144, "SOFT" 60, "WONK" 1; }
+
+/* Editorial numerals: headline stats set like magazine figures, not widgets. */
+.summary-stat, .stats-card .stat {
+  font-variation-settings: "opsz" 144, "SOFT" 50;
+  font-size: 2.3rem;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+.summary-stat small, .stats-card .stat small, .stat-label {
+  display: block;
+  font-family: var(--sans);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-top: 0.25rem;
+}
+
+/* Hand-drawn flourish: a pen stroke under every page title. */
+h1.page-title::after {
+  content: "";
+  display: block;
+  width: 108px;
+  height: 10px;
+  margin-top: 0.45rem;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 108 10'%3E%3Cpath d='M2 6.5 C 18 2.5, 34 8.5, 52 5 S 88 3.5, 106 6' fill='none' stroke='%23a05c6d' stroke-width='2.2' stroke-linecap='round' opacity='0.55'/%3E%3C/svg%3E") no-repeat;
+}
 .page-sub { color: var(--ink-soft); font-size: 0.95rem; margin: 0.5rem 0 0; }
 
 /* ---------- cards ---------- */
