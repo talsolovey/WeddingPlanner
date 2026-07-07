@@ -59,18 +59,8 @@
   .rec-row .dot { position: relative; top: -2px; }
   .thinking-line { color: var(--rose); font-size: 0.88rem; animation: vow-pulse 1.2s ease-in-out infinite; margin-top: 0.6rem; }
 
-  .whatif-card { background: var(--card); border: 1px solid var(--hairline); border-radius: 16px; padding: 1.5rem 1.8rem; margin-top: 1.4rem; box-shadow: var(--card-shadow); }
-  .whatif-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.6rem 2.5rem; align-items: start; }
-  .slider-block .slider-head { display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 0.4rem; }
-  .slider-block .slider-head .val { color: var(--rose); font-variant-numeric: tabular-nums; }
-  .slider-block .slider-ends { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--ink-faint); }
-  .whatif-result { border-left: 1px solid var(--divider); padding-left: 2.5rem; align-self: stretch; display: flex; flex-direction: column; justify-content: center; }
-  .whatif-total { font-family: var(--serif); font-size: 2.4rem; line-height: 1.1; margin-top: 0.3rem; }
-  .whatif-bar { height: 6px; border-radius: 999px; background: var(--divider); overflow: hidden; margin-top: 0.9rem; max-width: 260px; }
   @media (max-width: 760px) {
     .months-grid { grid-template-columns: repeat(2, 1fr); }
-    .whatif-grid { grid-template-columns: 1fr; }
-    .whatif-result { border-left: none; padding-left: 0; }
   }
 </style>
 </head>
@@ -88,7 +78,6 @@
   <section class="table-card"><table id="budget-table"></table></section>
   <section class="months-card" id="months"></section>
   <section class="forecast-card" id="forecast" hidden></section>
-  <section class="whatif-card" id="whatif"></section>
 </main>
 
 <script>
@@ -367,72 +356,9 @@
     $("forecast-btn").disabled = false;
     $("forecast-btn").textContent = "✦ Forecast the real cost";
     renderForecast();
-    renderWhatIf();
   };
 
-  /* ---------- what if ---------- */
-  function renderWhatIf() {
-    const cap = budget.total_budget || 0;
-    const households = guests.households || [];
-    const confirmed = households.reduce((s, h) => s + (h.rsvp === "confirmed" ? (h.attending_count || 0) : 0), 0);
-    const invited = households.reduce((s, h) => s + (h.party_size || 0), 0);
-    const outstanding = households.reduce((s, h) =>
-      s + (["pending", "no_response"].includes(h.rsvp) ? (h.party_size || 0) : 0), 0);
-    const likely = confirmed + Math.round(outstanding * 0.8);
-    const perHead = guests.settings.catering_per_head || 0;
-
-    const flex = [...budget.items].filter((i) => !(i.contracted > 0)).sort((a, b) => cost(b) - cost(a))[0];
-    if (!flex || !cap) { $("whatif").hidden = true; return; }
-    const quoted = cost(flex);
-    const r500 = (n) => Math.round(n / 500) * 500;
-    const fMin = r500(quoted * 0.45), fMax = r500(quoted * 1.33);
-    const baseForecast = (forecast && forecast.exists && (forecast.analysis || {}).forecast_total)
-      || budget.items.reduce((s, i) => s + cost(i), 0);
-
-    const state = { flex: quoted, guests: Math.min(Math.max(likely, confirmed), invited || likely), cushion: 0 };
-
-    function draw() {
-      const total = (baseForecast + (state.flex - quoted) + (state.guests - likely) * perHead) * (1 + state.cushion / 100);
-      const delta = total - cap;
-      const color = delta > 0 ? "var(--red)" : "var(--green)";
-      $("whatif").hidden = false;
-      $("whatif").innerHTML = `
-        <h2>What if…</h2>
-        <p style="color:var(--ink-soft);font-size:0.88rem;margin:0.3rem 0 1.4rem">Drag to explore. Nothing changes until you say so — this is just thinking out loud.</p>
-        <div class="whatif-grid">
-          <div style="display:flex;flex-direction:column;gap:1.3rem">
-            <div class="slider-block">
-              <div class="slider-head"><span style="font-weight:600">${esc(pretty(flex.category))}</span><span class="val">${money(state.flex)}</span></div>
-              <input type="range" class="vow-range" id="s-flex" min="${fMin}" max="${fMax}" step="500" value="${state.flex}">
-              <div class="slider-ends"><span>simpler · ${money(fMin)}</span><span>quoted · ${money(quoted)}</span></div>
-            </div>
-            <div class="slider-block">
-              <div class="slider-head"><span style="font-weight:600">Final guest count</span><span class="val">${state.guests} guests</span></div>
-              <input type="range" class="vow-range" id="s-guests" min="${confirmed}" max="${Math.max(invited, confirmed)}" step="1" value="${state.guests}">
-              <div class="slider-ends"><span>confirmed · ${confirmed}</span><span>everyone says yes · ${Math.max(invited, confirmed)}</span></div>
-            </div>
-            <div class="slider-block">
-              <div class="slider-head"><span style="font-weight:600">Contingency cushion</span><span class="val">${state.cushion}%</span></div>
-              <input type="range" class="vow-range" id="s-cushion" min="0" max="10" step="1" value="${state.cushion}">
-              <div class="slider-ends"><span>none</span><span>10% — Vow's advice</span></div>
-            </div>
-          </div>
-          <div class="whatif-result">
-            <div class="eyebrow">This version would cost</div>
-            <div class="whatif-total" style="color:${color}">${money(total)}</div>
-            <div style="font-size:0.88rem;color:${color};margin-top:0.2rem">${money(Math.abs(delta))} ${delta > 0 ? "over" : "under"} budget</div>
-            <div class="whatif-bar"><div style="width:${Math.min(100, Math.round((total / cap) * 100))}%;height:100%;background:${color}"></div></div>
-            <div style="font-size:0.72rem;color:var(--ink-faint);margin-top:0.35rem">against your ${money(cap)} budget</div>
-          </div>
-        </div>`;
-      $("s-flex").oninput = (e) => { state.flex = +e.target.value; draw(); };
-      $("s-guests").oninput = (e) => { state.guests = +e.target.value; draw(); };
-      $("s-cushion").oninput = (e) => { state.cushion = +e.target.value; draw(); };
-    }
-    draw();
-  }
-
-  function renderAll() { renderSummary(); renderTable(); renderMonths(); renderForecast(); renderWhatIf(); }
+  function renderAll() { renderSummary(); renderTable(); renderMonths(); renderForecast(); }
   await load();
   renderAll();
 })();
