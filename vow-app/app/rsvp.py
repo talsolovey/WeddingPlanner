@@ -12,6 +12,7 @@ Security model (this is a PUBLIC write surface on a deployed app):
 """
 
 import secrets
+from datetime import datetime
 
 from flask import Blueprint, jsonify, request, send_from_directory
 
@@ -165,6 +166,9 @@ def _rsvp_submit_impl(couple, token):
     h["rsvp"] = rsvp
     h["attending_count"] = attending
     h["notes"] = notes
+    # Outcome tracking (act -> observe): the agent's nudges are judged by
+    # whether a reply followed them, so stamp when this household answered.
+    h["responded_at"] = datetime.now().isoformat(timespec="seconds")
     if h.get("plus_one_allowed"):
         h["plus_one_name"] = plus_one_name
     save_guests(guests)

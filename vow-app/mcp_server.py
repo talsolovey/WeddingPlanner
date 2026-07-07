@@ -160,17 +160,20 @@ def run_weekly_brief() -> str:
     {"error": ...} — fall back to get_wedding_status."""
     try:
         try:
-            from app.seating import seating_conflicts
+            from agent.outcomes import weekly_extra_facts
 
-            extra = {
-                "seating_conflicts": seating_conflicts(),
-                "note": "seating_conflicts is computed by code from the live seating "
-                "chart — include unresolved ones as action items (area: guests).",
-            }
+            extra = weekly_extra_facts()
         except Exception:  # pragma: no cover - defensive
             extra = None
 
-        result = _make_orchestrator().run(date.today().isoformat(), extra_facts=extra)
+        today = date.today().isoformat()
+        result = _make_orchestrator().run(today, extra_facts=extra)
+        try:
+            from agent.outcomes import record_brief_run
+
+            record_brief_run(result, today)  # follow-through memory
+        except Exception:  # pragma: no cover - defensive
+            pass
         result = dict(
             result, generated_at=datetime.now().isoformat(timespec="seconds")
         )
