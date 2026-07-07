@@ -1,1 +1,3 @@
 - Photographer contracts may lack specific delivery timelines, allowing significant delays in receiving photos. It's critical to request a specified delivery timeline with potential penalties for delays.
+- Venue contracts sometimes include auto-renewal and rebooking fees for postponement. This can catch couples off guard and lead to unexpected expenses if they need to reschedule their event.
+- Photography contracts may include non-refundable deposits and substitution clauses that allow vendors to replace the assigned professional without notice. It's crucial to negotiate for at least some refundability in deposits and transparency in substitutions.

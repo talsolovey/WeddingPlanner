@@ -1,0 +1,1 @@
+- Couples often overlook making contingency plans and include vendor overtime or service charges in their budget.
