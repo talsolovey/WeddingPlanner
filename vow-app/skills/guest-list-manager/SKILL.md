@@ -37,6 +37,10 @@ Compare the projection to `venue_capacity`:
 - Worst-case ceiling exceeds capacity = yellow (watch it; capacity is a hard limit).
 - Likely projection already at/over capacity = red (act now — capacity can't flex).
 
+Yellow and red capacity statuses ALWAYS belong in your reported findings — a hard
+venue limit that the guest list can breach is never a footnote. State the ceiling,
+the capacity, and the gap in people.
+
 State how much headroom (or overflow) there is, in people.
 
 ## Budget reconciliation
@@ -49,6 +53,15 @@ this against the venue/catering line — but only if useful; don't force it.
 
 - **Ambiguous plus-ones** — list guests offered a plus-one who haven't named one.
 - **Overdue RSVPs** — anyone `pending` or `no_response` past `rsvp_deadline` needs a chase.
+- **Impossible counts** — a household whose `attending_count` exceeds `party_size`
+  (plus 1 if a plus-one is allowed) is a data error that inflates the headcount.
+  Name the household and both numbers.
+- **Confirmed-but-zero** — `rsvp: confirmed` with `attending_count: 0` is
+  contradictory: either nobody is actually coming or the count was never filled
+  in. Either way the floor is wrong; name the household.
+
+Check these row-integrity rules against EVERY household, not just the ones that
+look odd — the errors hide in rows that look routine.
 
 ## Follow-up list
 

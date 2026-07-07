@@ -24,6 +24,23 @@ reliability). The forecast total = sum of best-known costs, PLUS corrections:
   zero cost — it's an unbudgeted surprise. Flag it.
 - **No contingency = red flag.** Recommend 5–10% of total.
 
+## Data-quality audit — apply to EVERY line item, before forecasting
+
+Bad rows corrupt every number downstream. Walk the items one by one and check:
+
+- **Duplicates** — the same vendor or the same category appearing in two line
+  items double-counts money. Name both rows.
+- **Overdue payments** — any item with a `due` date in the past and an unpaid
+  balance (`paid` < `committed`). Name the vendor and how overdue it is.
+- **Per-line overruns** — any item with `committed` > `budgeted`.
+- **Arithmetic** — ALWAYS compute the sum of all `budgeted` lines and state it
+  next to `total_budget`, even when it fits. If the lines alone exceed the
+  total, the plan is broken before any forecast: report the overage as a
+  finding, in dollars.
+- **Missing categories** — go through the standard list below one by one and
+  NAME every absent category explicitly (e.g. "no flowers/decor line, no cake
+  line"). Do not stop at the first one you notice.
+
 ## Typical allocation sanity check
 
 Rough shares of total: venue+catering 40–50%, photo+video 10–12%, flowers/decor 8–10%,
