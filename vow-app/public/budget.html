@@ -22,6 +22,9 @@
   .bar-legend .dot8 { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 0.3rem; }
 
   .table-card { background: var(--card); border: 1px solid var(--hairline); border-radius: 16px; margin-top: 1.4rem; box-shadow: var(--card-shadow); overflow: hidden; }
+  /* Long budgets scroll inside the card (same pattern as the guest list). */
+  .table-scroll { max-height: 62vh; overflow-y: auto; overscroll-behavior: contain; }
+  .table-scroll thead th { position: sticky; top: 0; background: var(--card); z-index: 2; box-shadow: 0 1px 0 var(--hairline); border-bottom: none; }
   table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
   th { text-align: left; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-soft); font-weight: 600; padding: 0.9rem 1rem 0.6rem; border-bottom: 1px solid var(--hairline); }
   th:first-child { padding-left: 1.8rem; }
@@ -78,11 +81,11 @@
     <div class="vow-skeleton" style="height:28px;max-width:340px"></div>
     <div class="vow-skeleton" style="height:6px;margin-top:1.2rem"></div>
   </section>
-  <section class="table-card"><table id="budget-table"><tbody><tr><td style="padding:1rem 1.8rem;font-weight:400">
+  <section class="table-card"><div class="table-scroll"><table id="budget-table"><tbody><tr><td style="padding:1rem 1.8rem;font-weight:400">
     <div class="vow-skeleton" style="height:18px;margin:0.4rem 0"></div>
     <div class="vow-skeleton" style="height:18px;margin:0.4rem 0;width:80%"></div>
     <div class="vow-skeleton" style="height:18px;margin:0.4rem 0;width:65%"></div>
-  </td></tr></tbody></table></section>
+  </td></tr></tbody></table></div></section>
   <section class="months-card" id="months"></section>
   <section class="forecast-card" id="forecast" hidden></section>
 </main>
