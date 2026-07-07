@@ -232,3 +232,4 @@ vow-app/data/brief.json
 autonomous/outbox/
 autonomous/agent-runs/
 autonomous/.claude/
+vow-app/data/couples/
