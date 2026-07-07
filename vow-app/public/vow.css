@@ -50,22 +50,6 @@ body::before {
 }
 body > * { position: relative; z-index: 1; }
 
-/* Blind-stamped botanical watermark, bottom-right — like embossed stationery.
-   Line art only, barely-there ink; fixed so it stays put while scrolling. */
-body::after {
-  content: "";
-  position: fixed;
-  right: -60px;
-  bottom: -40px;
-  width: 420px;
-  height: 420px;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.16;
-  transform: rotate(14deg);
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 150 260' fill='none' stroke='%23a05c6d' stroke-width='1.4' stroke-linecap='round'%3E%3Cpath d='M138 250 C 110 200, 78 140, 58 78 C 50 52, 44 30, 42 10'/%3E%3Cpath d='M104 176 C 84 168, 68 172, 54 186 C 72 194, 92 190, 104 176 Z'/%3E%3Cpath d='M118 208 C 100 202, 84 206, 72 218 C 90 226, 108 221, 118 208 Z'/%3E%3Cpath d='M88 132 C 70 126, 55 130, 43 142 C 60 150, 78 145, 88 132 Z'/%3E%3Cpath d='M70 92 C 55 86, 41 90, 31 100 C 46 108, 62 104, 70 92 Z'/%3E%3Cpath d='M55 56 C 43 50, 31 53, 22 62 C 35 70, 48 66, 55 56 Z'/%3E%3Cpath d='M96 150 C 112 140, 120 128, 122 112 C 106 120, 97 133, 96 150 Z'/%3E%3Cpath d='M76 108 C 90 99, 97 88, 99 74 C 85 81, 77 93, 76 108 Z'/%3E%3Ccircle cx='47' cy='34' r='4.5'/%3E%3Ccircle cx='61' cy='24' r='3.4'/%3E%3Ccircle cx='38' cy='18' r='2.8'/%3E%3C/svg%3E") no-repeat center / contain;
-}
-@media (max-width: 720px) { body::after { display: none; } }
 
 body {
   margin: 0;

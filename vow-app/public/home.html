@@ -15,12 +15,6 @@
     animation: vow-rise 0.7s ease both;
     position: relative;
   }
-  /* hand-drawn eucalyptus sprigs framing the arch, invitation-style */
-  .sprig { position: absolute; width: 132px; height: 230px; top: 120px;
-           opacity: 0.6; pointer-events: none; }
-  .sprig.left { left: calc(50% - 300px); transform: rotate(-10deg); }
-  .sprig.right { right: calc(50% - 300px); transform: scaleX(-1) rotate(-10deg); }
-  @media (max-width: 860px) { .sprig { display: none; } }
   .hero-sparkles { position: relative; height: 0; max-width: 420px; margin: 0 auto; pointer-events: none; }
   .hero-sparkles span { position: absolute; }
   .hero h1 { font-family: var(--serif); font-weight: 400; font-size: 3.4rem; line-height: 1.1; letter-spacing: -0.01em; margin: 0; }
@@ -121,32 +115,6 @@
       <span style="right:22%;top:20px;color:#c9a1ac;font-size:0.45rem;animation:vow-drift 8s ease-in-out 4.8s infinite">✦</span>
     </div>
     <p class="eyebrow rose" id="hero-eyebrow" style="margin:0 0 1.3rem">&nbsp;</p>
-    <svg class="sprig left" aria-hidden="true" viewBox="0 0 150 260" fill="none">
-      <path d="M138 250 C 110 200, 78 140, 58 78 C 50 52, 44 30, 42 10" stroke="#7d9b87" stroke-width="2" stroke-linecap="round"/>
-      <path d="M104 176 C 84 168, 68 172, 54 186 C 72 194, 92 190, 104 176 Z" fill="#a8bfae"/>
-      <path d="M118 208 C 100 202, 84 206, 72 218 C 90 226, 108 221, 118 208 Z" fill="#b7cabc"/>
-      <path d="M88 132 C 70 126, 55 130, 43 142 C 60 150, 78 145, 88 132 Z" fill="#a8bfae"/>
-      <path d="M70 92 C 55 86, 41 90, 31 100 C 46 108, 62 104, 70 92 Z" fill="#b7cabc"/>
-      <path d="M55 56 C 43 50, 31 53, 22 62 C 35 70, 48 66, 55 56 Z" fill="#c3d2c6"/>
-      <path d="M96 150 C 112 140, 120 128, 122 112 C 106 120, 97 133, 96 150 Z" fill="#c3d2c6"/>
-      <path d="M76 108 C 90 99, 97 88, 99 74 C 85 81, 77 93, 76 108 Z" fill="#b7cabc"/>
-      <circle cx="47" cy="34" r="4.5" fill="#d8a7b1"/>
-      <circle cx="61" cy="24" r="3.4" fill="#e4c9cf"/>
-      <circle cx="38" cy="18" r="2.8" fill="#c98d9b"/>
-    </svg>
-    <svg class="sprig right" aria-hidden="true" viewBox="0 0 150 260" fill="none">
-      <path d="M138 250 C 110 200, 78 140, 58 78 C 50 52, 44 30, 42 10" stroke="#7d9b87" stroke-width="2" stroke-linecap="round"/>
-      <path d="M104 176 C 84 168, 68 172, 54 186 C 72 194, 92 190, 104 176 Z" fill="#a8bfae"/>
-      <path d="M118 208 C 100 202, 84 206, 72 218 C 90 226, 108 221, 118 208 Z" fill="#b7cabc"/>
-      <path d="M88 132 C 70 126, 55 130, 43 142 C 60 150, 78 145, 88 132 Z" fill="#a8bfae"/>
-      <path d="M70 92 C 55 86, 41 90, 31 100 C 46 108, 62 104, 70 92 Z" fill="#b7cabc"/>
-      <path d="M55 56 C 43 50, 31 53, 22 62 C 35 70, 48 66, 55 56 Z" fill="#c3d2c6"/>
-      <path d="M96 150 C 112 140, 120 128, 122 112 C 106 120, 97 133, 96 150 Z" fill="#c3d2c6"/>
-      <path d="M76 108 C 90 99, 97 88, 99 74 C 85 81, 77 93, 76 108 Z" fill="#b7cabc"/>
-      <circle cx="47" cy="34" r="4.5" fill="#d8a7b1"/>
-      <circle cx="61" cy="24" r="3.4" fill="#e4c9cf"/>
-      <circle cx="38" cy="18" r="2.8" fill="#c98d9b"/>
-    </svg>
     <button class="arch" id="photo-slot" title="Add your engagement photo">
       <span class="ph">your favorite photo of the two of you</span>
     </button>
