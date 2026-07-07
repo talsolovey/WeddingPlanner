@@ -39,10 +39,16 @@ class AuthBase(unittest.TestCase):
 
 class TestGate(AuthBase):
     def test_pages_redirect_to_login(self):
-        for path in ["/", "/budget", "/guests", "/seating", "/onboarding"]:
+        for path in ["/budget", "/guests", "/seating", "/onboarding"]:
             r = self.client.get(path)
             self.assertEqual(r.status_code, 302, path)
             self.assertIn("/login", r.headers["Location"])
+
+    def test_root_serves_public_landing_when_signed_out(self):
+        r = self.client.get("/")
+        self.assertEqual(r.status_code, 200)
+        self.assertIn(b"carries the clipboard", r.data)  # landing, not dashboard
+        self.assertNotIn(b"focus-card", r.data)
 
     def test_api_returns_401(self):
         for path in ["/api/profile", "/api/budget", "/api/overview"]:

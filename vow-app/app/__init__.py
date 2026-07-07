@@ -33,8 +33,9 @@ from .timeline import timeline_bp
 from .checklist import checklist_bp
 from .notices import notices_bp
 
-# Paths anyone may hit without a session.
-PUBLIC_PATHS = {"/login", "/auth/callback", "/favicon.ico"}
+# Paths anyone may hit without a session. "/" is public because it serves the
+# marketing landing page to signed-out visitors (the dashboard to signed-in).
+PUBLIC_PATHS = {"/", "/login", "/auth/callback", "/favicon.ico"}
 PUBLIC_PREFIXES = ("/api/auth/", "/rsvp/", "/api/rsvp/")
 # Static assets the public pages (login, RSVP form) need.
 ASSET_SUFFIXES = (".css", ".js", ".svg", ".png", ".jpg", ".jpeg", ".webp",
@@ -76,9 +77,27 @@ def create_app() -> Flask:
     def reset_couple(exc=None):
         storage.set_couple(None)
 
+    # Error visibility: fetch() clients expect JSON, never Flask's HTML error
+    # page — and every unhandled exception must land in the logs, not vanish.
+    @app.errorhandler(Exception)
+    def handle_any_error(e):
+        from werkzeug.exceptions import HTTPException
+        if isinstance(e, HTTPException):
+            if request.path.startswith("/api/"):
+                return jsonify({"error": e.description}), e.code
+            return e  # normal page 404s etc. keep their default pages
+        app.logger.exception("unhandled error on %s %s", request.method, request.path)
+        if request.path.startswith("/api/"):
+            return jsonify({"error": "Something went wrong on our side — "
+                                     "it's been logged."}), 500
+        return "Something went wrong on our side — it's been logged.", 500
+
     @app.get("/")
     def home_page():
-        return send_from_directory(str(PUBLIC_DIR), "home.html")
+        # Signed-in couples land on their dashboard; visitors get the pitch.
+        if session.get("couple_id"):
+            return send_from_directory(str(PUBLIC_DIR), "home.html")
+        return send_from_directory(str(PUBLIC_DIR), "landing.html")
 
     app.register_blueprint(core_bp)
     app.register_blueprint(auth_bp)
