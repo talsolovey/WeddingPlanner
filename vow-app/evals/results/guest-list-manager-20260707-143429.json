@@ -1,0 +1,54 @@
+{
+  "recall": 1.0,
+  "hits": [
+    "impossible-count",
+    "confirmed-zero",
+    "ambiguous-plus-ones",
+    "capacity-breach",
+    "deadline-passed"
+  ],
+  "misses": [],
+  "findings_count": 5,
+  "noise_count": 0,
+  "skill": "guest-list-manager",
+  "cost_usd": 0.0245,
+  "timestamp": "2026-07-07T14:34:29",
+  "findings": [
+    {
+      "priority": "high",
+      "area": "guests",
+      "title": "Venue over capacity risk",
+      "why": "The worst-case guest list projection (including pending and plus-ones) exceeds the venue's capacity of 60. Current estimates show a potential 61 attendees.",
+      "do": "Review pending RSVPs and unclear plus-ones; consider contacting guests to confirm numbers or adjust guest list."
+    },
+    {
+      "priority": "medium",
+      "area": "guests",
+      "title": "Overdue RSVPs",
+      "why": "Several households including 'Mizrahi Family', 'Friedman', 'Goldstein', 'Sharabi Family', 'Dahan Family', 'Malka Family', 'Biton Family', 'Ohana Family' have not responded by the RSVP deadline.",
+      "do": "Follow-up with these households to confirm attendance and any plus-ones."
+    },
+    {
+      "priority": "medium",
+      "area": "guests",
+      "title": "Ambiguous Plus-Ones",
+      "why": "Guests 'Friedman' and 'Goldstein' have been allowed plus-ones, but names have not been provided.",
+      "do": "Contact these households to clarify if a plus-one will attend."
+    },
+    {
+      "priority": "high",
+      "area": "guests",
+      "title": "Impossible Attending Count",
+      "why": "The 'Levi Family' has a recorded attending count of 6, exceeding their party size of 2.",
+      "do": "Correct this data entry error to ensure the headcount is accurate."
+    },
+    {
+      "priority": "high",
+      "area": "guests",
+      "title": "Confirmed but zero attendance count",
+      "why": "The 'Peretz' household is marked as confirmed with an attending count of 0, creating a contradiction.",
+      "do": "Clarify the actual number of attendees for 'Peretz' to ensure correct calculations."
+    }
+  ],
+  "lessons_enabled": true
+}

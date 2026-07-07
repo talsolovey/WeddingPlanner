@@ -37,9 +37,9 @@ os.environ["VOW_STORAGE_BACKEND"] = "files"
 
 import storage  # noqa: E402
 from agent.orchestrator import (  # noqa: E402
-    FINDINGS_SCHEMA, SPECIALIST_PROMPT, _extract_json,
+    FINDINGS_SCHEMA, SPECIALIST_PROMPT, _extract_json, compute_facts,
 )
-from agent.registry import SKILLS_DIR  # noqa: E402
+from agent.registry import SKILLS_DIR, ToolRegistry  # noqa: E402
 
 CASES_DIR = Path(__file__).resolve().parent / "cases"
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
@@ -132,9 +132,15 @@ def run_case(case: dict, harness_factory=None) -> dict:
                                    run_log_path=str(VOW_APP / "logs" / "run_log.jsonl"))
         else:
             harness = harness_factory()
+        # Same computed-facts injection the production orchestrator does —
+        # evals must measure the real path, arithmetic-in-code included.
+        from datetime import date as _date
+        facts = compute_facts(ToolRegistry(), _date.fromisoformat(TODAY))
+        area_facts = facts.get(case["specialist"])
         prompt = SPECIALIST_PROMPT.format(
             today=TODAY, name=case["specialist"], skill=case["skill"],
             datasets=", ".join(f'"{d}"' for d in case["datasets"]),
+            facts=json.dumps(area_facts) if area_facts else "(none for this area)",
             schema=FINDINGS_SCHEMA)
         answer = harness.run(prompt)
     finally:

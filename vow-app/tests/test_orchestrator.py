@@ -32,6 +32,7 @@ from agent.orchestrator import (  # noqa: E402
     WeeklyBriefOrchestrator,
     _extract_json,
     _weeks_to_wedding,
+    compute_facts,
 )
 from agent.registry import DATA_DIR  # noqa: E402
 
@@ -205,6 +206,67 @@ class TestCostCap(unittest.TestCase):
         self.assertIn("action_items", out["analysis"])
         self.assertEqual(len(out["analysis"]["action_items"]), len(SPECIALISTS))
         self.assertIn("Cost cap", out["analysis"]["headline"])
+
+
+class TestComputedFacts(unittest.TestCase):
+    """Arithmetic the model must never own: sums, duplicates, overdue, loads."""
+
+    def setUp(self):
+        from agent.registry import ToolRegistry
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        (DATA_DIR / "budget.json").write_text(json.dumps({
+            "total_budget": 100,
+            "items": [
+                {"category": "venue", "vendor": "A", "budgeted": 80, "committed": 90,
+                 "paid": 10, "due": "2020-01-01"},
+                {"category": "music", "vendor": "B", "budgeted": 30, "committed": 0, "paid": 0},
+                {"category": "music", "vendor": "B", "budgeted": 30, "committed": 0, "paid": 0},
+            ]}))
+        (DATA_DIR / "guests.json").write_text(json.dumps({
+            "settings": {"venue_capacity": 10, "wedding_date": WEDDING},
+            "households": [
+                {"id": "h1", "household": "X", "party_size": 4, "rsvp": "confirmed",
+                 "attending_count": 3},
+                {"id": "h2", "household": "Y", "party_size": 5, "rsvp": "pending",
+                 "attending_count": 0},
+                {"id": "h3", "household": "Z", "party_size": 2, "rsvp": "declined",
+                 "attending_count": 0},
+            ]}))
+        (DATA_DIR / "seating.json").write_text(json.dumps({
+            "tables": [{"id": "t", "name": "1", "capacity": 4,
+                        "households": ["h1", "h2"]}]}))
+        self.facts = compute_facts(ToolRegistry(),
+                                   date.fromisoformat("2026-07-07"))
+
+    def test_budget_sums_duplicates_overruns_overdue(self):
+        b = self.facts["budget"]
+        self.assertEqual(b["budgeted_line_sum"], 140)
+        self.assertEqual(b["lines_exceed_total_by"], 40)
+        self.assertEqual(len(b["duplicate_lines"]), 1)
+        self.assertEqual(b["per_line_overruns"][0]["vendor"], "A")
+        self.assertEqual(b["overdue_unpaid"][0]["unpaid"], 80)
+
+    def test_guest_totals(self):
+        g = self.facts["guests"]
+        self.assertEqual(g["confirmed_attending_sum"], 3)
+        self.assertEqual(g["party_size_sum_not_declined"], 9)
+        self.assertEqual(g["venue_capacity"], 10)
+
+    def test_table_loads(self):
+        t = self.facts["logistics"]["table_loads"][0]
+        self.assertEqual(t["assigned_heads"], 8)   # 3 confirmed + 5 party_size
+        self.assertEqual(t["over_by"], 4)
+
+    def test_specialists_receive_their_area_facts(self):
+        orch = _make_orch()
+        orch.run("2026-07-07")
+        prompts = {n: next(h.prompt for h in _FakeHarness.instances
+                           if f"the {n} specialist" in h.prompt)
+                   for n in SPECIALISTS}
+        self.assertIn("lines_exceed_total_by", prompts["budget"])
+        self.assertIn("confirmed_attending_sum", prompts["guests"])
+        self.assertIn("table_loads", prompts["logistics"])
+        self.assertIn("(none for this area)", prompts["contracts"])
 
 
 class TestHelpers(unittest.TestCase):
