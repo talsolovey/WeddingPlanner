@@ -7,6 +7,16 @@ seeded flat DATA_DIR files keep being read, exactly as before auth existed.
 
 import storage
 
+# The offline suite must never talk to real providers, even when the
+# developer's vow-app/.env holds live credentials (load_dotenv pulls them
+# into the process). Neutralize the WhatsApp provider for every test run;
+# provider tests re-set these module attributes to fakes explicitly.
+import app.whatsapp as _wa
+
+_wa.ACCOUNT_SID = _wa.AUTH_TOKEN = ""
+_wa.META_ACCESS_TOKEN = _wa.META_PHONE_NUMBER_ID = ""
+_wa.SEND_INTERVAL = 0
+
 COUPLE = storage.LEGACY_COUPLE_ID
 
 
