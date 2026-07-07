@@ -189,6 +189,27 @@ def _log_nudge(household: dict, channel: str):
     storage.save("activity", entries[-50:])
 
 
+def nudge_household_by_id(hid: str, base_url: str):
+    """Server-side nudge with no request context — the seam agent-initiated
+    sends (trust tier 1 / approved proposals) go through. Same behavior as
+    the button endpoint: build, normalize, send, stamp, log.
+    Returns (ok, reason)."""
+    guests = load_guests()
+    household = next((h for h in guests["households"] if h.get("id") == hid), None)
+    if household is None:
+        return False, "unknown_household"
+    phone = normalize_phone(household.get("phone", ""))
+    if not phone:
+        return False, "no_valid_phone"
+    message = _build_message(guests, household, base_url)
+    ok, reason, _meta = send_whatsapp(phone, message)
+    if ok:
+        household["last_nudged_at"] = datetime.utcnow().isoformat() + "Z"
+        save_guests(guests)
+        _log_nudge(household, "sent by Vow")
+    return ok, reason
+
+
 @whatsapp_bp.post("/api/guests/<hid>/nudge")
 @rate_limit(max_calls=10, window=60)
 def nudge(hid):
