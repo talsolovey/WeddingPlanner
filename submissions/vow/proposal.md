@@ -18,7 +18,7 @@ Couples planning a wedding juggle 10+ vendors, a five-figure budget, and 200 gue
 - **"Refresh my brief" → a specialist team investigates.** Four sub-agents (contracts / budget / guests / logistics) fan out in parallel, a verifier re-checks each one, and the couple gets a ranked to-do list on the home dashboard. The magic moment: the verifier badge — *"caught 5 items the specialists missed"* — visible in the UI.
 - **Silent guests → Vow proposes the nudge.** RSVP deadline approaching + households silent → Vow drafts a personalized WhatsApp reminder (magic RSVP link included) and posts it as an *approvable proposal* on home. Approve → it sends via Twilio and later reports whether the nudge actually produced a reply.
 
-All flows are live at https://weddingplanner-q4rw.onrender.com (sample ~200-guest wedding loaded).
+All flows are live at https://weddingplanner-q4rw.onrender.com — sign in with the demo account (`demo@vow-demo.app` / `enjoy-being-engaged`) to see a seeded ~200-guest sample wedding.
 
 ## 3. The agentic core  *(Agentic depth)*
 
@@ -38,7 +38,7 @@ All flows are live at https://weddingplanner-q4rw.onrender.com (sample ~200-gues
 
 **High-harm action — messaging other people (WhatsApp nudges): HITL by default.** Every agent-initiated action has a trust tier (`vow-app/agent/trust.py`): `send_nudge` starts at tier 2 — *propose-and-wait* — as an approvable card on the home dashboard; Approve executes through the same server-side seam as the manual button. Promotion to act-and-report must be earned (10 straight approvals) or explicitly chosen by the couple, and one rejection revokes an earned promotion. The model never decides its own autonomy — promotion arithmetic is code. Additional caps: max 3 reminders per household ever, recipients recomputed at send time so a reply immediately stops nudges, and an invitation wave with a blank message can never auto-send.
 
-**Spend caps, stacked:** $0.15 per specialist → $0.65 per orchestrator run → $1.00 per headless run → 2 event-driven wakes/day. Every call's cost is logged.
+**Spend caps, stacked:** $0.15 per specialist → $0.65 per orchestrator run → $1.00 per headless run → 2 event-driven wakes/day. Every call's cost is logged. The public demo account rides the same rails — per-run caps + per-IP rate limits bound what any visitor can spend, its guest phone numbers are scrubbed, and every couple's data is isolated (`tests/test_auth.py`).
 
 **Prompt injection / untrusted input:** uploaded contracts, guest RSVP free-text, name fields, and even the agent's own lessons file are scanned at write time (`vow-app/agent/guard.py` + `tests/test_injection_gaps.py`) — because agents read all of these later. The chat's server-built data snapshot carries an explicit data-not-commands fence. Example of input we neutralize:
 
@@ -74,7 +74,7 @@ Couples spend heavily on planning help; Vow sells as a per-wedding subscription 
 ## 10. Evidence index  *(curated)*
 
 - **Runnable test:** `cd vow-app && pip install -r requirements.txt && pytest` — 185 tests pass offline, no API keys; covers injection defenses, trust tiers, orchestrator, auth isolation, concurrency. CI proof on every push: https://github.com/talsolovey/WeddingOS/actions
-- **Live URL:** https://weddingplanner-q4rw.onrender.com — the deployed product with a sample wedding; run "Refresh brief" to watch the orchestrator + verifier live.
+- **Live URL:** https://weddingplanner-q4rw.onrender.com — log in as `demo@vow-demo.app` / `enjoy-being-engaged` (a seeded sample wedding, phone numbers scrubbed); click "✦ Ask Vow to refresh" on Home to watch the orchestrator + verifier live.
 - **Eval before/after:** `vow-app/evals/` — `python -m evals.run_evals --dry-run` validates offline; timestamped recall results in `evals/results/` demonstrate the measured 2/6→4/6 and 3/5→5/5 improvements.
 - **Repo:** https://github.com/talsolovey/WeddingOS — key files: `vow-app/agent/orchestrator.py` (multi-agent), `vow-app/agent/trust.py` (HITL tiers), `vow-app/agent/harness.py` (the loop), `PROJECT_STATE.md` (30-step build log).
 - **Demo video:** *\<url — recording in progress\>* — will show: upload contract → flags; refresh brief → verifier catches; silent guests → nudge proposal → approve → send.
