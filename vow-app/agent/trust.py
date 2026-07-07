@@ -110,8 +110,8 @@ def record_decision(action: str, approved: bool, source: str = "notice") -> dict
         add_notice("promoted",
                    f"You've approved my last {PROMOTE_AFTER} “{spec['label'].lower()}” "
                    f"suggestions, so I'll do that myself from now on — and always "
-                   f"tell you here. One click in trust settings takes it back.",
-                   source="trust")
+                   f"tell you here. One click takes it back.",
+                   source="trust", action=action)
     return spec
 
 

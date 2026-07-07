@@ -90,7 +90,10 @@ class TestTiers(TrustBase):
         spec = trust.record_decision("send_nudge", approved=True)
         self.assertEqual(spec["tier"], 1)
         self.assertTrue(spec["earned"])
-        self.assertEqual(len(self._notices("promoted")), 1)
+        promoted = self._notices("promoted")
+        self.assertEqual(len(promoted), 1)
+        # the notice names its action so the UI can offer "Take it back"
+        self.assertEqual(promoted[0]["action"], "send_nudge")
 
     def test_rejection_resets_streak_and_revokes_earned_tier(self):
         for _ in range(trust.PROMOTE_AFTER):
