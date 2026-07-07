@@ -50,6 +50,10 @@ def _seed_data():
         {"total_budget": 1000, "items": [{"category": "venue", "amount": 500}]}))
     (DATA_DIR / "contracts.json").write_text(json.dumps(
         {"contracts": [{"vendor": "Golden Hour", "service_charge": "22%"}]}))
+    (DATA_DIR / "invitations.json").write_text(json.dumps(
+        {"waves": [{"id": "invitation", "status": "sent", "sent_to": []}],
+         "reminder_counts": {}}))
+    (DATA_DIR / "seating.json").write_text(json.dumps({"tables": []}))
 
 
 class _FakeHarness:
@@ -118,10 +122,10 @@ class TestFanOutAndMerge(unittest.TestCase):
     def setUp(self):
         _seed_data()
 
-    def test_three_specialists_run_and_response_shape_is_kept(self):
+    def test_all_specialists_run_and_response_shape_is_kept(self):
         orch = _make_orch()
         out = orch.run(TODAY)
-        self.assertEqual(len(_FakeHarness.instances), 3)     # one per specialist
+        self.assertEqual(len(_FakeHarness.instances), len(SPECIALISTS))  # one each
         self.assertIn("analysis", out)
         self.assertIn("cost_usd", out)
         self.assertEqual({a["name"] for a in out["agents"]}, set(SPECIALISTS))
@@ -130,12 +134,14 @@ class TestFanOutAndMerge(unittest.TestCase):
     def test_isolation_each_specialist_gets_a_fresh_harness(self):
         orch = _make_orch()
         orch.run(TODAY)
-        self.assertEqual(len(set(id(h) for h in _FakeHarness.instances)), 3)
+        self.assertEqual(len(set(id(h) for h in _FakeHarness.instances)),
+                         len(SPECIALISTS))
         prompts = [h.prompt for h in _FakeHarness.instances]
         for name, spec in SPECIALISTS.items():
             matching = [p for p in prompts if f"the {name} specialist" in p]
             self.assertEqual(len(matching), 1, f"no isolated prompt for {name}")
-            self.assertIn(spec["dataset"], matching[0])
+            for dataset in spec["datasets"]:
+                self.assertIn(dataset, matching[0])
 
     def test_code_owns_dates_not_the_model(self):
         # The fake merge model claims as_of/weeks that must be overruled.
@@ -147,8 +153,8 @@ class TestFanOutAndMerge(unittest.TestCase):
     def test_non_json_merge_degrades_to_raw_findings(self):
         orch = _make_orch(merge_answer="Here is your lovely brief, in prose!")
         out = orch.run(TODAY)
-        # 3 specialists x 1 finding each survive into the degraded brief.
-        self.assertEqual(len(out["analysis"]["action_items"]), 3)
+        # each specialist's single finding survives into the degraded brief.
+        self.assertEqual(len(out["analysis"]["action_items"]), len(SPECIALISTS))
 
 
 class TestVerifier(unittest.TestCase):
@@ -168,7 +174,7 @@ class TestVerifier(unittest.TestCase):
             self.assertEqual(per_agent[name]["findings"], 2)  # 1 own + 1 verifier
         tagged = [f for f in out["analysis"]["action_items"]
                   if f.get("flagged_by") == "verifier"]
-        self.assertEqual(len(tagged), 3)  # one appended per specialist
+        self.assertEqual(len(tagged), len(SPECIALISTS))  # one appended per specialist
         self.assertEqual(tagged[0]["title"], "Patel meal gap")
 
     def test_verifier_failure_keeps_specialist_findings(self):
@@ -192,12 +198,12 @@ class TestCostCap(unittest.TestCase):
         _seed_data()
 
     def test_cap_skips_verifier_and_merge_but_still_returns_a_brief(self):
-        # Specialists alone (3 x $0.02) blow a $0.05 budget.
+        # Specialists alone (len(SPECIALISTS) x $0.02) blow a $0.05 budget.
         orch = _make_orch(max_total_cost_usd=0.05)
         out = orch.run(TODAY)
         self.assertEqual(len(orch._client.calls), 0)  # no verifier, no merge calls
         self.assertIn("action_items", out["analysis"])
-        self.assertEqual(len(out["analysis"]["action_items"]), 3)
+        self.assertEqual(len(out["analysis"]["action_items"]), len(SPECIALISTS))
         self.assertIn("Cost cap", out["analysis"]["headline"])
 
 

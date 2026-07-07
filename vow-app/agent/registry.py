@@ -18,6 +18,9 @@ KEEP_BACKUPS = 10  # per dataset
 
 # Guardrail: the agent may only read/write these datasets.
 ALLOWED_DATA = {"budget", "vendors", "guests", "contracts", "decisions", "seating"}
+# Read-only for the agent: analyzed by specialists (guest-logistics), but only
+# the app's endpoint code may ever write them.
+READ_ONLY_DATA = {"invitations"}
 
 
 class ToolRegistry:
@@ -42,7 +45,7 @@ class ToolRegistry:
         )
         self.register_tool(
             "read_data",
-            f"Read a wedding dataset. One of: {sorted(ALLOWED_DATA)}.",
+            f"Read a wedding dataset. One of: {sorted(ALLOWED_DATA | READ_ONLY_DATA)}.",
             {"type": "object",
              "properties": {"name": {"type": "string"}},
              "required": ["name"]},
@@ -99,8 +102,9 @@ class ToolRegistry:
     # --- data (whitelisted) ---
 
     def _read_data(self, name: str):
-        if name not in ALLOWED_DATA:
-            return {"error": f"Unknown dataset '{name}'.", "allowed": sorted(ALLOWED_DATA)}
+        if name not in ALLOWED_DATA | READ_ONLY_DATA:
+            return {"error": f"Unknown dataset '{name}'.",
+                    "allowed": sorted(ALLOWED_DATA | READ_ONLY_DATA)}
         data = storage.load(name)
         if data is None:
             return {"note": f"'{name}' has no data yet."}
