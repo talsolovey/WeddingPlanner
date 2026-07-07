@@ -44,8 +44,9 @@
   .nudge-btn { background: none; border: 1px solid var(--rose-tint-border); color: var(--rose); border-radius: 999px; padding: 0.2rem 0.8rem; font: inherit; font-size: 0.78rem; font-weight: 500; cursor: pointer; white-space: nowrap; }
   .nudge-btn:hover { background: var(--rose-tint); }
   .sent-mark { font-size: 0.78rem; color: var(--ink-faint); }
-  .row-del { background: none; border: none; color: var(--ink-faint); font-size: 0.8rem; cursor: pointer; opacity: 0; padding: 0 0 0 0.5rem; }
-  tbody tr:hover .row-del { opacity: 1; }
+  .row-del, .row-edit { background: none; border: none; color: var(--ink-faint); font-size: 0.8rem; cursor: pointer; opacity: 0; padding: 0 0 0 0.5rem; }
+  tbody tr:hover .row-del, tbody tr:hover .row-edit { opacity: 1; }
+  .row-edit:hover { color: var(--rose); }
   .add-line { background: none; border: none; color: var(--rose); font: inherit; font-size: 0.88rem; font-weight: 500; cursor: pointer; padding: 0; }
   .add-form input, .add-form select { padding: 0.45rem 0.7rem; border: 1px solid var(--hairline); border-radius: 10px; font: inherit; font-size: 0.85rem; width: 100%; background: #fff; outline: none; }
   .add-form input:focus { border-color: var(--rose); }
@@ -89,7 +90,7 @@
   const esc = VOW.esc, money = VOW.money;
 
   let guests, headcount, links = {};
-  let filter = "All", q = "", adding = false;
+  let filter = "All", q = "", adding = false, editing = null;
 
   const RSVP_LABEL = { confirmed: "confirmed", pending: "pending", no_response: "no reply", declined: "declined" };
   const RSVP_COLOR = { confirmed: "var(--green)", pending: "var(--amber)", no_response: "var(--red)", declined: "var(--ink-faint)" };
@@ -209,6 +210,19 @@
         ${rows.map((h) => {
           const note = noteFor(h);
           const coming = h.rsvp === "declined" ? "—" : (h.rsvp === "confirmed" ? (h.attending_count || 0) : (h.party_size || 0));
+          if (editing === h.id) {
+            return `
+          <tr class="add-form" data-id="${h.id}">
+            <td><input id="eh-name" value="${esc(h.household)}" placeholder="Household name"></td>
+            <td><input id="eh-group" value="${esc(h.group || "")}" placeholder="Group"></td>
+            <td><input id="eh-size" type="number" min="1" value="${h.party_size || 1}" style="max-width:70px;text-align:right"></td>
+            <td><input id="eh-phone" value="${esc(h.phone || "")}" placeholder="Phone (for WhatsApp)"></td>
+            <td style="white-space:nowrap;text-align:right">
+              <button class="btn tertiary" id="eh-save">Save</button>
+              <button class="btn tertiary" id="eh-cancel" style="margin-left:0.4rem;color:var(--ink-faint)">✕</button>
+            </td>
+          </tr>`;
+          }
           return `
           <tr data-id="${h.id}">
             <td>
@@ -225,6 +239,7 @@
             <td class="invite-cell">
               ${CHASE(h) ? `<button class="nudge-btn">Nudge on WhatsApp</button>`
                          : h.invite_sent ? `<span class="sent-mark">sent ✓</span>` : ""}
+              <button class="row-edit" title="Edit household">✎</button>
               <button class="row-del" title="Remove household">✕</button>
             </td>
           </tr>`;
@@ -255,6 +270,30 @@
         await load(); renderAll();
       };
     });
+    document.querySelectorAll(".row-edit").forEach((btn) => {
+      btn.onclick = () => { editing = btn.closest("tr").dataset.id; adding = false; renderTable(); };
+    });
+    if (editing) {
+      const save = async () => {
+        const body = {
+          household: $("eh-name").value.trim(),
+          group: $("eh-group").value.trim(),
+          party_size: +$("eh-size").value || 1,
+          phone: $("eh-phone").value.trim(),
+        };
+        if (!body.household) { VOW.toast("Give the household a name"); return; }
+        const res = await fetch("/api/guests/households/" + editing, { method: "PUT",
+          headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        if (res.ok) { editing = null; await load(); renderAll(); VOW.toast("Saved ✦"); }
+        else { const b = await res.json().catch(() => ({})); VOW.toast(b.error || "Couldn't save."); }
+      };
+      $("eh-save").onclick = save;
+      $("eh-cancel").onclick = () => { editing = null; renderTable(); };
+      $("eh-name").focus();
+      document.querySelectorAll("#eh-name,#eh-group,#eh-size,#eh-phone").forEach((inp) => {
+        inp.addEventListener("keydown", (e) => { if (e.key === "Enter") save(); });
+      });
+    }
     if (adding) {
       $("nh-save").onclick = async () => {
         const body = {
