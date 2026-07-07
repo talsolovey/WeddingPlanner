@@ -14,9 +14,7 @@ proper logging, cost control, and safety rails.
 
 ```
 WeddingOS/
-├── cursor-landing-page/   # Week 1 landing page — the one we're keeping
-├── web-landing-page/      # Week 1, built without tools (for comparison)
-├── harness-landing-page/  # Week 1, built with my custom harness (for comparison)
+├── submissions/vow/       # Capstone proposal + curated evidence + verify.sh
 ├── autonomous/            # WS4 kit: the weekly brief on a schedule, unattended
 │   ├── PROMPT.md          #   the headless agent's job (call tool → save draft → stop)
 │   ├── run-agent.sh       #   one capped run: claude -p → mcp__vow__* → outbox/ draft

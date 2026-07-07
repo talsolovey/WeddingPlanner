@@ -96,8 +96,9 @@ provider seam for Meta's API is already implemented).
 <summary>Week 1 archaeology: the same landing page built three ways</summary>
 
 The repo began as a comparison of LLM autonomy levels — the same landing page
-built with a raw model (`web-landing-page/`), a custom tool harness
-(`harness-landing-page/`), and a full agent (`cursor-landing-page/`). The
-harness built there became the brain this whole product runs on.
+built three ways: with a raw model, a custom tool harness, and a full agent.
+The harness built there became the brain this whole product runs on. (The
+three pages were removed in the pre-submission cleanup; they live in git
+history.)
 
 </details>
