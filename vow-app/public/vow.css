@@ -33,6 +33,10 @@
 
 * { box-sizing: border-box; }
 
+/* Karla sets a touch smaller than Inter at the same size — scale the whole
+   type ramp up ~6% (every rem in the app keys off this). */
+html { font-size: 106.25%; }
+
 /* Paper grain: the whole app sits on cotton stationery, not a flat #faf7f3.
    Inline SVG turbulence — no asset, ~0 cost, sits under everything. */
 body::before {
