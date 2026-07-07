@@ -47,11 +47,15 @@ that survives restarts, redeploys and multiple instances.
 1. Create a project at supabase.com, open the **SQL editor**, and run
    `supabase_schema.sql` (creates the `vow_documents` table with RLS on and
    no public policies — only the server can touch it).
-2. From **Project Settings ▸ API** copy the URL and the `service_role` key,
-   and set them as env vars (or in `vow-app/.env` locally):
+2. From **Project Settings ▸ API** copy the URL and the keys, and set them
+   as env vars (or in `vow-app/.env` locally):
    - `SUPABASE_URL` = `https://<project>.supabase.co`
-   - `SUPABASE_SERVICE_KEY` = the service_role key (server-side only — never
-     ship it to a browser).
+   - `SUPABASE_SERVICE_KEY` = the secret / service_role key (server-side
+     only — never ship it to a browser).
+   - `SUPABASE_PUBLISHABLE_KEY` = the publishable / anon key (used only to
+     talk to Supabase **Auth** for signup/login).
+   - `VOW_SECRET_KEY` = any long random string — signs the login session
+     cookie; without it sessions reset on every restart.
 3. Push the current data up once: `python migrate_to_supabase.py`
 4. Restart the app. It now reads and writes Supabase; the local `data/`
    files are ignored (kept as a seed/fallback). Setting

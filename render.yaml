@@ -12,6 +12,14 @@ services:
     envVars:
       - key: OPENAI_API_KEY
         sync: false   # set this secret in the Render dashboard, never in the repo
+      - key: SUPABASE_URL
+        sync: false   # https://<project>.supabase.co
+      - key: SUPABASE_SERVICE_KEY
+        sync: false   # secret / service_role key — data access (server-side only)
+      - key: SUPABASE_PUBLISHABLE_KEY
+        sync: false   # publishable / anon key — Supabase Auth (signup/login)
+      - key: VOW_SECRET_KEY
+        sync: false   # long random string; signs the login session cookie
 
     # --- Optional: persist the couple's data across restarts/redeploys ---
     # By default the app ships with sample data baked in and writes are lost on
