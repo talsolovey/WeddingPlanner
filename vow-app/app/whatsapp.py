@@ -29,17 +29,39 @@ from .guests import load_guests, save_guests
 
 whatsapp_bp = Blueprint("whatsapp", __name__)
 
+# ---------- provider config ----------
+# The sender is provider-neutral: WHATSAPP_PROVIDER picks the wire (twilio |
+# meta), and everything above the seam only sees (ok, reason). Migrating to
+# Meta's Cloud API later = fill the meta env vars and flip one variable.
+PROVIDER = os.environ.get("WHATSAPP_PROVIDER", "twilio").strip().lower()
+
 ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID", "").strip()
 AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN", "").strip()
 WHATSAPP_FROM = os.environ.get("TWILIO_WHATSAPP_FROM", "whatsapp:+14155238886").strip()
-DEFAULT_CC = os.environ.get("VOW_DEFAULT_CC", "972").strip()
 
-# Twilio error code when the recipient hasn't joined the sandbox.
+META_ACCESS_TOKEN = os.environ.get("META_ACCESS_TOKEN", "").strip()
+META_PHONE_NUMBER_ID = os.environ.get("META_PHONE_NUMBER_ID", "").strip()
+
+DEFAULT_CC = os.environ.get("VOW_DEFAULT_CC", "972").strip()
+# Sandbox pacing: 1 message per 3 seconds. Tests set this to 0.
+SEND_INTERVAL = float(os.environ.get("VOW_WA_SEND_INTERVAL", "3"))
+
+# Twilio error code when the recipient hasn't joined the sandbox;
+# Meta codes when the recipient is outside the 24h service window.
 NOT_IN_SANDBOX = 63015
+META_UNREACHABLE = {131047, 131026}
 
 
 def _twilio_ready() -> bool:
     return bool(ACCOUNT_SID and AUTH_TOKEN)
+
+
+def _meta_ready() -> bool:
+    return bool(META_ACCESS_TOKEN and META_PHONE_NUMBER_ID)
+
+
+def configured() -> bool:
+    return _meta_ready() if PROVIDER == "meta" else _twilio_ready()
 
 
 def normalize_phone(raw: str, default_cc: str = None) -> str:
@@ -75,7 +97,48 @@ def _twilio_send(to_digits: str, body: str):
     return resp.status_code, payload
 
 
-def _build_message(guests: dict, household: dict) -> str:
+def _meta_send(to_digits: str, body: str):
+    """One call to Meta's WhatsApp Cloud API. Same (status, payload) contract."""
+    import httpx
+    resp = httpx.post(
+        f"https://graph.facebook.com/v21.0/{META_PHONE_NUMBER_ID}/messages",
+        headers={"Authorization": f"Bearer {META_ACCESS_TOKEN}"},
+        json={"messaging_product": "whatsapp", "to": to_digits,
+              "type": "text", "text": {"body": body}},
+        timeout=20,
+    )
+    try:
+        payload = resp.json()
+    except ValueError:
+        payload = {}
+    return resp.status_code, payload
+
+
+def send_whatsapp(to_digits: str, body: str):
+    """Provider-neutral send. Returns (ok, reason, meta) — reason is '' on
+    success, otherwise a stable string the UI/wave delivery can act on."""
+    if not configured():
+        return False, f"{PROVIDER}_not_configured", {}
+    if PROVIDER == "meta":
+        status, payload = _meta_send(to_digits, body)
+        if status == 200:
+            msg = (payload.get("messages") or [{}])[0]
+            return True, "", {"sid": msg.get("id", ""), "status": "accepted"}
+        code = (payload.get("error") or {}).get("code")
+        if code in META_UNREACHABLE:
+            return False, "recipient_unreachable", {}
+        return False, f"meta_error_{code or status}", {}
+    status, payload = _twilio_send(to_digits, body)
+    if status in (200, 201):
+        return True, "", {"sid": payload.get("sid", ""),
+                          "status": payload.get("status", "queued")}
+    code = payload.get("code")
+    if code == NOT_IN_SANDBOX:
+        return False, "recipient_not_in_sandbox", {}
+    return False, f"twilio_error_{code or status}", {}
+
+
+def _couple_bits(guests: dict):
     profile = storage.load("profile", {}) or {}
     names = " & ".join(n for n in [profile.get("partner_a"), profile.get("partner_b")] if n) or "us"
     date_str = ""
@@ -85,15 +148,35 @@ def _build_message(guests: dict, household: dict) -> str:
             date_str = datetime.strptime(raw, "%Y-%m-%d").strftime("%B %-d")
         except ValueError:
             date_str = raw
-    # The household's personal magic link (created on demand, like rsvp-links).
+    return names, date_str
+
+
+def _magic_link(base_url: str, guests: dict, household: dict) -> str:
+    """The household's personal RSVP link (token created on demand)."""
     from .rsvp import ensure_tokens  # local import to avoid a cycle
     if ensure_tokens(guests):
         save_guests(guests)
-    link = (request.host_url.rstrip("/")
+    return (base_url.rstrip("/")
             + f"/rsvp/{storage.current_couple()}/{household['rsvp_token']}")
+
+
+def _build_message(guests: dict, household: dict, base_url: str) -> str:
+    names, date_str = _couple_bits(guests)
+    link = _magic_link(base_url, guests, household)
     return (f"Hi! Just a gentle reminder about {names}'s wedding"
             + (f" on {date_str}" if date_str else "")
             + f" — we'd love to know if you can make it. You can reply here: {link}")
+
+
+def personalize(template: str, guests: dict, household: dict, base_url: str) -> str:
+    """Fill a wave message's placeholders for one household; falls back to the
+    default reminder text when the couple didn't write a message."""
+    if not (template or "").strip():
+        return _build_message(guests, household, base_url)
+    text = template.replace("[name]", household.get("household", ""))
+    if "[rsvp link]" in text:
+        text = text.replace("[rsvp link]", _magic_link(base_url, guests, household))
+    return text
 
 
 def _log_nudge(household: dict, channel: str):
@@ -114,7 +197,7 @@ def nudge(hid):
     if household is None:
         return jsonify({"error": "Unknown household."}), 404
 
-    message = _build_message(guests, household)
+    message = _build_message(guests, household, request.host_url)
     phone = normalize_phone(household.get("phone", ""))
 
     def fallback(reason):
@@ -126,18 +209,57 @@ def nudge(hid):
 
     if not phone:
         return fallback("no_valid_phone")
-    if not _twilio_ready():
-        return fallback("twilio_not_configured")
 
-    status, payload = _twilio_send(phone, message)
-    if status in (200, 201):
+    ok, reason, meta = send_whatsapp(phone, message)
+    if ok:
         household["last_nudged_at"] = datetime.utcnow().isoformat() + "Z"
         save_guests(guests)
         _log_nudge(household, "sent automatically")
-        return jsonify({"sent": True, "sid": payload.get("sid", ""),
-                        "status": payload.get("status", "queued")})
+        return jsonify({"sent": True, "sid": meta.get("sid", ""),
+                        "status": meta.get("status", "queued")})
+    return fallback(reason)
 
-    code = payload.get("code")
-    if code == NOT_IN_SANDBOX:
-        return fallback("recipient_not_in_sandbox")
-    return fallback(f"twilio_error_{code or status}")
+
+# ---------- wave delivery (invitations page) ----------
+
+def deliver_wave(base_url: str, wave_id: str, emit=lambda e: None):
+    """Send a just-sent wave's message to every frozen recipient, paced for
+    the sandbox. Runs inside a background job (couple context inherited);
+    records per-recipient results on the wave document as it goes."""
+    import time
+    from .invitations import load_invitations, save_invitations
+
+    guests = load_guests()
+    data = load_invitations(guests)
+    wave = next((w for w in data["waves"] if w["id"] == wave_id), None)
+    if wave is None or wave.get("status") != "sent":
+        return {"error": "wave not found or not sent"}
+
+    by_id = {h["id"]: h for h in guests["households"]}
+    delivery = {"sent": [], "failed": [], "finished": False}
+    wave["delivery"] = delivery
+
+    for i, hid in enumerate(wave.get("sent_to", [])):
+        household = by_id.get(hid)
+        if household is None:
+            delivery["failed"].append({"id": hid, "reason": "household_removed"})
+            continue
+        phone = normalize_phone(household.get("phone", ""))
+        if not phone:
+            delivery["failed"].append({"id": hid, "reason": "no_valid_phone"})
+            continue
+        if i and SEND_INTERVAL:
+            time.sleep(SEND_INTERVAL)  # sandbox: 1 message / 3s
+        message = personalize(wave.get("message", ""), guests, household, base_url)
+        ok, reason, _meta = send_whatsapp(phone, message)
+        if ok:
+            delivery["sent"].append(hid)
+        else:
+            delivery["failed"].append({"id": hid, "reason": reason})
+        save_invitations(data)  # durable progress, one document write per send
+        emit(f"{household['household']}: {'sent' if ok else reason}")
+
+    delivery["finished"] = True
+    delivery["finished_at"] = datetime.now().isoformat(timespec="seconds")
+    save_invitations(data)
+    return {"sent": len(delivery["sent"]), "failed": len(delivery["failed"])}

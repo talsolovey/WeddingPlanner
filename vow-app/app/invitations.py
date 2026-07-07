@@ -17,8 +17,17 @@ from datetime import date, datetime, timedelta
 from flask import Blueprint, jsonify, request, send_from_directory
 
 import storage
-from .core import PUBLIC_DIR, rate_limit
+from . import whatsapp
+from .core import PUBLIC_DIR, rate_limit, run_job
 from .guests import load_guests
+
+
+def _start_delivery(wave_id: str) -> str:
+    """Kick off background WhatsApp delivery for a just-sent wave (paced for
+    the sandbox, per-recipient results recorded on the wave). Only when a
+    provider is configured — otherwise waves stay manual, as before."""
+    base_url = request.host_url
+    return run_job(lambda emit: whatsapp.deliver_wave(base_url, wave_id, emit))
 
 invitations_bp = Blueprint("invitations", __name__)
 
@@ -175,8 +184,14 @@ def invitations_page():
 def get_invitations():
     guests = load_guests()
     data = load_invitations(guests)
+    due_before = [w["id"] for w in data["waves"] if w.get("status") == "scheduled"]
     if _check_due(data, guests) or not storage.exists("invitations"):
         save_invitations(data)
+        # Waves that just auto-fired get real delivery too (when configured).
+        if whatsapp.configured():
+            for w in data["waves"]:
+                if w["id"] in due_before and w.get("status") == "sent":
+                    _start_delivery(w["id"])
     return jsonify(_view(data, guests))
 
 
@@ -214,8 +229,10 @@ def send_wave_now(wave_id):
         return jsonify({"error": "This wave was already sent."}), 400
     recipients = _send_wave(wave, guests, data)
     save_invitations(data)
+    job_id = _start_delivery(wave["id"]) if whatsapp.configured() else None
     return jsonify(dict(_view(data, guests),
-                        sent={"wave": wave["title"], "count": len(recipients)}))
+                        sent={"wave": wave["title"], "count": len(recipients),
+                              "delivery_job": job_id}))
 
 
 @invitations_bp.post("/api/invitations/generate")

@@ -88,14 +88,22 @@
     }
   }
 
+  function deliveryNote(w) {
+    const d = w.delivery;
+    if (!d) return "";
+    const failed = (d.failed || []).length;
+    if (!d.finished) return ` · delivering… ${(d.sent || []).length} sent so far`;
+    return ` · ${(d.sent || []).length} delivered automatically${failed ? `, ${failed} need a manual send` : ""}`;
+  }
+
   function detailFor(w) {
     const s = view.stats;
     if (w.id === "save_the_date" && w.status === "sent")
-      return `Sent ${fmt(w.sent_on, { month: "long", day: "numeric" })} · reached all ${w.sent_count} households on WhatsApp`;
+      return `Sent ${fmt(w.sent_on, { month: "long", day: "numeric" })} · reached all ${w.sent_count} households on WhatsApp${deliveryNote(w)}`;
     if (w.id === "invitation" && w.status === "sent")
-      return `Sent ${fmt(w.sent_on, { month: "long", day: "numeric" })} with each household's private RSVP link · ${w.replied_of_sent} of ${w.sent_count} replied`;
+      return `Sent ${fmt(w.sent_on, { month: "long", day: "numeric" })} with each household's private RSVP link · ${w.replied_of_sent} of ${w.sent_count} replied${deliveryNote(w)}`;
     if (w.status === "sent")
-      return `Sent ${fmt(w.sent_on, { month: "long", day: "numeric" })} · to ${w.sent_count} household${w.sent_count === 1 ? "" : "s"}`;
+      return `Sent ${fmt(w.sent_on, { month: "long", day: "numeric" })} · to ${w.sent_count} household${w.sent_count === 1 ? "" : "s"}${deliveryNote(w)}`;
     if (w.id === "reminder_1")
       return "Only to households who haven't replied — anyone who answers first is skipped automatically.";
     if (w.id === "final_reminder")
