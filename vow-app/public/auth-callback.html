@@ -6,14 +6,55 @@
 <title>Vow ✦ — Signing you in</title>
 <link rel="stylesheet" href="/vow.css">
 <style>
-  body { display: flex; align-items: center; justify-content: center; min-height: 100vh;
-         background: #faf7f3; font-family: var(--sans, sans-serif); color: var(--ink, #26222a); }
-  .box { text-align: center; }
+  body {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; margin: 0; padding: 1.5rem; box-sizing: border-box;
+    background: #faf7f3 radial-gradient(ellipse 80% 60% at 50% -10%, rgba(160,92,109,0.07), transparent);
+    font-family: var(--sans, sans-serif); color: var(--ink, #26222a);
+  }
+  .card {
+    background: var(--card, #fff); border: 1px solid var(--hairline, #e8e2da);
+    border-radius: 20px; padding: 2.6rem 2.8rem; text-align: center;
+    box-shadow: 0 1px 3px rgba(38,34,42,0.05); max-width: 380px; width: 100%;
+    animation: vow-rise 0.5s ease both;
+  }
+  .brand-name { font-family: var(--serif, serif); font-size: 1.5rem; font-weight: 600; }
+  .brand-name .spark { color: var(--rose, #a05c6d); font-size: 1rem; }
+  .spinner {
+    margin: 1.6rem auto 1.2rem; width: 44px; height: 44px; position: relative;
+  }
+  .spinner .ring {
+    position: absolute; inset: 0; border-radius: 50%;
+    border: 2px solid var(--rose-tint-border, #ecd8d6); border-top-color: var(--rose, #a05c6d);
+    animation: spin 1s linear infinite;
+  }
+  .spinner .star {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: var(--rose, #a05c6d); font-size: 0.9rem; animation: vow-pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes vow-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+  @keyframes vow-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  #status { font-size: 0.95rem; color: var(--ink-soft, #6f6673); margin: 0; min-height: 1.4em; }
+  .sub { font-size: 0.8rem; color: var(--ink-faint, #a39aa8); margin-top: 0.5rem; }
+  .back-btn {
+    display: none; margin: 1.4rem auto 0; background: var(--rose-deep, #8d4f5f); color: #fff;
+    border: none; border-radius: 999px; padding: 0.7rem 1.8rem; font: inherit;
+    font-size: 0.9rem; font-weight: 600; cursor: pointer; text-decoration: none;
+  }
+  .card.errored .spinner { display: none; }
+  .card.errored #status { color: #a03c3c; }
+  .card.errored .back-btn { display: inline-block; }
+  .card.errored .sub { display: none; }
 </style>
 </head>
 <body data-chrome="none">
-<div class="box">
-  <p id="status">Signing you in…</p>
+<div class="card" id="card">
+  <div class="brand-name">Vow <span class="spark">✦</span></div>
+  <div class="spinner" aria-hidden="true"><div class="ring"></div><div class="star">✦</div></div>
+  <p id="status" role="status">Signing you in…</p>
+  <p class="sub">Checking your Google sign-in with our records.</p>
+  <a class="back-btn" href="/login">Back to sign in</a>
 </div>
 <script>
 (async function () {
@@ -21,12 +62,14 @@
   // We hand the access token to our backend, which verifies it with Supabase
   // before opening the session — a forged token can't become a session.
   const status = document.getElementById("status");
+  const card = document.getElementById("card");
+  const fail = (msg) => { status.textContent = msg; card.classList.add("errored"); };
+
   const params = new URLSearchParams(location.hash.replace(/^#/, ""));
   const token = params.get("access_token");
   history.replaceState(null, "", "/auth/callback"); // scrub tokens from the URL
   if (!token) {
-    status.textContent = params.get("error_description") || "Sign-in was cancelled.";
-    setTimeout(() => (location.href = "/login"), 2500);
+    fail(params.get("error_description") || "Sign-in was cancelled.");
     return;
   }
   try {
@@ -36,11 +79,11 @@
     });
     const body = await res.json();
     if (!res.ok) throw new Error(body.error || "Sign-in failed.");
+    status.textContent = "Welcome back — setting things up…";
     const profile = await fetch("/api/profile").then((r) => r.json()).catch(() => ({}));
     location.href = profile && profile.onboarded ? "/" : "/onboarding";
   } catch (e) {
-    status.textContent = e.message;
-    setTimeout(() => (location.href = "/login"), 2500);
+    fail(e.message);
   }
 })();
 </script>
