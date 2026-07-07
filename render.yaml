@@ -20,6 +20,12 @@ services:
         sync: false   # publishable / anon key — Supabase Auth (signup/login)
       - key: VOW_SECRET_KEY
         sync: false   # long random string; signs the login session cookie
+      - key: TWILIO_ACCOUNT_SID
+        sync: false   # optional: real WhatsApp nudges via the Twilio sandbox
+      - key: TWILIO_AUTH_TOKEN
+        sync: false   # optional: pairs with the account SID
+      # TWILIO_WHATSAPP_FROM defaults to the shared sandbox number
+      # (whatsapp:+14155238886); VOW_DEFAULT_CC defaults to 972.
 
     # --- Optional: persist the couple's data across restarts/redeploys ---
     # By default the app ships with sample data baked in and writes are lost on
