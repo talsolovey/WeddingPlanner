@@ -27,6 +27,10 @@
   .search:focus { border-color: var(--rose); }
 
   .table-card { background: var(--card); border: 1px solid var(--hairline); border-radius: 16px; box-shadow: var(--card-shadow); overflow: hidden; }
+  /* Long guest lists scroll inside the card instead of stretching the page. */
+  .table-scroll { max-height: 62vh; overflow-y: auto; overscroll-behavior: contain; }
+  .table-scroll thead th { position: sticky; top: 0; background: var(--card); z-index: 2; box-shadow: 0 1px 0 var(--hairline); border-bottom: none; }
+  .table-count { color: var(--ink-faint); font-size: 0.76rem; text-align: right; padding: 0.5rem 1.8rem 0.7rem; border-top: 1px solid var(--divider); }
   table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
   th { text-align: left; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-soft); font-weight: 600; padding: 0.9rem 1rem 0.6rem; border-bottom: 1px solid var(--hairline); }
   th:first-child { padding-left: 1.8rem; }
@@ -80,7 +84,10 @@
 
   <section class="summary-card" id="summary"></section>
   <div class="filter-row" id="filters"></div>
-  <section class="table-card"><table id="guest-table"></table></section>
+  <section class="table-card">
+    <div class="table-scroll"><table id="guest-table"></table></div>
+    <div class="table-count" id="table-count" hidden></div>
+  </section>
   <section class="headcount-card" id="headcount" hidden></section>
 </main>
 
@@ -257,6 +264,13 @@
         </tr>` : `
         <tr><td colspan="5" style="padding:0.8rem 1.8rem"><button class="add-line" id="add-hh">+ Add a household</button></td></tr>`}
       </tbody>`;
+
+    const all = households().length;
+    const count = $("table-count");
+    count.hidden = all === 0;
+    count.textContent = rows.length === all
+      ? `${all} household${all === 1 ? "" : "s"}`
+      : `Showing ${rows.length} of ${all} households`;
 
     document.querySelectorAll(".nudge-btn").forEach((btn) => {
       btn.onclick = () => nudge(btn.closest("tr").dataset.id);
