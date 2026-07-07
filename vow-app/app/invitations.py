@@ -187,10 +187,14 @@ def get_invitations():
     due_before = [w["id"] for w in data["waves"] if w.get("status") == "scheduled"]
     if _check_due(data, guests) or not storage.exists("invitations"):
         save_invitations(data)
-        # Waves that just auto-fired get real delivery too (when configured).
+        # Waves that just auto-fired get real delivery too (when configured) —
+        # but ONLY if the couple wrote the message themselves. Auto-sending the
+        # default template would put words in their mouths they never saw;
+        # blank-message waves stay bookkeeping until sent manually.
         if whatsapp.configured():
             for w in data["waves"]:
-                if w["id"] in due_before and w.get("status") == "sent":
+                if (w["id"] in due_before and w.get("status") == "sent"
+                        and str(w.get("message") or "").strip()):
                     _start_delivery(w["id"])
     return jsonify(_view(data, guests))
 

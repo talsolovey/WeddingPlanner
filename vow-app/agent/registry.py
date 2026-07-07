@@ -168,6 +168,12 @@ class ToolRegistry:
         skill_dir = SKILLS_DIR / skill
         if not skill_dir.is_dir():
             return {"error": f"No skill named '{skill}'."}
+        # Lessons feed FUTURE prompts — a poisoned lesson is persistent
+        # injection. Scan before it becomes part of the agent's memory.
+        from . import guard
+        if guard.scan_for_injection(lesson or ""):
+            return {"error": "That lesson reads like an instruction, not an "
+                             "observation — not recorded."}
         lessons = skill_dir / "LESSONS.md"
         existing = lessons.read_text() if lessons.exists() else ""
         if lesson.strip() in existing:

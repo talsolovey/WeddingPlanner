@@ -52,6 +52,11 @@ def add_budget_item():
     category = str(data.get("category", "")).strip()[:60]
     if not category:
         return jsonify({"error": "Category is required."}), 400
+    # Category/vendor names end up inside agent prompts — data, not commands.
+    from agent import guard
+    if guard.scan_for_injection(category) or guard.scan_for_injection(
+            str(data.get("vendor") or "")):
+        return jsonify({"error": "That name can't be saved. Please rephrase."}), 400
 
     def num(k):  # guardrail: numbers only, no negatives
         try:

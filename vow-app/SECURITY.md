@@ -97,3 +97,28 @@ All 17 tests pass and make no network calls.
   deterministic backstop.
 - Backups live on the instance disk; persist `data/.backups/` if you need them to
   survive a redeploy.
+
+## Post-audit additions (2026-07-07)
+
+Four injection channels found in the safety audit are now closed, each with a
+test in `tests/test_injection_gaps.py`:
+
+- **Name fields** (household, group, budget category/vendor) are scanned at
+  write time — short identity strings end up inside agent prompts, so
+  instruction-shaped names are rejected with a 400.
+- **Lessons** are scanned before `append_lesson` records them: agent memory
+  feeds future prompts, so a poisoned lesson would be *persistent* injection.
+- **The chat snapshot** carries an explicit data-not-commands fence covering
+  every name, note and contract flag interpolated into the system prompt.
+- **Blank-message waves never auto-deliver**: a due wave auto-fires its
+  bookkeeping, but real WhatsApp delivery requires a message the couple wrote
+  themselves — the default template is never sent without explicit approval
+  (manual "Send now", where the preview is visible).
+
+CSRF: state-changing endpoints rely on the session cookie being `SameSite=Lax`
++ `HttpOnly`, which blocks cross-site POSTs in modern browsers; no separate
+CSRF tokens. Acceptable at this scale; revisit if embedding or CORS ever opens.
+
+Operational note: rotate any credential that has ever left the machine
+(pasted in chats, shared screens): `OPENAI_API_KEY`, Twilio auth token,
+Supabase service key, Telegram bot token.

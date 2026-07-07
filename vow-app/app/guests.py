@@ -73,6 +73,11 @@ def add_household():
     name = str(data.get("household", "")).strip()[:100]
     if not name:
         return jsonify({"error": "Household name is required."}), 400
+    # Names end up inside agent prompts — reject instruction-shaped text.
+    from agent import guard
+    if guard.scan_for_injection(name) or guard.scan_for_injection(
+            str(data.get("group") or "")):
+        return jsonify({"error": "That name can't be saved. Please rephrase."}), 400
 
     try:
         party_size = max(1, int(float(data.get("party_size") or 1)))
@@ -128,6 +133,10 @@ def update_household(household_id):
         except (TypeError, ValueError):
             return None
 
+    from agent import guard
+    if guard.scan_for_injection(str(data.get("household") or "")) or \
+            guard.scan_for_injection(str(data.get("group") or "")):
+        return jsonify({"error": "That name can't be saved. Please rephrase."}), 400
     if str(data.get("household") or "").strip():
         h["household"] = str(data["household"]).strip()[:100]
     if "group" in data:
