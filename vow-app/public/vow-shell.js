@@ -262,7 +262,23 @@ const VOW = (() => {
     loadProfile();
   });
 
+  /* Guarded fetch: JSON in/out, throws Error(server message) on any non-2xx
+     (a 401 sends the visitor back to /login — their session expired). */
+  async function getJSON(url, options) {
+    const res = await fetch(url, options);
+    let body = null;
+    try { body = await res.json(); } catch (e) { /* non-JSON error page */ }
+    if (res.status === 401) { location.href = "/login"; throw new Error("Signed out."); }
+    if (!res.ok) throw new Error((body && body.error) || `Request failed (${res.status}).`);
+    return body;
+  }
+  const postJSON = (url, payload) => getJSON(url, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload || {}),
+  });
+
   return { esc, money, toast, cheer, pollJob, loadProfile, greeting, coupleNames,
+           getJSON, postJSON,
            askVow: (text) => { if (chatAsk) chatAsk(text); },
            get profile() { return profile; } };
 })();

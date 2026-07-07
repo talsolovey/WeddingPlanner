@@ -92,8 +92,8 @@
 
   async function load() {
     [view, guests] = await Promise.all([
-      fetch("/api/seating").then((r) => r.json()),
-      fetch("/api/guests").then((r) => r.json()),
+      VOW.getJSON("/api/seating"),
+      VOW.getJSON("/api/guests"),
     ]);
   }
 
@@ -172,14 +172,18 @@
         const un = e.target.dataset && e.target.dataset.un;
         const del = e.target.dataset && e.target.dataset.del;
         if (un) {
-          view = await fetch("/api/seating/assign", { method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ household_id: un, table_id: null }) }).then((r) => r.json());
+          try {
+            view = await VOW.getJSON("/api/seating/assign", { method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ household_id: un, table_id: null }) });
+          } catch (err) { VOW.toast(err.message); }
           render(); return;
         }
         if (del) {
           if (!confirm("Remove this table? Its households go back to the unseated list.")) return;
-          view = await fetch("/api/seating/tables/" + del, { method: "DELETE" }).then((r) => r.json());
+          try {
+            view = await VOW.getJSON("/api/seating/tables/" + del, { method: "DELETE" });
+          } catch (err) { VOW.toast(err.message); }
           openTable = null; render(); return;
         }
         if (picked) {
@@ -236,7 +240,7 @@
     $("auto-btn").textContent = "✦ Seat everyone for me";
   };
 
-  await load();
+  try { await load(); } catch (e) { VOW.toast(e.message); return; }
   render();
 })();
 </script>

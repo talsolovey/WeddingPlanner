@@ -105,7 +105,7 @@
 
   async function load() {
     const [g, hc, lk, profile] = await Promise.all([
-      fetch("/api/guests").then((r) => r.json()),
+      VOW.getJSON("/api/guests"),
       fetch("/api/guests/headcount/latest").then((r) => r.json()).catch(() => ({ exists: false })),
       fetch("/api/guests/rsvp-links", { method: "POST" }).then((r) => r.json()).catch(() => ({ links: [] })),
       VOW.loadProfile(),
@@ -280,8 +280,10 @@
         const tr = btn.closest("tr");
         const name = tr.querySelector(".hh-name").textContent;
         if (!confirm(`Remove ${name} from the guest list?`)) return;
-        await fetch("/api/guests/households/" + tr.dataset.id, { method: "DELETE" });
-        await load(); renderAll();
+        try {
+          await VOW.getJSON("/api/guests/households/" + tr.dataset.id, { method: "DELETE" });
+          await load(); renderAll();
+        } catch (e) { VOW.toast(e.message); }
       };
     });
     document.querySelectorAll(".row-edit").forEach((btn) => {
@@ -422,7 +424,7 @@
   };
 
   function renderAll() { renderSummary(); renderFilters(); renderTable(); renderHeadcount(); }
-  await load();
+  try { await load(); } catch (e) { VOW.toast(e.message); return; }
   renderAll();
 })();
 </script>

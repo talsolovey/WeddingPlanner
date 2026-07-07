@@ -76,7 +76,7 @@
   };
 
   async function load() {
-    view = await fetch("/api/invitations").then((r) => r.json());
+    view = await VOW.getJSON("/api/invitations");
     try {
       const lk = await fetch("/api/guests/rsvp-links", { method: "POST" }).then((r) => r.json());
       rsvpLinks = Object.fromEntries((lk.links || []).map((l) => [l.id, l.url]));
@@ -242,8 +242,9 @@
           if (pv) pv.textContent = previewFor(w);
           clearTimeout(timer);
           timer = setTimeout(() => {
-            fetch("/api/invitations/waves/" + id, { method: "PUT",
-              headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: msg.value }) });
+            VOW.getJSON("/api/invitations/waves/" + id, { method: "PUT",
+              headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: msg.value }) })
+              .catch((e) => VOW.toast(e.message));
           }, 600);
         };
       }
@@ -268,7 +269,7 @@
     });
   }
 
-  await load();
+  try { await load(); } catch (e) { VOW.toast(e.message); return; }
   render();
 })();
 </script>

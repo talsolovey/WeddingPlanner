@@ -100,8 +100,8 @@
 
   async function load() {
     [budget, guests, forecast] = await Promise.all([
-      fetch("/api/budget").then((r) => r.json()),
-      fetch("/api/guests").then((r) => r.json()),
+      VOW.getJSON("/api/budget"),
+      VOW.getJSON("/api/guests"),
       fetch("/api/budget/forecast/latest").then((r) => r.json()).catch(() => ({ exists: false })),
     ]);
   }
@@ -192,9 +192,11 @@
     document.querySelectorAll(".row-del").forEach((btn) => {
       btn.onclick = async () => {
         const id = btn.closest("tr").dataset.id;
-        await fetch("/api/budget/items/" + id, { method: "DELETE" });
-        await load(); renderAll();
-        VOW.toast("Line removed ✦");
+        try {
+          await VOW.getJSON("/api/budget/items/" + id, { method: "DELETE" });
+          await load(); renderAll();
+          VOW.toast("Line removed ✦");
+        } catch (e) { VOW.toast(e.message); }
       };
     });
     if (adding) {
@@ -359,7 +361,7 @@
   };
 
   function renderAll() { renderSummary(); renderTable(); renderMonths(); renderForecast(); }
-  await load();
+  try { await load(); } catch (e) { VOW.toast(e.message); return; }
   renderAll();
 })();
 </script>

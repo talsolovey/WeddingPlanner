@@ -71,7 +71,7 @@
   let fileInput;
 
   async function load() {
-    contracts = await fetch("/api/contracts").then((r) => r.json());
+    contracts = await VOW.getJSON("/api/contracts");
   }
 
   /* ---------- drop card ---------- */
@@ -237,14 +237,16 @@
       };
       card.querySelector(".report-del").onclick = async () => {
         if (!confirm(`Remove the ${displayVendor(c.vendor)} report?`)) return;
-        await fetch("/api/contracts/" + id, { method: "DELETE" });
-        await load();
+        try {
+          await VOW.getJSON("/api/contracts/" + id, { method: "DELETE" });
+          await load();
+        } catch (e) { VOW.toast(e.message); }
         renderReports();
       };
     });
   }
 
-  await load();
+  try { await load(); } catch (e) { VOW.toast(e.message); }
   renderDrop();
   renderReports();
 })();

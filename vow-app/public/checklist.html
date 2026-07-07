@@ -51,7 +51,9 @@
   const $ = (id) => document.getElementById(id);
   const esc = VOW.esc;
 
-  let view = await fetch("/api/checklist").then((r) => r.json());
+  let view;
+  try { view = await VOW.getJSON("/api/checklist"); }
+  catch (e) { VOW.toast(e.message); return; }
   let openState = null;
 
   const weddingLabel = view.wedding_date

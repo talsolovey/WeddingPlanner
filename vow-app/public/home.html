@@ -131,11 +131,14 @@
   const $ = (id) => document.getElementById(id);
   const esc = VOW.esc, money = VOW.money;
 
-  const [profile, overview, brief] = await Promise.all([
-    VOW.loadProfile(),
-    fetch("/api/overview").then((r) => r.json()),
-    fetch("/api/weekly-brief/latest").then((r) => r.json()).catch(() => ({ exists: false })),
-  ]);
+  let profile, overview, brief;
+  try {
+    [profile, overview, brief] = await Promise.all([
+      VOW.loadProfile(),
+      VOW.getJSON("/api/overview"),
+      fetch("/api/weekly-brief/latest").then((r) => r.json()).catch(() => ({ exists: false })),
+    ]);
+  } catch (e) { VOW.toast(e.message); return; }
 
   const names = VOW.coupleNames() || "there";
   const isNew = overview.guests.household_count === 0 && overview.budget.item_count === 0;
@@ -189,8 +192,10 @@
       const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
       profile.photo = dataUrl;
       renderPhoto();
-      await fetch("/api/profile", { method: "PUT", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ photo: dataUrl }) });
+      try {
+        await VOW.getJSON("/api/profile", { method: "PUT", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ photo: dataUrl }) });
+      } catch (e) { VOW.toast(e.message); }
       localStorage.setItem("vow-profile", JSON.stringify(profile));
     };
     img.src = URL.createObjectURL(file);

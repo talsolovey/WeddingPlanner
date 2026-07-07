@@ -64,8 +64,11 @@
   const $ = (id) => document.getElementById(id);
   const esc = VOW.esc;
 
-  let view = await fetch("/api/timeline").then((r) => r.json());
-  const guests = await fetch("/api/guests").then((r) => r.json());
+  let view, guests;
+  try {
+    view = await VOW.getJSON("/api/timeline");
+    guests = await VOW.getJSON("/api/guests");
+  } catch (e) { VOW.toast(e.message); return; }
 
   const dateStr = guests.settings.wedding_date;
   $("date-eyebrow").textContent = dateStr
@@ -95,7 +98,9 @@
     document.querySelectorAll(".event-del").forEach((btn) => {
       btn.onclick = async () => {
         const id = btn.closest(".event-row").dataset.id;
-        view = await fetch("/api/timeline/events/" + id, { method: "DELETE" }).then((r) => r.json());
+        try {
+          view = await VOW.getJSON("/api/timeline/events/" + id, { method: "DELETE" });
+        } catch (e) { VOW.toast(e.message); }
         render();
       };
     });

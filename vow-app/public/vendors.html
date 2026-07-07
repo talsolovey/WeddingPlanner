@@ -48,11 +48,14 @@
   const $ = (id) => document.getElementById(id);
   const esc = VOW.esc, money = VOW.money;
 
-  const [budget, contracts, guests] = await Promise.all([
-    fetch("/api/budget").then((r) => r.json()),
-    fetch("/api/contracts").then((r) => r.json()),
-    fetch("/api/guests").then((r) => r.json()),
-  ]);
+  let budget, contracts, guests;
+  try {
+    [budget, contracts, guests] = await Promise.all([
+      VOW.getJSON("/api/budget"),
+      VOW.getJSON("/api/contracts"),
+      VOW.getJSON("/api/guests"),
+    ]);
+  } catch (e) { VOW.toast(e.message); return; }
 
   const PRETTY = {
     "venue": "Venue & catering", "photography": "Photography & video",

@@ -48,12 +48,15 @@
 <script>
 (async function () {
   const esc = VOW.esc;
-  const [profile, tl, guests, seating] = await Promise.all([
-    fetch("/api/profile").then((r) => r.json()),
-    fetch("/api/timeline").then((r) => r.json()),
-    fetch("/api/guests").then((r) => r.json()),
-    fetch("/api/seating").then((r) => r.json()),
-  ]);
+  let profile, tl, guests, seating;
+  try {
+    [profile, tl, guests, seating] = await Promise.all([
+      VOW.getJSON("/api/profile"),
+      VOW.getJSON("/api/timeline"),
+      VOW.getJSON("/api/guests"),
+      VOW.getJSON("/api/seating"),
+    ]);
+  } catch (e) { VOW.toast(e.message); return; }
 
   const names = [profile.partner_a, profile.partner_b].filter(Boolean).join(" & ") || "The couple";
   const dateStr = guests.settings.wedding_date;
