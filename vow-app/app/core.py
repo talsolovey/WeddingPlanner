@@ -55,10 +55,16 @@ JOBS = {}
 
 
 def run_job(task_fn) -> str:
+    import storage
     job_id = uuid.uuid4().hex[:8]
-    JOBS[job_id] = {"events": [], "done": False, "result": None, "error": None}
+    # Capture the requesting couple: the worker thread has no request context,
+    # and contextvars don't cross threads on their own.
+    couple = storage.current_couple()
+    JOBS[job_id] = {"events": [], "done": False, "result": None, "error": None,
+                    "couple": couple}
 
     def work():
+        storage.set_couple(couple)
         try:
             JOBS[job_id]["result"] = task_fn(lambda e: JOBS[job_id]["events"].append(e))
         except Exception as e:  # surfaced to the UI, never a hung page
@@ -121,7 +127,9 @@ core_bp = Blueprint("core", __name__)
 
 @core_bp.get("/api/jobs/<job_id>")
 def job_status(job_id):
+    import storage
     job = JOBS.get(job_id)
-    if job is None:
+    # A couple can only poll their own jobs (job ids are random, but cheap to enforce).
+    if job is None or job.get("couple") not in (None, storage.current_couple()):
         return jsonify({"error": "Unknown job."}), 404
-    return jsonify(job)
+    return jsonify({k: v for k, v in job.items() if k != "couple"})

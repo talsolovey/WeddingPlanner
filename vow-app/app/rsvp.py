@@ -15,11 +15,23 @@ import secrets
 
 from flask import Blueprint, jsonify, request, send_from_directory
 
+import storage
 from agent import guard
 from .core import PUBLIC_DIR, rate_limit
 from .guests import load_guests, save_guests
 
 rsvp_bp = Blueprint("rsvp", __name__)
+
+
+def _enter_couple(couple: str) -> bool:
+    """Pin storage to the couple named in a public RSVP link. The token is
+    still the capability — the couple id only picks whose guest list the
+    token is checked against."""
+    try:
+        storage.set_couple(couple)
+        return True
+    except ValueError:
+        return False
 
 
 def ensure_tokens(guests) -> bool:
@@ -48,29 +60,52 @@ def rsvp_links():
     guests = load_guests()
     if ensure_tokens(guests):
         save_guests(guests)
+    couple = storage.current_couple()
     return jsonify({"links": [
         {"id": h["id"], "household": h["household"], "rsvp": h.get("rsvp", "pending"),
-         "url": f"/rsvp/{h['rsvp_token']}"}
+         "url": f"/rsvp/{couple}/{h['rsvp_token']}"}
         for h in guests["households"]
     ]})
 
 
 # ---------- guest-facing: the form ----------
+# Links carry the couple id (/rsvp/<couple>/<token>) so the token is checked
+# against the right couple's guest list. Legacy single-segment links keep
+# working against the pre-auth data.
 
-@rsvp_bp.get("/rsvp/<token>")
-def rsvp_page(token):
+@rsvp_bp.get("/rsvp/<couple>/<token>")
+def rsvp_page(couple, token):
     return send_from_directory(str(PUBLIC_DIR), "rsvp.html")
 
 
-@rsvp_bp.get("/api/rsvp/<token>")
-@rate_limit(max_calls=10, window=60)
-def rsvp_get(token):
+@rsvp_bp.get("/rsvp/<token>")
+def rsvp_page_legacy(token):
+    return send_from_directory(str(PUBLIC_DIR), "rsvp.html")
+
+
+def _rsvp_get(guests):
+    """Only this household's own fields — nothing about anyone else."""
+    profile = storage.load("profile", {}) or {}
+    return {
+        "wedding_date": guests["settings"].get("wedding_date", ""),
+        "rsvp_deadline": guests["settings"].get("rsvp_deadline", ""),
+        # The guest page shows whose wedding this is; guests can't call the
+        # gated /api/profile, so the public payload carries the header bits.
+        "partner_a": profile.get("partner_a", ""),
+        "partner_b": profile.get("partner_b", ""),
+        "venue": profile.get("venue", ""),
+    }
+
+
+def _rsvp_get_impl(couple, token):
+    if not _enter_couple(couple):
+        return jsonify({"error": "This RSVP link isn't valid."}), 404
     guests = load_guests()
     h = _find_by_token(guests, token)
     if h is None:
         return jsonify({"error": "This RSVP link isn't valid."}), 404
-    # Only this household's own fields — nothing about anyone else.
-    return jsonify({
+    payload = _rsvp_get(guests)
+    payload.update({
         "household": h["household"],
         "party_size": h["party_size"],
         "rsvp": h.get("rsvp", "pending"),
@@ -78,14 +113,25 @@ def rsvp_get(token):
         "plus_one_allowed": bool(h.get("plus_one_allowed")),
         "plus_one_name": h.get("plus_one_name", ""),
         "notes": h.get("notes", ""),
-        "wedding_date": guests["settings"].get("wedding_date", ""),
-        "rsvp_deadline": guests["settings"].get("rsvp_deadline", ""),
     })
+    return jsonify(payload)
 
 
-@rsvp_bp.post("/api/rsvp/<token>")
-@rate_limit(max_calls=5, window=60)
-def rsvp_submit(token):
+@rsvp_bp.get("/api/rsvp/<couple>/<token>")
+@rate_limit(max_calls=10, window=60)
+def rsvp_get(couple, token):
+    return _rsvp_get_impl(couple, token)
+
+
+@rsvp_bp.get("/api/rsvp/<token>")
+@rate_limit(max_calls=10, window=60)
+def rsvp_get_legacy(token):
+    return _rsvp_get_impl(storage.LEGACY_COUPLE_ID, token)
+
+
+def _rsvp_submit_impl(couple, token):
+    if not _enter_couple(couple):
+        return jsonify({"error": "This RSVP link isn't valid."}), 404
     guests = load_guests()
     h = _find_by_token(guests, token)
     if h is None:
@@ -127,3 +173,15 @@ def rsvp_submit(token):
     from .seating import seating_conflicts  # local import to avoid a cycle
     return jsonify({"ok": True, "rsvp": rsvp, "attending_count": attending,
                     "conflicts_created": seating_conflicts(guests=guests)})
+
+
+@rsvp_bp.post("/api/rsvp/<couple>/<token>")
+@rate_limit(max_calls=5, window=60)
+def rsvp_submit(couple, token):
+    return _rsvp_submit_impl(couple, token)
+
+
+@rsvp_bp.post("/api/rsvp/<token>")
+@rate_limit(max_calls=5, window=60)
+def rsvp_submit_legacy(token):
+    return _rsvp_submit_impl(storage.LEGACY_COUPLE_ID, token)

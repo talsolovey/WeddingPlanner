@@ -58,14 +58,16 @@
 (async function () {
   const esc = VOW.esc;
   const card = document.getElementById("card");
-  const token = location.pathname.split("/").pop();
+  // Everything after /rsvp/ — "<token>" (legacy) or "<couple>/<token>";
+  // the API mirrors both shapes.
+  const token = location.pathname.replace(/^\/rsvp\//, "");
 
   let info, profile;
   try {
     const res = await fetch("/api/rsvp/" + token);
     info = await res.json();
     if (!res.ok) throw new Error(info.error || "This RSVP link isn't valid.");
-    profile = await fetch("/api/profile").then((r) => r.json()).catch(() => ({}));
+    profile = info; // couple names + venue ride along on the public payload
   } catch (e) {
     card.innerHTML = `
       <div class="mark">✦</div>
