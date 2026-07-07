@@ -233,3 +233,4 @@ autonomous/outbox/
 autonomous/agent-runs/
 autonomous/.claude/
 vow-app/data/couples/
+/.claude/
