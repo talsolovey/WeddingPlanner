@@ -1,0 +1,63 @@
+{
+  "recall": 0.667,
+  "hits": [
+    "no-contingency",
+    "venue-overrun",
+    "overdue-payment",
+    "duplicate-dj"
+  ],
+  "misses": [
+    "missing-flowers",
+    "totals-exceed"
+  ],
+  "findings_count": 6,
+  "noise_count": 1,
+  "skill": "budget-forecaster",
+  "cost_usd": 0.0199,
+  "timestamp": "2026-07-07T14:25:59",
+  "findings": [
+    {
+      "priority": "high",
+      "area": "budget",
+      "title": "Overdue Venue Payment",
+      "why": "Payment for Bella Vista Hall is overdue since 2026-06-01 and only partially paid.",
+      "do": "Contact Bella Vista Hall to settle outstanding payment immediately."
+    },
+    {
+      "priority": "medium",
+      "area": "budget",
+      "title": "Overdue Photography Payment",
+      "why": "Payment to Golden Hour Photography was due on 2026-06-15 and remains unpaid.",
+      "do": "Arrange payment to Golden Hour Photography as soon as possible."
+    },
+    {
+      "priority": "medium",
+      "area": "budget",
+      "title": "Duplicate Music Entries",
+      "why": "Two entries for DJ Amir may indicate a duplicate record with differing payment statuses.",
+      "do": "Verify and correct any duplicate entries for DJ Amir."
+    },
+    {
+      "priority": "medium",
+      "area": "budget",
+      "title": "Per-Item Overrun in Venue",
+      "why": "The committed cost for Bella Vista Hall exceeds the budgeted amount by $1,000.",
+      "do": "Either adjust the budget for Bella Vista Hall or reduce costs elsewhere."
+    },
+    {
+      "priority": "medium",
+      "area": "budget",
+      "title": "Missing Service Charges",
+      "why": "No contingency budget or service charges are accounted for catering or other categories.",
+      "do": "Allocate 5-10% of the total budget for contingencies and possible service charges."
+    },
+    {
+      "priority": "low",
+      "area": "budget",
+      "title": "Missing Category: Favors",
+      "why": "No budget allocated for favors, which may lead to unplanned expenses.",
+      "do": "Consider setting a budget for favors."
+    }
+  ],
+  "lessons_enabled": true
+}

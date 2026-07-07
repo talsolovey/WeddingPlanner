@@ -1,0 +1,41 @@
+{
+  "recall": 0.6,
+  "hits": [
+    "ambiguous-plus-ones",
+    "capacity-breach",
+    "deadline-passed"
+  ],
+  "misses": [
+    "impossible-count",
+    "confirmed-zero"
+  ],
+  "findings_count": 3,
+  "noise_count": 0,
+  "skill": "guest-list-manager",
+  "cost_usd": 0.0135,
+  "timestamp": "2026-07-07T14:28:08",
+  "findings": [
+    {
+      "priority": "high",
+      "area": "guests",
+      "title": "Over Capacity Risk",
+      "why": "The worst-case ceiling of confirmed guests exceeds the venue's capacity, creating potential issues at the event.",
+      "do": "Consider revising the guest list or ensure all RSVPs are chased to ascertain a more accurate headcount."
+    },
+    {
+      "priority": "high",
+      "area": "guests",
+      "title": "Multiple Data Errors Found",
+      "why": "Inconsistent RSVP and attendee count data found, leading to inaccurate predictions of attendees.",
+      "do": "Correct the errors in RSVP information and chase overdue RSVPs."
+    },
+    {
+      "priority": "medium",
+      "area": "guests",
+      "title": "Overdue RSVPs and Unconfirmed Plus-Ones",
+      "why": "Several guests have not confirmed their attendance, and unconfirmed plus-one names contribute to uncertainty.",
+      "do": "Chase households with pending RSVP status and confirm potential plus-ones."
+    }
+  ],
+  "lessons_enabled": true
+}
