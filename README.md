@@ -9,7 +9,9 @@ notices when RSVPs stop converging, sends the WhatsApp nudges itself, and
 compiles it all into a weekly brief produced by a team of specialist sub-agents
 that a verifier double-checks.
 
-**Live app:** <https://weddingplanner-q4rw.onrender.com> ·
+**Live demo:** <https://weddingplanner-q4rw.onrender.com> — sign in as
+`demo@vow-demo.app` / `enjoy-being-engaged` (a seeded sample wedding; click
+"✦ Refresh" on Home to watch the orchestrator + verifier run live) ·
 **Full build log:** [PROJECT_STATE.md](PROJECT_STATE.md) ·
 **Threat model:** [vow-app/SECURITY.md](vow-app/SECURITY.md)
 
