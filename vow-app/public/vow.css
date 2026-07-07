@@ -259,3 +259,29 @@ a.area-link { font-size: 0.82rem; color: var(--rose); text-decoration: none; fon
   .vow-chat-fab { bottom: 4.4rem; }
   .vow-chat-panel { bottom: 4.4rem; height: min(560px, calc(100vh - 7rem)); }
 }
+
+/* ---------- live agent plan panel (plan -> act -> observe) ---------- */
+.vow-plan {
+  position: fixed; left: 1.1rem; bottom: 1.1rem; z-index: 55;
+  width: min(300px, calc(100vw - 2.2rem));
+  background: var(--card); border: 1px solid var(--hairline);
+  border-radius: 14px; box-shadow: 0 12px 32px rgba(38, 34, 42, 0.12);
+  padding: 0.85rem 1rem 0.9rem; font-size: 0.8rem;
+  animation: vow-rise 0.25s ease both;
+}
+.vow-plan .plan-eyebrow {
+  font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--rose); margin-bottom: 0.35rem;
+}
+.vow-plan .plan-step {
+  display: flex; gap: 0.5rem; align-items: baseline;
+  margin: 0.28rem 0; color: var(--ink-soft); line-height: 1.4;
+}
+.vow-plan .plan-step.done { color: var(--ink-faint); text-decoration: line-through; }
+.vow-plan .plan-step.active { color: var(--ink); font-weight: 500; }
+.vow-plan .plan-glyph { width: 1em; flex: none; color: var(--rose); }
+.vow-plan .plan-step.done .plan-glyph { color: var(--green); }
+.vow-plan .plan-step.active .plan-glyph { animation: vow-pulse 1.2s ease-in-out infinite; }
+.vow-plan .plan-reason { color: var(--amber); font-size: 0.74rem; margin-top: 0.5rem; }
+.vow-plan .plan-activity { color: var(--ink-faint); font-style: italic; font-size: 0.74rem; margin-top: 0.4rem; }
+@media (max-width: 720px) { .vow-plan { bottom: 4.4rem; } }

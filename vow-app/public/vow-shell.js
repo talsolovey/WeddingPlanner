@@ -104,18 +104,68 @@ const VOW = (() => {
   const CHEERS = ["One less thing on your mind ✦", "Beautifully handled ✦", "That's the hard part done ✦"];
   const cheer = () => toast(CHEERS[Math.floor(Math.random() * CHEERS.length)]);
 
+  /* ---------- live agent plan panel (plan -> act -> observe) ----------
+     The harness streams `plan::{json}` events while it works. When pollJob is
+     called without a custom event handler, this panel renders the plan as a
+     live checklist: done ✓, active ● (pulsing), pending ○, plus a "replanned"
+     line when the agent revised its plan mid-run. */
+  let planEl = null;
+
+  function removePlanPanel(delay = 900) {
+    const el = planEl;
+    planEl = null;
+    if (el) setTimeout(() => el.remove(), delay);
+  }
+
+  function renderPlanPanel(events) {
+    let plan = null, reason = null, activity = "";
+    for (const e of events) {
+      const s = String(e);
+      const m = s.match(/plan::(\{.*\})/);
+      if (m) {
+        try {
+          plan = JSON.parse(m[1]);
+          reason = plan.reason || reason;
+        } catch (err) { /* malformed plan event — keep the last good one */ }
+      } else {
+        activity = s.replace(/^plan::.*/, "") || activity;
+      }
+    }
+    if (!plan || !Array.isArray(plan.steps) || !plan.steps.length) return;
+    if (!planEl) {
+      planEl = document.createElement("div");
+      planEl.className = "vow-plan";
+      document.body.appendChild(planEl);
+    }
+    const GLYPH = { done: "✓", active: "●", pending: "○" };
+    planEl.innerHTML = `
+      <div class="plan-eyebrow">✦ Vow's plan</div>
+      ${plan.steps.map((s) => `
+        <div class="plan-step ${esc(s.status)}">
+          <span class="plan-glyph">${GLYPH[s.status] || "○"}</span>
+          <span>${esc(s.text)}</span>
+        </div>`).join("")}
+      ${reason ? `<div class="plan-reason">↻ replanned — ${esc(reason)}</div>` : ""}
+      ${activity ? `<div class="plan-activity">${esc(activity)}…</div>` : ""}`;
+  }
+
   /* ---------- background jobs ---------- */
   async function pollJob(jobId, onEvent) {
-    for (;;) {
-      const res = await fetch("/api/jobs/" + jobId);
-      if (!res.ok) throw new Error("Lost track of the job.");
-      const job = await res.json();
-      if (onEvent) onEvent(job.events || [], job);
-      if (job.done) {
-        if (job.error) throw new Error(job.error);
-        return job.result;
+    const handler = onEvent || renderPlanPanel;
+    try {
+      for (;;) {
+        const res = await fetch("/api/jobs/" + jobId);
+        if (!res.ok) throw new Error("Lost track of the job.");
+        const job = await res.json();
+        handler(job.events || [], job);
+        if (job.done) {
+          if (job.error) throw new Error(job.error);
+          return job.result;
+        }
+        await new Promise((r) => setTimeout(r, 1000));
       }
-      await new Promise((r) => setTimeout(r, 1000));
+    } finally {
+      if (!onEvent) removePlanPanel();
     }
   }
 
