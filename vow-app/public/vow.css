@@ -53,10 +53,13 @@ body > * { position: relative; z-index: 1; }
 
 body {
   margin: 0;
-  /* watercolor wash: three soft pools of the palette — rose from above,
-     sage low-left, warm amber right — so the page reads as painted paper */
+  /* watercolor wash: TWO stacked rose pools from above (a broad faint halo
+     plus a tighter, warmer core — light with depth, like sun through fabric),
+     then sage low-left and amber right. Both rose layers span the viewport,
+     so they deepen each other without any visible seam. */
   background:
-    radial-gradient(ellipse 85% 55% at 50% -12%, rgba(160, 92, 109, 0.075), transparent 72%),
+    radial-gradient(ellipse 55% 36% at 50% -6%, rgba(160, 92, 109, 0.07), transparent 68%),
+    radial-gradient(ellipse 95% 60% at 50% -14%, rgba(160, 92, 109, 0.065), transparent 74%),
     radial-gradient(ellipse 60% 45% at -8% 105%, rgba(90, 138, 106, 0.055), transparent 70%),
     radial-gradient(ellipse 50% 42% at 108% 55%, rgba(168, 135, 61, 0.045), transparent 70%),
     var(--bg);
