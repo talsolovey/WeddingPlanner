@@ -190,9 +190,9 @@ threat model + defenses in `vow-app/SECURITY.md`.
 3. ~~Scheduled autonomous brief (WS4)~~ — built; on the Mac: register the MCP server +
    load the launchd plist (see `autonomous/README.md`), then collect a week of run records.
 
-Backlog: capstone demo video (due Wed Jul 8, 10:00) — the before/after verifier story is
-the centerpiece; vendor comparison with a reasoned recommendation; measure the
-lessons-loop effect with the eval suite.
+Live demo for reviewers: https://weddingplanner-q4rw.onrender.com — sign in as
+`demo@vow-demo.app` / `enjoy-being-engaged` (seeded sample wedding). Backlog:
+vendor comparison with a reasoned recommendation.
 
 ## How to run it
 

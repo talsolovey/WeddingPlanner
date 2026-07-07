@@ -79,4 +79,3 @@ Couples spend heavily on planning help; Vow sells as a per-wedding subscription 
 - **Multi-agent run record:** `./evidence/orchestrator-run-2026-07-07.json` — a real orchestrator run: 4 specialists with per-agent cost and 11 findings added by the verifier (`verifier_added` per agent).
 - **Autonomous run record:** `./evidence/autonomous-run.json` + `./evidence/wedding_actions_2026-07-07.md` — a real unattended headless run ($0.13, 8 turns): scheduled agent → MCP → the same orchestrator → Stop-hook-enforced dated draft, verifier catches tagged inline.
 - **Repo:** https://github.com/talsolovey/WeddingOS — key files: `vow-app/agent/orchestrator.py` (multi-agent), `vow-app/agent/trust.py` (HITL tiers), `vow-app/agent/harness.py` (the loop), `PROJECT_STATE.md` (30-step build log).
-- **Demo video:** *\<url — recording in progress\>* — will show: upload contract → flags; refresh brief → verifier catches; silent guests → nudge proposal → approve → send.
