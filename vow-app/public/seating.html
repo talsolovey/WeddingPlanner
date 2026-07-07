@@ -123,6 +123,17 @@
     });
     $("conflicts").innerHTML = chips.map((c) => `<span class="chip-alert">${esc(c)}</span>`).join("");
 
+    // Milestone: a conflict-free room (cheer only on the transition).
+    if (view.tables.length > 0 && chips.length === 0) {
+      if (localStorage.getItem("vow-cheer-seating") !== "done") {
+        VOW.cheer();
+        VOW.toast("Not a single seating conflict ✦");
+        localStorage.setItem("vow-cheer-seating", "done");
+      }
+    } else if (chips.length > 0) {
+      localStorage.setItem("vow-cheer-seating", "pending");
+    }
+
     /* sidebar: still to seat (confirmed) */
     unseatedConfirmed.sort((a, b) => seatsOf(byId[b.id] || b) - seatsOf(byId[a.id] || a));
     $("toseat").innerHTML = unseatedConfirmed.map((u) => `

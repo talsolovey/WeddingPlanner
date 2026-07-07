@@ -277,8 +277,27 @@ const VOW = (() => {
     body: JSON.stringify(payload || {}),
   });
 
+  /* Tween a number from 0 to `value` inside `el` over ~600ms.
+     `format` maps the in-flight number to display text (default: rounded). */
+  function countUp(el, value, format) {
+    if (!el) return;
+    const target = Number(value) || 0;
+    const fmt = format || ((n) => Math.round(n).toLocaleString());
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      el.textContent = fmt(target);
+      return;
+    }
+    const t0 = performance.now(), dur = 600;
+    (function tick(t) {
+      const p = Math.min(1, (t - t0) / dur);
+      const eased = 1 - Math.pow(1 - p, 3); // ease-out cubic
+      el.textContent = fmt(target * eased);
+      if (p < 1) requestAnimationFrame(tick);
+    })(t0);
+  }
+
   return { esc, money, toast, cheer, pollJob, loadProfile, greeting, coupleNames,
-           getJSON, postJSON,
+           getJSON, postJSON, countUp,
            askVow: (text) => { if (chatAsk) chatAsk(text); },
            get profile() { return profile; } };
 })();
