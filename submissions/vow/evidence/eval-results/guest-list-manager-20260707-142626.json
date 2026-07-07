@@ -1,0 +1,48 @@
+{
+  "recall": 0.8,
+  "hits": [
+    "impossible-count",
+    "confirmed-zero",
+    "ambiguous-plus-ones",
+    "deadline-passed"
+  ],
+  "misses": [
+    "capacity-breach"
+  ],
+  "findings_count": 4,
+  "noise_count": 0,
+  "skill": "guest-list-manager",
+  "cost_usd": 0.0145,
+  "timestamp": "2026-07-07T14:26:26",
+  "findings": [
+    {
+      "priority": "high",
+      "area": "guests",
+      "title": "Impossible counts",
+      "why": "\"Levi Family\" has an attending count greater than party size, inflating headcount improperly.",
+      "do": "Verify the correct attending count for \"Levi Family\"."
+    },
+    {
+      "priority": "high",
+      "area": "guests",
+      "title": "Confirmed-but-zero attendance",
+      "why": "\"Peretz\" has confirmed but has an attending count of zero, affecting minimum headcount accuracy.",
+      "do": "Contact \"Peretz\" to verify if they are attending or correct their details."
+    },
+    {
+      "priority": "medium",
+      "area": "guests",
+      "title": "Ambiguous plus-ones",
+      "why": "Households \"Friedman\" and \"Goldstein\" have plus-ones allowed but no names provided, causing uncertainty in headcount projections.",
+      "do": "Contact these households to confirm the presence of their plus-ones."
+    },
+    {
+      "priority": "medium",
+      "area": "guests",
+      "title": "Overdue RSVPs",
+      "why": "Multiple households (\"Mizrahi Family\", \"Friedman\", \"Goldstein\", \"Sharabi Family\", \"Dahan Family\", \"Malka Family\", \"Biton Family\", \"Ohana Family\") have not responded despite the past RSVP deadline, causing uncertainty in headcount.",
+      "do": "Reach out to these households, prioritizing larger parties due to their potential impact on headcount."
+    }
+  ],
+  "lessons_enabled": true
+}

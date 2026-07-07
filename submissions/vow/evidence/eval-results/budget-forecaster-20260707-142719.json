@@ -1,0 +1,63 @@
+{
+  "recall": 0.667,
+  "hits": [
+    "no-contingency",
+    "overdue-payment",
+    "duplicate-dj",
+    "missing-flowers"
+  ],
+  "misses": [
+    "venue-overrun",
+    "totals-exceed"
+  ],
+  "findings_count": 6,
+  "noise_count": 3,
+  "skill": "budget-forecaster",
+  "cost_usd": 0.0283,
+  "timestamp": "2026-07-07T14:27:19",
+  "findings": [
+    {
+      "priority": "high",
+      "area": "budget",
+      "title": "Overdue Payment - Venue",
+      "why": "Payment to Bella Vista Hall was due on 2026-06-01, and only partial payment has been made. This could jeopardize the booking.",
+      "do": "Contact Bella Vista Hall to settle the remaining balance and ensure the booking is secure."
+    },
+    {
+      "priority": "medium",
+      "area": "budget",
+      "title": "Estimate vs Contracted - Catering",
+      "why": "Fig & Vine Catering has no committed or paid amount, only a budgeted estimate which is optimistic.",
+      "do": "Finalize the contract with Fig & Vine Catering and adjust the budget to reflect real costs."
+    },
+    {
+      "priority": "medium",
+      "area": "budget",
+      "title": "High Payment Exposure",
+      "why": "A significant amount is due before the wedding, leading to a risky financial concentration.",
+      "do": "Evaluate payment schedules and consider negotiating terms with vendors for more balanced payment distribution."
+    },
+    {
+      "priority": "low",
+      "area": "budget",
+      "title": "Double Entry - Music",
+      "why": "Duplicate entries for DJ Amir appear under 'Music', which could result in overpayment.",
+      "do": "Clarify the payment structure with DJ Amir and ensure only one entry is accurate."
+    },
+    {
+      "priority": "medium",
+      "area": "budget",
+      "title": "Hidden Fees in Photography Contract",
+      "why": "Golden Hour Photography contract includes a 22% service fee not reflected in budgeted costs.",
+      "do": "Update the budget to account for the service fee and ensure it aligns with total budget constraints."
+    },
+    {
+      "priority": "high",
+      "area": "budget",
+      "title": "Missing Contingency Fund and Several Categories",
+      "why": "No contingency or line items for decor, video, flowers, favors, rings, insurance, and officiant were found, posing a risk of unbudgeted surprises.",
+      "do": "Review and update the budget to include these missing categories and a 5-10% contingency fund."
+    }
+  ],
+  "lessons_enabled": true
+}

@@ -1,0 +1,41 @@
+{
+  "recall": 0.6,
+  "hits": [
+    "delivery-failure",
+    "cap-exhausted",
+    "over-capacity-table"
+  ],
+  "misses": [
+    "stalled-wave",
+    "declined-still-seated"
+  ],
+  "findings_count": 3,
+  "noise_count": 0,
+  "skill": "guest-logistics",
+  "cost_usd": 0.0201,
+  "timestamp": "2026-07-07T14:34:37",
+  "findings": [
+    {
+      "priority": "high",
+      "area": "logistics",
+      "title": "Reminder cap exhausted",
+      "why": "Household Levi has exhausted their reminder cap and still has not responded. The automated system can no longer reach them.",
+      "do": "Make a personal phone call to the Levi Family."
+    },
+    {
+      "priority": "high",
+      "area": "logistics",
+      "title": "Unreachable household",
+      "why": "Peretz family has no valid phone number on record and is still pending. They are currently unreachable by automated systems.",
+      "do": "Contact the Peretz family through another available channel."
+    },
+    {
+      "priority": "medium",
+      "area": "logistics",
+      "title": "Seating overcapacity",
+      "why": "Table 1 is over capacity with 6 assigned but only 4 seats, leaving 2 guests without seating.",
+      "do": "Reassign some guests from Table 1 to other available tables."
+    }
+  ],
+  "lessons_enabled": true
+}

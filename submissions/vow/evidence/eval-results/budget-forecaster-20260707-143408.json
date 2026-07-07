@@ -1,0 +1,49 @@
+{
+  "recall": 0.667,
+  "hits": [
+    "venue-overrun",
+    "overdue-payment",
+    "duplicate-dj",
+    "totals-exceed"
+  ],
+  "misses": [
+    "no-contingency",
+    "missing-flowers"
+  ],
+  "findings_count": 4,
+  "noise_count": 0,
+  "skill": "budget-forecaster",
+  "cost_usd": 0.0357,
+  "timestamp": "2026-07-07T14:34:08",
+  "findings": [
+    {
+      "priority": "high",
+      "area": "budget",
+      "title": "Total line items exceed total budget",
+      "why": "The sum of all budget line items ($53,200) exceeds the total budget ($50,000) by $3,200, which is unsustainable.",
+      "do": "Review and adjust the budgeted amounts to align them with the total budget."
+    },
+    {
+      "priority": "high",
+      "area": "budget",
+      "title": "Duplicate music vendor",
+      "why": "DJ Amir appears twice in the budget, suggesting a duplicate entry and double-counting of expenses for the music category.",
+      "do": "Confirm and remove any duplicate entries for DJ Amir."
+    },
+    {
+      "priority": "high",
+      "area": "budget",
+      "title": "Overdue payments",
+      "why": "Payments to vendors Bella Vista Hall ($16,000) and Golden Hour Photography ($4,200) are overdue, risking negative credit or service cancellations.",
+      "do": "Prioritize settling overdue payments to maintain good standing with vendors and avoid service disruptions."
+    },
+    {
+      "priority": "medium",
+      "area": "budget",
+      "title": "Per-line overruns",
+      "why": "Bella Vista Hall and Golden Hour Photography have committed costs ($21,000 and $4,200 respectively) exceeding their budgeted amounts ($20,000 and $4,000), indicating potential overspending.",
+      "do": "Negotiate costs or reallocate funds to cover the overruns."
+    }
+  ],
+  "lessons_enabled": true
+}

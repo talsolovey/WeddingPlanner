@@ -1,0 +1,47 @@
+{
+  "recall": 1.0,
+  "hits": [
+    "stalled-wave",
+    "delivery-failure",
+    "cap-exhausted",
+    "declined-still-seated",
+    "over-capacity-table"
+  ],
+  "misses": [],
+  "findings_count": 4,
+  "noise_count": 0,
+  "skill": "guest-logistics",
+  "cost_usd": 0.0274,
+  "timestamp": "2026-07-07T14:19:21",
+  "findings": [
+    {
+      "priority": "high",
+      "area": "logistics",
+      "title": "Stalled Reminder Wave",
+      "why": "Reminder 1 was scheduled to be sent on 2026-06-01 but is still in 'scheduled' status. This indicates a potential issue with the automated reminder system.",
+      "do": "Investigate and manually send Reminder 1 to ensure guests are reminded."
+    },
+    {
+      "priority": "high",
+      "area": "logistics",
+      "title": "Pending Households with Reminder Cap Exhausted",
+      "why": "The Levi Family (L2) has reached the reminder cap of 3 and still has a pending RSVP status. Automation has reached its limit.",
+      "do": "Contact the Levi Family personally to confirm their attendance."
+    },
+    {
+      "priority": "medium",
+      "area": "logistics",
+      "title": "Unreachable Household",
+      "why": "The Peretz household (L4) has no valid phone number and is still pending. No automated nudges can reach them.",
+      "do": "Use an alternative communication method to reach the Peretz household."
+    },
+    {
+      "priority": "medium",
+      "area": "logistics",
+      "title": "Seating Drift - Declined Households Assigned",
+      "why": "Mizrahi Family (L3) has declined but is still assigned to Table 2. They occupy unnecessary seating capacity.",
+      "do": "Remove Mizrahi Family from the seating arrangement to free up space for other guests."
+    }
+  ],
+  "lessons_enabled": true
+}

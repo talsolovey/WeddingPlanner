@@ -1,0 +1,57 @@
+{
+  "recall": 1.0,
+  "hits": [
+    "service-fee",
+    "nonrefundable-even-if-vendor-cancels",
+    "substitution",
+    "alaska-jurisdiction",
+    "early-full-payment",
+    "180-day-forfeit",
+    "rebooking-fee",
+    "double-booking"
+  ],
+  "misses": [],
+  "findings_count": 5,
+  "noise_count": 0,
+  "skill": "contract-analyzer",
+  "cost_usd": 0.0247,
+  "timestamp": "2026-07-07T14:18:49",
+  "findings": [
+    {
+      "priority": "high",
+      "area": "contracts",
+      "title": "Non-refundable Deposit and Substitution",
+      "why": "Golden Hour Photography includes a non-refundable deposit and reserves the right to substitute photographers, which risks losing money or receiving unexpected service quality.",
+      "do": "Negotiate for partial refund of the deposit and a clause requiring consent for any substitutions."
+    },
+    {
+      "priority": "medium",
+      "area": "contracts",
+      "title": "Hidden Fees in Photography",
+      "why": "Golden Hour Photography adds a 22% service fee on top of the quoted price, which unexpectedly increases costs.",
+      "do": "Clarify the total final cost including these fees to avoid surprises."
+    },
+    {
+      "priority": "high",
+      "area": "contracts",
+      "title": "Venue Cancellation Penalties",
+      "why": "Bella Vista Hall forfeits 100% of payments if cancelled 180 days before the event, which could result in a total loss if plans change.",
+      "do": "Discuss more flexible cancellation terms, potentially allowing for partial refunds."
+    },
+    {
+      "priority": "medium",
+      "area": "contracts",
+      "title": "Venue Rescheduling Penalties",
+      "why": "Bella Vista Hall's auto-renewal and rebooking fee if postponed can lead to additional expenses.",
+      "do": "Negotiate to minimize or eliminate rebooking fees for date changes."
+    },
+    {
+      "priority": "low",
+      "area": "contracts",
+      "title": "Exclusive Dispute Location",
+      "why": "Golden Hour Photography's dispute resolution in Anchorage might be inconvenient if the couple is not local.",
+      "do": "Ask if disputes can be settled in a more convenient location."
+    }
+  ],
+  "lessons_enabled": true
+}

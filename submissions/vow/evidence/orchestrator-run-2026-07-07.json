@@ -1,0 +1,76 @@
+{
+  "agents": [
+    {
+      "name": "contracts",
+      "cost_usd": 0.0245,
+      "findings": 6,
+      "verifier_added": 3
+    },
+    {
+      "name": "budget",
+      "cost_usd": 0.0283,
+      "findings": 8,
+      "verifier_added": 4
+    },
+    {
+      "name": "guests",
+      "cost_usd": 0.018,
+      "findings": 5,
+      "verifier_added": 2
+    },
+    {
+      "name": "logistics",
+      "cost_usd": 0.0494,
+      "findings": 4,
+      "verifier_added": 2
+    }
+  ],
+  "analysis": {
+    "as_of": "2026-07-07",
+    "headline": "The current top priority is addressing the venue's high prepayment and cancellation risks. Seating assignments are critical to manage due to several families unassigned and overcapacity issues.",
+    "on_track": [
+      "Photographer is booked with no financial risks.",
+      "Stationery printing is complete and within budget."
+    ],
+    "action_items": [
+      {
+        "do": "Negotiate with the venue to secure a more balanced payment schedule and softer cancellation terms to mitigate financial risk.",
+        "why": "Current terms require full prepayment before the wedding and have harsh cancellation penalties, posing significant financial risk.",
+        "area": "contracts",
+        "title": "Venue Cancellation Terms and Prepayment Risk",
+        "priority": "high"
+      },
+      {
+        "do": "Reassign guests to ensure no table exceeds its capacity and all confirmed guests have seating assignments.",
+        "why": "Table '10' is over capacity and several families, including Levi and Goldstein, have no tables, risking logistical issues on the day.",
+        "area": "guests",
+        "title": "Seating Conflicts",
+        "priority": "high"
+      },
+      {
+        "do": "Request clear terms on venue liability and compensation if the venue cancels.",
+        "why": "The contract lacks a clause for venue liability if it cancels or cannot host, leaving the couple unprotected.",
+        "area": "contracts",
+        "title": "No Venue Cancellation Clause",
+        "priority": "medium"
+      },
+      {
+        "do": "Urgently follow up with these households via phone to confirm attendance.",
+        "why": "The Ovadia and Azoulay families have not responded post-RSVP deadline. These parties can significantly impact headcount.",
+        "area": "guests",
+        "title": "Overdue RSVP Responses",
+        "priority": "medium"
+      },
+      {
+        "do": "Secure a contract with DJ Nova to confirm details and avoid last-minute surprises.",
+        "why": "The DJ is still not contracted, leaving pricing and availability in question.",
+        "area": "budget",
+        "title": "DJ Contract Missing",
+        "priority": "medium"
+      }
+    ],
+    "weeks_to_wedding": 18
+  },
+  "cost_usd": 0.173,
+  "generated_at": "2026-07-07T11:11:12"
+}

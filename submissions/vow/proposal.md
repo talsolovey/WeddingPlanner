@@ -16,7 +16,7 @@ Couples planning a wedding juggle 10+ vendors, a five-figure budget, and 200 gue
 
 - **Upload a contract → red-flag report.** The agent reads the PDF against a learned checklist (jurisdiction traps, auto-renewals, missing contingencies) and returns severity-ranked flags. Live at `/contracts`.
 - **"Refresh my brief" → a specialist team investigates.** Four sub-agents (contracts / budget / guests / logistics) fan out in parallel, a verifier re-checks each one, and the couple gets a ranked to-do list on the home dashboard. The magic moment: the verifier badge — *"caught 5 items the specialists missed"* — visible in the UI.
-- **Silent guests → Vow proposes the nudge.** RSVP deadline approaching + households silent → Vow drafts a personalized WhatsApp reminder (magic RSVP link included) and posts it as an *approvable proposal* on home. Approve → it sends via Twilio and later reports whether the nudge actually produced a reply.
+- **Silent guests → Vow proposes the nudge.** RSVP deadline approaching + households silent → Vow drafts a personalized WhatsApp reminder (magic RSVP link included) and posts it as an *approvable proposal* on home. Approve → it sends via Twilio and later reports whether the nudge actually produced a reply. This flow has run for real: WhatsApp nudges were delivered to actual guests through the live app and the replies came back through the magic RSVP links (the demo account's activity log shows the sends).
 
 All flows are live at https://weddingplanner-q4rw.onrender.com — sign in with the demo account (`demo@vow-demo.app` / `enjoy-being-engaged`) to see a seeded ~200-guest sample wedding.
 
@@ -73,8 +73,9 @@ Couples spend heavily on planning help; Vow sells as a per-wedding subscription 
 
 ## 10. Evidence index  *(curated)*
 
-- **Runnable test:** `cd vow-app && pip install -r requirements.txt && pytest` — 185 tests pass offline, no API keys; covers injection defenses, trust tiers, orchestrator, auth isolation, concurrency. CI proof on every push: https://github.com/talsolovey/WeddingOS/actions
+- **Runnable test:** `./verify.sh` (in this folder) — installs deps, runs all 185 offline tests (no API keys) and the eval dry-run; covers injection defenses, trust tiers, orchestrator, auth isolation, concurrency. CI proof on every push: https://github.com/talsolovey/WeddingOS/actions
 - **Live URL:** https://weddingplanner-q4rw.onrender.com — log in as `demo@vow-demo.app` / `enjoy-being-engaged` (a seeded sample wedding, phone numbers scrubbed); click "✦ Ask Vow to refresh" on Home to watch the orchestrator + verifier live.
-- **Eval before/after:** `vow-app/evals/` — `python -m evals.run_evals --dry-run` validates offline; timestamped recall results in `evals/results/` demonstrate the measured 2/6→4/6 and 3/5→5/5 improvements.
+- **Eval before/after:** `./evidence/eval-results/` — 13 timestamped recall results demonstrating the measured 2/6→4/6 (budget) and 3/5→5/5 (guests) improvements; regenerate with `python -m evals.run_evals` in `vow-app/`.
+- **Multi-agent run record:** `./evidence/orchestrator-run-2026-07-07.json` — a real orchestrator run: 4 specialists with per-agent cost and 11 findings added by the verifier (`verifier_added` per agent).
 - **Repo:** https://github.com/talsolovey/WeddingOS — key files: `vow-app/agent/orchestrator.py` (multi-agent), `vow-app/agent/trust.py` (HITL tiers), `vow-app/agent/harness.py` (the loop), `PROJECT_STATE.md` (30-step build log).
 - **Demo video:** *\<url — recording in progress\>* — will show: upload contract → flags; refresh brief → verifier catches; silent guests → nudge proposal → approve → send.

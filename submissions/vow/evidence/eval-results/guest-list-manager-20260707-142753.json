@@ -1,0 +1,34 @@
+{
+  "recall": 0.8,
+  "hits": [
+    "impossible-count",
+    "ambiguous-plus-ones",
+    "capacity-breach",
+    "deadline-passed"
+  ],
+  "misses": [
+    "confirmed-zero"
+  ],
+  "findings_count": 2,
+  "noise_count": 0,
+  "skill": "guest-list-manager",
+  "cost_usd": 0.0213,
+  "timestamp": "2026-07-07T14:27:53",
+  "findings": [
+    {
+      "priority": "high",
+      "area": "guests",
+      "title": "Over-capacity risk",
+      "why": "The confirmed guest count exceeds venue capacity. An error in attending count (Levi Family) artificially inflates the numbers.",
+      "do": "Rectify the Levi Family's attending count discrepancy; reassess the headcount."
+    },
+    {
+      "priority": "medium",
+      "area": "guests",
+      "title": "Overdue RSVPs & Ambiguous Plus-Ones",
+      "why": "Critical households still pending response, plus ambiguous plus-one offers.",
+      "do": "Chase RSVPs from Friedman, Azoulay, Goldstein, Sharabi, Dahan, Malka, Biton, Ohana families; clarify plus-one for Friedman and Goldstein."
+    }
+  ],
+  "lessons_enabled": true
+}
