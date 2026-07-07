@@ -29,6 +29,8 @@ os.environ.setdefault("VOW_STORAGE_BACKEND", "files")  # tests never touch Supab
 
 import app.core as core                                   # noqa: E402
 from app import create_app                                # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from authtest import login                  # noqa: E402
 from app.seating import seating_conflicts, validate_proposal  # noqa: E402
 
 DATA_DIR = Path(os.environ["VOW_DATA_DIR"])
@@ -56,7 +58,7 @@ class RsvpBase(unittest.TestCase):
     def setUp(self):
         _seed()
         core._CALL_TIMES.clear()
-        self.client = create_app().test_client()
+        self.client = login(create_app().test_client())
         # Generate tokens the way the couple would.
         links = self.client.post("/api/guests/rsvp-links").get_json()["links"]
         self.tokens = {}

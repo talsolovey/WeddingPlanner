@@ -24,8 +24,12 @@ from pathlib import Path
 # --- bootstrap: import vow-app packages, and point data at a throwaway dir ---
 VOW_APP = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(VOW_APP))
-_TMP_DATA = tempfile.mkdtemp(prefix="vow-test-data-")
-os.environ["VOW_DATA_DIR"] = _TMP_DATA  # must be set before importing registry/app
+# Must be set before importing registry/app. setdefault (not assignment): in a
+# full-suite run another test module may already have pinned the shared dir,
+# and overriding the env here would desync it from the already-imported
+# storage/registry modules, which bind DATA_DIR at import time.
+os.environ.setdefault("VOW_DATA_DIR", tempfile.mkdtemp(prefix="vow-test-data-"))
+_TMP_DATA = os.environ["VOW_DATA_DIR"]
 os.environ["VOW_STORAGE_BACKEND"] = "files"  # tests never touch Supabase
 
 from agent import guard                       # noqa: E402
@@ -33,6 +37,8 @@ from agent.registry import ToolRegistry, BACKUP_DIR, DATA_DIR  # noqa: E402
 from agent.harness import AgentHarness        # noqa: E402
 import app.core as core                        # noqa: E402
 from app import create_app                     # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from authtest import login                  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
@@ -172,7 +178,7 @@ class TestCostCeiling(unittest.TestCase):
 class TestRateLimit(unittest.TestCase):
     def setUp(self):
         core._CALL_TIMES.clear()                 # isolate from other tests
-        self.client = create_app().test_client()
+        self.client = login(create_app().test_client())
 
     def test_sixth_call_is_throttled(self):
         # Empty POSTs fail validation (400) but still count against the limiter,
@@ -188,7 +194,7 @@ class TestRateLimit(unittest.TestCase):
 class TestUploadGuards(unittest.TestCase):
     def setUp(self):
         core._CALL_TIMES.clear()
-        self.client = create_app().test_client()
+        self.client = login(create_app().test_client())
 
     def test_missing_file_rejected(self):
         r = self.client.post("/api/contracts/analyze", data={"vendor": "X"})
