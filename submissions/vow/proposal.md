@@ -4,7 +4,7 @@
 
 **One-liner:** An AI agent that plans a couple's wedding — it reads vendor contracts for red flags, forecasts the real budget, tracks RSVPs, seats the room, sends the WhatsApp nudges itself, and escalates what matters in a weekly brief.
 
-**Built by:** Tal Solovey · **Repo (public):** https://github.com/talsolovey/WeddingOS · **Demo (video):** *\<recording in progress — due Jul 8\>* · **Live app:** https://weddingplanner-q4rw.onrender.com · **Try it:** `cd vow-app && pip install -r requirements.txt && pytest` (185 offline tests, no keys needed)
+**Built by:** Tal Solovey · **Repo (public):** https://github.com/talsolovey/WeddingOS · **Live demo:** https://weddingplanner-q4rw.onrender.com — sign in as `demo@vow-demo.app` / `enjoy-being-engaged` · **Try it:** `cd vow-app && pip install -r requirements.txt && pytest` (185 offline tests, no keys needed)
 
 ---
 
