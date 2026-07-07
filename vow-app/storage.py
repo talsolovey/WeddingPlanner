@@ -1,24 +1,33 @@
-"""Document storage for the couple's wedding data.
+"""Document storage for each couple's wedding data.
 
 Every dataset in Vow is one JSON document ("budget", "guests", "seating", ...).
 This module is the single place they are read and written; both the web layer
 (app/*) and the agent's read_data/write_data tools go through it.
 
+Multi-couple: every document belongs to a couple (the Supabase Auth user id).
+The current couple is carried in a context variable — the web layer sets it
+per request from the session, background jobs inherit it explicitly, and
+headless runs (agent CLI, MCP server) set it via the VOW_COUPLE_ID env var.
+When no couple is set, the legacy id "default" is used, which is where the
+pre-auth data was migrated — so old tests, dev flows and the autonomous kit
+keep working unchanged.
+
 Backend is picked from the environment at first use:
 
 - SUPABASE_URL + SUPABASE_SERVICE_KEY set  ->  Supabase Postgres. Documents
   live in one table (see supabase_schema.sql):
-      vow_documents(name text primary key, data jsonb, updated_at timestamptz)
+      vow_documents(couple_id text, name text, data jsonb, updated_at
+      timestamptz, primary key (couple_id, name))
   The service key stays server-side only; RLS is enabled with no public
-  policies, so the anon key can't read the couple's data.
-- otherwise  ->  local JSON files in DATA_DIR (VOW_DATA_DIR overridable),
-  exactly the format the app always used — so dev and the offline test suite
-  keep working with no setup, and existing data needs no conversion.
+  policies, so the anon/publishable key can't read any couple's data.
+- otherwise  ->  local JSON files. The legacy couple keeps the original flat
+  DATA_DIR/*.json layout; other couples live in DATA_DIR/couples/<id>/*.json.
 
 Reads from Supabase are cached for a few seconds (single-process app; the
 cache is write-through) to keep pages that read several documents snappy.
 """
 
+import contextvars
 import json
 import os
 import re
@@ -36,7 +45,14 @@ DATA_DIR = Path(os.environ.get("VOW_DATA_DIR", BASE / "data"))
 TABLE = os.environ.get("VOW_SUPABASE_TABLE", "vow_documents")
 CACHE_TTL_SECONDS = 3
 
+# The couple id every pre-auth document was migrated under.
+LEGACY_COUPLE_ID = "default"
+
 _NAME_RE = re.compile(r"^[a-z0-9_-]{1,60}$")
+_COUPLE_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+
+_current_couple: contextvars.ContextVar = contextvars.ContextVar(
+    "vow_current_couple", default=None)
 
 
 def _check_name(name: str):
@@ -44,13 +60,42 @@ def _check_name(name: str):
         raise ValueError(f"Invalid document name: {name!r}")
 
 
+def _check_couple(couple_id: str):
+    if not _COUPLE_RE.match(couple_id or ""):
+        raise ValueError(f"Invalid couple id: {couple_id!r}")
+
+
+# ---------- couple context ----------
+
+def set_couple(couple_id):
+    """Set the couple whose documents load()/save() touch (None = legacy)."""
+    if couple_id is not None:
+        _check_couple(couple_id)
+    _current_couple.set(couple_id)
+
+
+def current_couple() -> str:
+    """The effective couple id: request context, else VOW_COUPLE_ID, else legacy."""
+    ctx = _current_couple.get()
+    if ctx:
+        return ctx
+    env = os.environ.get("VOW_COUPLE_ID", "").strip()
+    return env if env else LEGACY_COUPLE_ID
+
+
 # ---------- file backend (default) ----------
 
 class FileBackend:
     name = "files"
 
-    def load(self, doc: str):
-        path = DATA_DIR / f"{doc}.json"
+    def _dir(self, couple: str) -> Path:
+        # Legacy couple keeps the original flat layout (existing data + tests).
+        if couple == LEGACY_COUPLE_ID:
+            return DATA_DIR
+        return DATA_DIR / "couples" / couple
+
+    def load(self, couple: str, doc: str):
+        path = self._dir(couple) / f"{doc}.json"
         if not path.exists():
             return None
         try:
@@ -58,9 +103,10 @@ class FileBackend:
         except (json.JSONDecodeError, OSError):
             return None
 
-    def save(self, doc: str, data):
-        DATA_DIR.mkdir(parents=True, exist_ok=True)
-        (DATA_DIR / f"{doc}.json").write_text(
+    def save(self, couple: str, doc: str, data):
+        d = self._dir(couple)
+        d.mkdir(parents=True, exist_ok=True)
+        (d / f"{doc}.json").write_text(
             json.dumps(data, indent=2, ensure_ascii=False))
 
 
@@ -72,30 +118,31 @@ class SupabaseBackend:
     def __init__(self, url: str, key: str):
         from supabase import create_client  # imported lazily: optional dep
         self.client = create_client(url, key)
-        self._cache = {}  # doc -> (data, monotonic timestamp)
+        self._cache = {}  # (couple, doc) -> (data, monotonic timestamp)
         self._lock = threading.Lock()
 
-    def load(self, doc: str):
+    def load(self, couple: str, doc: str):
         now = time.monotonic()
         with self._lock:
-            hit = self._cache.get(doc)
+            hit = self._cache.get((couple, doc))
             if hit and now - hit[1] < CACHE_TTL_SECONDS:
                 return hit[0]
         result = (self.client.table(TABLE).select("data")
-                  .eq("name", doc).limit(1).execute())
+                  .eq("couple_id", couple).eq("name", doc).limit(1).execute())
         data = result.data[0]["data"] if result.data else None
         with self._lock:
-            self._cache[doc] = (data, now)
+            self._cache[(couple, doc)] = (data, now)
         return data
 
-    def save(self, doc: str, data):
+    def save(self, couple: str, doc: str, data):
         self.client.table(TABLE).upsert({
+            "couple_id": couple,
             "name": doc,
             "data": data,
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }).execute()
         with self._lock:
-            self._cache[doc] = (data, time.monotonic())
+            self._cache[(couple, doc)] = (data, time.monotonic())
 
 
 _backend = None
@@ -119,21 +166,21 @@ def backend():
 # ---------- public API ----------
 
 def load(name: str, default=None):
-    """Read a document; returns `default` if it doesn't exist (or is corrupt)."""
+    """Read a document for the current couple; `default` if missing/corrupt."""
     _check_name(name)
-    data = backend().load(name)
+    data = backend().load(current_couple(), name)
     return default if data is None else data
 
 
 def save(name: str, data):
-    """Write a document (whole-document semantics, like the files always had)."""
+    """Write a document for the current couple (whole-document semantics)."""
     _check_name(name)
-    backend().save(name, data)
+    backend().save(current_couple(), name, data)
 
 
 def exists(name: str) -> bool:
     _check_name(name)
-    return backend().load(name) is not None
+    return backend().load(current_couple(), name) is not None
 
 
 def backend_name() -> str:
