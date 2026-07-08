@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Vow — judge verification. Offline: no API keys, no network calls to models.
-# Runs the full test suite (185 tests) and validates the eval harness.
+# Runs the full test suite (193 tests) and validates the eval harness.
 set -e
 cd "$(dirname "$0")/../../vow-app"
 

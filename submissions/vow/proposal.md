@@ -4,7 +4,7 @@
 
 **One-liner:** An AI agent that plans a couple's wedding — it reads vendor contracts for red flags, forecasts the real budget, tracks RSVPs, seats the room, sends the WhatsApp nudges itself, and escalates what matters in a weekly brief.
 
-**Built by:** Tal Solovey · **Repo (public):** https://github.com/talsolovey/WeddingOS · **Live demo:** https://weddingplanner-q4rw.onrender.com — sign in as `demo@vow-demo.app` / `enjoy-being-engaged` · **Try it:** `cd vow-app && pip install -r requirements.txt && pytest` (185 offline tests, no keys needed)
+**Built by:** Tal Solovey · **Repo (public):** https://github.com/talsolovey/WeddingOS · **Live demo:** https://weddingplanner-q4rw.onrender.com — sign in as `demo@vow-demo.app` / `enjoy-being-engaged` · **Try it:** `cd vow-app && pip install -r requirements.txt && pytest` (193 offline tests, no keys needed)
 
 ---
 
@@ -32,7 +32,7 @@ All flows are live at https://weddingplanner-q4rw.onrender.com — sign in with 
 
 - **Components & data flow:** Flask blueprints (`vow-app/app/`, one module per feature) → `vow-app/storage.py`, a single document layer that scopes every dataset per couple and runs on Supabase (JSONB + RLS + auth) or plain files with zero code change. The agent side (GPT-4o harness, orchestrator, triggers, trust) acts only through whitelisted tools and the same server-side seams as UI buttons. Diagram: `vow-architecture.svg`.
 - **Robustness:** global error handler (JSON errors on all `/api/*`, tracebacks logged); atomic `storage.mutate()` with per-couple-per-document locks — a test proves concurrent wave delivery survives simultaneous edits; bounded memory (job + rate-limiter pruning); frontend fetches throw and toast instead of rendering `undefined`; every LLM call logged with token + dollar cost to `vow-app/logs/`.
-- **Tests:** 185 offline tests (`vow-app/tests/`, external services faked at seams) covering auth isolation, injection defenses, orchestrator, planning lifecycle, trust promotion/revocation, concurrency races. CI runs the suite + eval dry-run on every push: `.github/workflows/tests.yml` (badge on the README). Run it yourself: `cd vow-app && pytest`.
+- **Tests:** 193 offline tests (`vow-app/tests/`, external services faked at seams) covering auth isolation, injection defenses, orchestrator, planning lifecycle, trust promotion/revocation, concurrency races. CI runs the suite + eval dry-run on every push: `.github/workflows/tests.yml` (badge on the README). Run it yourself: `cd vow-app && pytest`.
 
 ## 5. Safety & control  *(Safety & control)*
 
@@ -77,7 +77,7 @@ Couples spend heavily on planning help; Vow sells as a per-wedding subscription 
 
 ## 10. Evidence index  *(curated)*
 
-- **Runnable test:** `./verify.sh` (in this folder) — installs deps, runs all 185 offline tests (no API keys) and the eval dry-run; covers injection defenses, trust tiers, orchestrator, auth isolation, concurrency. CI proof on every push: https://github.com/talsolovey/WeddingOS/actions
+- **Runnable test:** `./verify.sh` (in this folder) — installs deps, runs all 193 offline tests (no API keys) and the eval dry-run; covers injection defenses, trust tiers, orchestrator, auth isolation, concurrency. CI proof on every push: https://github.com/talsolovey/WeddingOS/actions
 - **Live URL:** https://weddingplanner-q4rw.onrender.com — log in as `demo@vow-demo.app` / `enjoy-being-engaged` (a seeded sample wedding, phone numbers scrubbed); click "✦ Ask Vow to refresh" on Home to watch the orchestrator + verifier live.
 - **Eval before/after:** `./evidence/eval-results/` — 13 timestamped recall results demonstrating the measured 2/6→4/6 (budget) and 3/5→5/5 (guests) improvements; regenerate with `python -m evals.run_evals` in `vow-app/`.
 - **Multi-agent run record:** `./evidence/orchestrator-run-2026-07-07.json` — a real orchestrator run: 4 specialists with per-agent cost and 11 findings added by the verifier (`verifier_added` per agent).

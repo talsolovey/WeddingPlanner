@@ -46,7 +46,7 @@ that a verifier double-checks.
 
 | Claim | How to verify |
 |---|---|
-| 184 offline tests, zero network, all fakes at named seams | `cd vow-app && python -m unittest discover -s tests` (also runs in CI on every push) |
+| 193 offline tests, zero network, all fakes at named seams | `cd vow-app && python -m unittest discover -s tests` (also runs in CI on every push) |
 | Skills are *measured*, not vibes: planted-trap evals with recall/noise/cost | `python -m evals.run_evals --dry-run` (structure) or `python -m evals.run_evals` (live, ~$0.09); archived scores in `vow-app/evals/results/` |
 | Eval-driven iteration worked: budget 2/6 → 4/6, guests 3/5 → 5/5 | before/after result files in `vow-app/evals/results/`; skill diffs in git history (`git log --oneline -- vow-app/skills`) |
 | The unattended stack is wired and guarded | `./autonomous/smoke-test.sh` — 24 checks, $0, no model call |
