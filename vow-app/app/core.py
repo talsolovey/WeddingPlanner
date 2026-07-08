@@ -48,6 +48,59 @@ def parse_agent_json(answer: str):
             "note": "agent returned non-JSON; raw answer shown in summary"}
 
 
+def looks_unparsed(parsed) -> bool:
+    """True when parse_agent_json fell back to the raw-prose shape."""
+    return (isinstance(parsed, dict)
+            and "agent returned non-JSON" in str(parsed.get("note", "")))
+
+
+def _skill_output_format(skill: str) -> str:
+    """The '## Output format' section of a skill — the schema the UI renders.
+    Read at call time so repairs always match the current skill definition."""
+    try:
+        text = (SKILLS_DIR / skill / "SKILL.md").read_text()
+    except OSError:
+        return "a JSON object"
+    m = re.search(r"## Output format\s*\n(.*?)(?:\n## |\Z)", text, re.DOTALL)
+    return m.group(1).strip() if m else "a JSON object"
+
+
+def _repair_call(system: str, user: str) -> str:
+    """One tool-free completion (seam — offline tests patch this)."""
+    from .chat import llm_complete  # local import: avoids an import cycle
+    return llm_complete(system, [{"role": "user", "content": user}],
+                        max_tokens=1500)
+
+
+def ensure_agent_json(answer: str, skill: str = None, schema: str = None,
+                      on_event=None):
+    """Parse agent output for UI display; if the model wrote prose despite the
+    JSON instructions (long inputs push it there), run ONE cheap repair call
+    that reformats its own findings into the expected schema. Never raises —
+    worst case returns the prose fallback so the run still completes."""
+    parsed = parse_agent_json(answer)
+    if not looks_unparsed(parsed):
+        return parsed
+    if on_event:
+        try:
+            on_event("tidying the report format")
+        except Exception:
+            pass
+    shape = schema or _skill_output_format(skill)
+    system = (
+        "You reformat an assistant's analysis into JSON. Preserve every finding, "
+        "number, severity and recommendation exactly — do not add, drop, or "
+        "soften anything. Respond with ONLY this JSON object — no markdown "
+        f"fences, no commentary:\n{shape}")
+    try:
+        repaired = parse_agent_json(_repair_call(system, (answer or "")[:12000]))
+        if not looks_unparsed(repaired):
+            return repaired
+    except Exception:
+        pass  # a down repair call must not sink the job
+    return parsed
+
+
 # ---------- background jobs (live agent progress) ----------
 # NOTE: in-memory + threads — fine for a single local/long-running server,
 # revisit for serverless deployment.

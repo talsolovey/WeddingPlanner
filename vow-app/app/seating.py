@@ -14,7 +14,7 @@ from flask import Blueprint, jsonify, request, send_from_directory
 
 import storage
 from agent.harness import AgentHarness
-from .core import PUBLIC_DIR, parse_agent_json, rate_limit, run_job
+from .core import PUBLIC_DIR, ensure_agent_json, rate_limit, run_job
 from .guests import load_guests
 
 seating_bp = Blueprint("seating", __name__)
@@ -204,7 +204,8 @@ def auto_seat():
             "Respond with ONLY the JSON object the skill defines — no prose, no "
             "markdown fences."
         )
-        proposal = parse_agent_json(answer)
+        proposal = ensure_agent_json(answer, skill="seating-planner",
+                                     on_event=on_event)
         issues = validate_proposal(proposal, guests)
         hard = _hard_issues(issues)
         applied = False

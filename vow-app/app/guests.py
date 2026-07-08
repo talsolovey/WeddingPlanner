@@ -11,7 +11,7 @@ from flask import Blueprint, jsonify, request, send_from_directory
 
 import storage
 from agent.harness import AgentHarness
-from .core import PUBLIC_DIR, parse_agent_json, run_job
+from .core import PUBLIC_DIR, ensure_agent_json, run_job
 
 guests_bp = Blueprint("guests", __name__)
 
@@ -204,7 +204,8 @@ def analyze_guests():
             "Respond with ONLY the JSON object defined in the guest-list-manager skill "
             "— no prose, no markdown, no headings."
         )
-        result = {"analysis": parse_agent_json(answer),
+        result = {"analysis": ensure_agent_json(answer, skill="guest-list-manager",
+                                              on_event=on_event),
                   "cost_usd": round(harness.last_run_cost, 4)}
         storage.save("headcount", dict(
             result, generated_at=datetime.now().isoformat(timespec="seconds")))

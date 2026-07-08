@@ -13,7 +13,7 @@ import uuid
 from flask import Blueprint, jsonify, request, send_from_directory
 
 import storage
-from .core import PUBLIC_DIR, parse_agent_json, rate_limit
+from .core import PUBLIC_DIR, ensure_agent_json, rate_limit
 from .budget import load_budget
 from .guests import load_guests
 
@@ -147,7 +147,7 @@ def check_flow():
     except Exception:
         return jsonify({"error": "Vow couldn't check the flow just now — try again."}), 502
 
-    parsed = parse_agent_json(answer)
+    parsed = ensure_agent_json(answer, schema='{"flags": [{"event_id": "id or null", "text": "one short actionable sentence"}]}')
     flags = parsed.get("flags") if isinstance(parsed, dict) else None
     if not isinstance(flags, list):
         return jsonify({"error": "Vow answered unclearly — try once more."}), 502

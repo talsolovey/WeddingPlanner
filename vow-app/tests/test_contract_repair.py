@@ -1,11 +1,17 @@
-"""Contract analysis output repair (offline — harness and LLM faked).
+"""Agent-output repair for everything the UI renders (offline — LLM faked).
 
-Real PDFs sometimes push the model into prose despite JSON instructions.
+Real inputs sometimes push the model into prose despite JSON instructions.
+core.ensure_agent_json() is the shared fix: parse; if prose, ONE repair call
+reformats the model's own findings into the schema pulled live from the
+skill's '## Output format' section.
+
 What must hold:
-- A prose answer triggers ONE repair call that converts it to the schema,
-  and the stored analysis is the parsed JSON (renderable by the UI).
-- A JSON answer never triggers the repair call.
-- If the repair itself fails, the prose fallback is stored (job never dies).
+- Prose triggers exactly one repair call; the stored analysis is the schema.
+- Clean JSON never triggers repair.
+- A failed repair keeps the prose fallback (jobs never die on formatting).
+- The repair prompt carries the *current* skill schema (read at call time).
+- Every agent-output endpoint (contracts, budget, guests, seating, timeline)
+  routes through the helper.
 """
 
 import json
@@ -21,6 +27,7 @@ os.environ.setdefault("VOW_DATA_DIR", tempfile.mkdtemp(prefix="vow-test-data-"))
 os.environ.setdefault("VOW_STORAGE_BACKEND", "files")  # tests never touch Supabase
 
 import storage                                  # noqa: E402
+import app.core as core                         # noqa: E402
 import app.contracts as contracts_mod           # noqa: E402
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -36,73 +43,102 @@ PROSE = ("Here is my review of the contract. Overall it seems mostly fair, "
          "negotiated before signing. The deposit is 50%.")
 
 
-class _FakeHarness:
-    def __init__(self, answer):
-        self._answer = answer
-        self.last_run_cost = 0.01
-
-    def run(self, prompt):
-        self.prompt = prompt
-        return self._answer
-
-
-class TestRepair(unittest.TestCase):
-    COUPLE = "repair-test"
-
+class RepairSeam(unittest.TestCase):
     def setUp(self):
-        storage.set_couple(self.COUPLE)
-        storage.save("contracts", [])
-        storage.set_couple(None)
-        self._orig = (contracts_mod.AgentHarness, contracts_mod._repair_to_json)
+        self._orig = core._repair_call
 
     def tearDown(self):
-        contracts_mod.AgentHarness, contracts_mod._repair_to_json = self._orig
+        core._repair_call = self._orig
 
-    def _run(self, harness_answer, repair):
-        contracts_mod.AgentHarness = lambda **kw: _FakeHarness(harness_answer)
-        contracts_mod._repair_to_json = repair
-        storage.set_couple(self.COUPLE)
-        try:
-            task = contracts_mod._analyze_contract_task(
-                "Bella Vista", "contract.pdf", "x" * 200, False)
-            return task(lambda e: None)
-        finally:
-            storage.set_couple(None)
 
-    def test_prose_answer_gets_repaired(self):
+class TestEnsureAgentJson(RepairSeam):
+    def test_prose_triggers_one_repair_with_current_skill_schema(self):
         calls = []
-        def repair(raw, on_event=None):
-            calls.append(raw)
+        def fake(system, user):
+            calls.append(system)
             return GOOD_JSON
-        record = self._run(PROSE, repair)
+        core._repair_call = fake
+        out = core.ensure_agent_json(PROSE, skill="contract-analyzer")
         self.assertEqual(len(calls), 1)
-        self.assertEqual(record["analysis"]["vendor_type"], "venue")
-        self.assertEqual(record["analysis"]["red_flags"][0]["severity"], "red")
-        self.assertNotIn("note", record["analysis"])
+        self.assertIn("vendor_type", calls[0])       # schema pulled from SKILL.md
+        self.assertIn("red_flags", calls[0])
+        self.assertEqual(out["red_flags"][0]["severity"], "red")
+        self.assertNotIn("note", out)
 
-    def test_json_answer_skips_repair(self):
+    def test_clean_json_skips_repair(self):
         calls = []
-        record = self._run(GOOD_JSON, lambda raw, on_event=None: calls.append(raw))
+        core._repair_call = lambda s, u: calls.append(s)
+        out = core.ensure_agent_json(GOOD_JSON, skill="contract-analyzer")
         self.assertEqual(calls, [])
-        self.assertEqual(record["analysis"]["summary"], "Mostly fair.")
+        self.assertEqual(out["summary"], "Mostly fair.")
 
     def test_failed_repair_keeps_prose_fallback(self):
-        def repair(raw, on_event=None):
+        def boom(s, u):
             raise RuntimeError("llm down")
-        record = self._run(PROSE, repair)
-        self.assertIn("summary", record["analysis"])   # raw prose surfaced
-        self.assertIn("non-JSON", record["analysis"]["note"])
+        core._repair_call = boom
+        out = core.ensure_agent_json(PROSE, skill="contract-analyzer")
+        self.assertIn("non-JSON", out["note"])
+        self.assertIn("forfeiture", out["summary"])   # nothing lost
+
+    def test_repair_that_still_produces_prose_falls_back(self):
+        core._repair_call = lambda s, u: "still just prose, sorry"
+        out = core.ensure_agent_json(PROSE, skill="contract-analyzer")
+        self.assertIn("non-JSON", out["note"])
+
+    def test_explicit_schema_beats_skill_lookup(self):
+        seen = []
+        def fake(system, user):
+            seen.append(system)
+            return '{"flags": []}'
+        core._repair_call = fake
+        out = core.ensure_agent_json("prose about flags", schema='{"flags": [...]}')
+        self.assertIn('{"flags": [...]}', seen[0])
+        self.assertEqual(out, {"flags": []})
+
+    def test_every_agent_endpoint_routes_through_the_helper(self):
+        for module in ("contracts", "budget", "guests", "seating", "timeline"):
+            src = (VOW_APP / "app" / f"{module}.py").read_text()
+            self.assertIn("ensure_agent_json", src, module)
+            self.assertNotIn("parse_agent_json(answer)", src, module)
+
+
+class TestContractTaskIntegration(RepairSeam):
+    COUPLE = "repair-test"
+
+    class _FakeHarness:
+        def __init__(self, answer):
+            self._answer = answer
+            self.last_run_cost = 0.01
+
+        def run(self, prompt):
+            self.prompt = prompt
+            return self._answer
+
+    def test_prose_pdf_analysis_ends_up_renderable(self):
+        core._repair_call = lambda s, u: GOOD_JSON
+        contracts_mod.AgentHarness = lambda **kw: self._FakeHarness(PROSE)
+        try:
+            storage.set_couple(self.COUPLE)
+            storage.save("contracts", [])
+            record = contracts_mod._analyze_contract_task(
+                "Bella Vista", "contract.pdf", "x" * 200, False)(lambda e: None)
+        finally:
+            storage.set_couple(None)
+            from agent.harness import AgentHarness
+            contracts_mod.AgentHarness = AgentHarness
+        self.assertEqual(record["analysis"]["vendor_type"], "venue")
 
     def test_json_instruction_sits_after_the_contract_text(self):
-        contracts_mod.AgentHarness = lambda **kw: _FakeHarness(GOOD_JSON)
-        storage.set_couple(self.COUPLE)
+        fake = self._FakeHarness(GOOD_JSON)
+        contracts_mod.AgentHarness = lambda **kw: fake
         try:
-            fake = _FakeHarness(GOOD_JSON)
-            contracts_mod.AgentHarness = lambda **kw: fake
+            storage.set_couple(self.COUPLE)
             contracts_mod._analyze_contract_task(
                 "V", "f.pdf", "CONTRACT-TEXT-MARKER " * 20, False)(lambda e: None)
         finally:
             storage.set_couple(None)
+            from agent.harness import AgentHarness
+            contracts_mod.AgentHarness = AgentHarness
         self.assertGreater(fake.prompt.rfind("ONLY the JSON object"),
                            fake.prompt.rfind("CONTRACT-TEXT-MARKER"))
 

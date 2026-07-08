@@ -10,7 +10,7 @@ from flask import Blueprint, jsonify, request, send_from_directory
 
 import storage
 from agent.harness import AgentHarness
-from .core import PUBLIC_DIR, parse_agent_json, rate_limit, run_job
+from .core import PUBLIC_DIR, ensure_agent_json, rate_limit, run_job
 
 budget_bp = Blueprint("budget", __name__)
 
@@ -113,7 +113,8 @@ def analyze_budget():
             "Respond with ONLY the JSON object defined in the budget-forecaster skill "
             "— no prose, no markdown, no headings."
         )
-        result = {"analysis": parse_agent_json(answer),
+        result = {"analysis": ensure_agent_json(answer, skill="budget-forecaster",
+                                              on_event=on_event),
                   "cost_usd": round(harness.last_run_cost, 4)}
         storage.save("forecast", dict(
             result, generated_at=datetime.now().isoformat(timespec="seconds")))
