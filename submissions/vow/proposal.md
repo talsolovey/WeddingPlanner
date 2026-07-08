@@ -4,7 +4,7 @@
 
 **One-liner:** An AI agent that plans a couple's wedding — it reads vendor contracts for red flags, forecasts the real budget, tracks RSVPs, seats the room, sends the WhatsApp nudges itself, and escalates what matters in a weekly brief.
 
-**Built by:** Tal Solovey · **Repo (public):** https://github.com/talsolovey/WeddingOS · **Live demo:** https://weddingplanner-q4rw.onrender.com — sign in as `demo@vow-demo.app` / `enjoy-being-engaged` · **Try it:** `cd vow-app && pip install -r requirements.txt && pytest` (193 offline tests, no keys needed)
+**Built by:** Tal Solovey · **Repo (public):** https://github.com/talsolovey/WeddingOS · **Live demo:** https://weddingplanner-q4rw.onrender.com — sign in with email `demo@vow-demo.app`, password `enjoy-being-engaged` · **Try it:** `cd vow-app && pip install -r requirements.txt && pytest` (193 offline tests, no keys needed)
 
 ---
 
@@ -20,7 +20,7 @@ Couples planning a wedding juggle 10+ vendors, a five-figure budget, and 200 gue
 
 - **Ask the planner anything — it answers with *your* numbers.** A chat on every page that holds the whole wedding. Ask "is our budget realistic?" and it replies from live data — "committed $201,000 against your $200,000 cap, $158,500 still to pay; review the unsigned quotes" — and it's prompted to push back, not just agree. This is the human planner's core service, judgment on your actual situation on demand, without the four-figure fee. (Its data snapshot is server-built and injection-fenced — see §5.)
 
-All flows are live at https://weddingplanner-q4rw.onrender.com — sign in with the demo account (`demo@vow-demo.app` / `enjoy-being-engaged`) to see a seeded ~200-guest sample wedding.
+All flows are live at https://weddingplanner-q4rw.onrender.com — sign in with the demo account (email `demo@vow-demo.app`, password `enjoy-being-engaged`) to see a seeded ~200-guest sample wedding.
 
 ## 3. The agentic core  *(Agentic depth)*
 
@@ -80,9 +80,9 @@ Couples spend heavily on planning help; Vow sells as a per-wedding subscription 
 ## 10. Evidence index  *(curated)*
 
 - **Runnable test:** `./verify.sh` (in this folder) — installs deps, runs all 193 offline tests (no API keys) and the eval dry-run; covers injection defenses, trust tiers, orchestrator, auth isolation, concurrency. CI proof on every push: https://github.com/talsolovey/WeddingOS/actions
-- **Live URL:** https://weddingplanner-q4rw.onrender.com — log in as `demo@vow-demo.app` / `enjoy-being-engaged` (a seeded sample wedding, phone numbers scrubbed); click "✦ Ask Vow to refresh" on Home to watch the orchestrator + verifier live.
+- **Live URL:** https://weddingplanner-q4rw.onrender.com — log in with email `demo@vow-demo.app`, password `enjoy-being-engaged` (a seeded sample wedding, phone numbers scrubbed); click "✦ Ask Vow to refresh" on Home to watch the orchestrator + verifier live.
 - **Eval before/after:** `./evidence/eval-results/` — 13 timestamped recall results demonstrating the measured 2/6→4/6 (budget) and 3/5→5/5 (guests) improvements; regenerate with `python -m evals.run_evals` in `vow-app/`.
 - **Multi-agent run record:** `./evidence/orchestrator-run-2026-07-07.json` — a real orchestrator run: 4 specialists with per-agent cost and 11 findings added by the verifier (`verifier_added` per agent).
 - **Autonomous run record:** `./evidence/autonomous-run.json` + `./evidence/wedding_actions_2026-07-07.md` — a real unattended headless run ($0.13, 8 turns): scheduled agent → MCP → the same orchestrator → Stop-hook-enforced dated draft, verifier catches tagged inline.
-- **Demo clips (narrated):** [`./evidence/demos/`](./evidence/demos/) — three ~1-minute recordings of the live app: the specialist team + verifier producing a brief, a guest RSVP round-trip + agent seating, and a real contract analysis. Everything shown is reproducible live at https://weddingplanner-q4rw.onrender.com (`demo@vow-demo.app` / `enjoy-being-engaged`).
+- **Demo clips (narrated):** [`./evidence/demos/`](./evidence/demos/) — three ~1-minute recordings of the live app: the specialist team + verifier producing a brief, a guest RSVP round-trip + agent seating, and a real contract analysis. Everything shown is reproducible live at https://weddingplanner-q4rw.onrender.com (email `demo@vow-demo.app`, password `enjoy-being-engaged`).
 - **Repo:** https://github.com/talsolovey/WeddingOS — key files: `vow-app/agent/orchestrator.py` (multi-agent), `vow-app/agent/trust.py` (HITL tiers), `vow-app/agent/harness.py` (the loop), `PROJECT_STATE.md` (30-step build log).
